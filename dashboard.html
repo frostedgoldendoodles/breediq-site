@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BreedIQ Dashboard</title>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // Dog data
+        const dogData = {
+            Spencer: [
+                { id: 1, name: 'Cookie', status: 'Open', guardian: 'Ben & Jen', weight: null, nextEvent: 'Heat window ~April 2026' },
+                { id: 2, name: 'Indy', status: 'Open', guardian: 'Personal', weight: null, nextEvent: 'Heat window ~May 2026' },
+                { id: 3, name: 'Aspen', status: 'Open', guardian: 'Jenna', weight: null, nextEvent: 'Heat window ~May 2026' },
+                { id: 4, name: 'Ghost', status: 'Open', guardian: 'Jenna', weight: null, nextEvent: 'Heat window ~June 2026' },
+                { id: 5, name: 'Poppy S', status: 'Nursing', guardian: 'Ruffin', weight: null, pups: '7 (4F/3M)', nextEvent: 'Pups go home 3/17' },
+                { id: 6, name: 'Gigi', status: 'Pregnant', guardian: 'Melissa', weight: null, dueDate: '5/21', nextEvent: 'Ultrasound 4/18' },
+                { id: 7, name: 'Stormi', status: 'Open', guardian: 'Puanani', weight: null, dob: '1/10/24', nextEvent: 'Heat window ~April 2026' },
+                { id: 8, name: 'Capri', status: 'Open', guardian: 'Kalvin & Emily', weight: null, dob: '11/25/24', nextEvent: 'Heat window ~May 2026' },
+                { id: 9, name: 'Luna', status: 'Too Young', guardian: 'Brad', weight: null, dob: null, microchip: '900263006168843', nextEvent: 'Maturity ~2027' }
+            ],
+            Annie: [
+                { id: 10, name: 'Quinny', status: 'Retired', guardian: 'Unknown', weight: null, nextEvent: 'N/A' },
+                { id: 11, name: 'Millie', status: 'Open', guardian: 'Annie', weight: '21 lbs', nextEvent: 'Heat window ~April 15-20' },
+                { id: 12, name: 'Rainey', status: 'Nursing', guardian: 'Annie', weight: '44 lbs', breed: 'F1b Red/Cream', pups: '11 (6F/5M)', born: '3/4', nextEvent: 'Pups go home 4/29' },
+                { id: 13, name: 'Willow', status: 'Open', guardian: 'Annie', weight: '18 lbs', nextEvent: 'Heat window ~May 2026' },
+                { id: 14, name: 'Dixie', status: 'Pregnant', guardian: 'Annie', weight: '21 lbs', dueDate: '4/28', bred: '3/2', nextEvent: 'Due 4/28' },
+                { id: 15, name: 'Charlie', status: 'Pregnant', guardian: 'Annie', weight: '17 lbs', dueDate: '4/26', bred: '2/24', nextEvent: 'Due 4/26' },
+                { id: 16, name: 'Ollie', status: 'Open', guardian: 'Annie', weight: '12.5 lbs', nextEvent: 'Heat window ~June 2026' }
+            ],
+            Hayley: [
+                { id: 17, name: 'Reese', status: 'Open', guardian: 'Hayley', weight: null, nextEvent: 'Heat window ~May 2026' },
+                { id: 18, name: 'Zoey', status: 'Open', guardian: 'Hayley', weight: null, nextEvent: 'Heat window ~May 2026' },
+                { id: 19, name: 'Coco', status: 'Open', guardian: 'Hayley', weight: null, nextEvent: 'Heat window ~June 2026' },
+                { id: 20, name: 'Ella', status: 'Open', guardian: 'Hayley', weight: null, nextEvent: 'Heat window ~May 2026' },
+                { id: 21, name: 'Ellie', status: 'Open', guardian: 'Hayley', weight: null, nextEvent: 'Heat window ~June 2026' },
+                { id: 22, name: 'Candy', status: 'Open', guardian: 'Hayley', weight: null, nextEvent: 'Heat window ~May 2026' },
+                { id: 23, name: 'Maple', status: 'Open', guardian: 'Hayley', weight: null, nextEvent: 'Heat window ~May 2026' },
+                { id: 24, name: 'Lou', status: 'Open', guardian: 'Hayley', weight: null, nextEvent: 'Heat window ~June 2026' },
+                { id: 25, name: 'Poppy H', status: 'Open', guardian: 'Hayley', weight: null, nextEvent: 'Heat window ~May 2026' }
+            ]
+        };
+
+        const actionItems = [
+            { dog: 'Charlie', event: 'Due to give birth', date: '4/26', daysUntil: 24, urgency: 'Critical', breeder: 'Annie' },
+            { dog: 'Dixie', event: 'Due to give birth', date: '4/28', daysUntil: 26, urgency: 'Critical', breeder: 'Annie' },
+            { dog: 'Rainey', event: 'Pups go home', date: '4/29', daysUntil: 27, urgency: 'High', breeder: 'Annie' },
+            { dog: 'Gigi', event: 'Ultrasound', date: '4/18', daysUntil: 16, urgency: 'Medium', breeder: 'Spencer' },
+            { dog: 'Stormi', event: 'Heat window', date: '~4/25-30', daysUntil: 23, urgency: 'Medium', breeder: 'Spencer' },
+            { dog: 'Millie', event: 'Heat window', date: '~4/15-20', daysUntil: 13, urgency: 'Medium', breeder: 'Annie' }
+        ];
+
+        const litterPipeline = [
+            { dog: 'Charlie', bred: '2/24', due: '4/26', progressPercent: 80, breeder: 'Annie' },
+            { dog: 'Dixie', bred: '3/2', due: '4/28', progressPercent: 75, breeder: 'Annie' },
+            { dog: 'Gigi', bred: '3/21', due: '5/21', progressPercent: 25, breeder: 'Spencer' }
+        ];
+
+        const nursingLitters = [
+            { dog: 'Rainey', pups: 11, females: 6, males: 5, born: '3/4', homeDate: '4/29', breeder: 'Annie' },
+            { dog: 'Poppy S', pups: 7, females: 4, males: 3, born: '1/20', homeDate: '3/17', breeder: 'Spencer' }
+        ];
+
+        // Icon components
+        const IconHeart = () => (
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
+            </svg>
+        );
+
+        const IconBaby = () => (
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+            </svg>
+        );
+
+        const IconFire = () => (
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M7.684 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633z" clipRule="evenodd" />
+            </svg>
+        );
+
+        const IconCalendar = () => (
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l12-12v12z" />
+            </svg>
+        );
+
+        const IconBell = () => (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+        );
+
+        const IconMenu = () => (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        );
+
+        const IconSearch = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+        );
+
+        const IconX = () => (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        );
+
+        // Stat Card Component
+        const StatCard = ({ icon: Icon, label, value, color }) => (
+            <div className="bg-slate-900 rounded-lg p-6 border border-slate-800">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-slate-400 text-sm font-medium">{label}</p>
+                        <p className={`text-3xl font-bold mt-2 ${color}`}>{value}</p>
+                    </div>
+                    <div className={`text-3xl opacity-20 ${color}`}>
+                        <Icon />
+                    </div>
+                </div>
+            </div>
+        );
+
+        // Alert Item Component
+        const AlertItem = ({ item, urgencyColor }) => (
+            <div className={`flex items-start gap-4 p-4 rounded-lg border ${urgencyColor}`}>
+                <div className="flex-shrink-0 mt-1">
+                    <div className={`w-3 h-3 rounded-full ${urgencyColor.includes('red') ? 'bg-red-500' : urgencyColor.includes('orange') ? 'bg-orange-500' : urgencyColor.includes('yellow') ? 'bg-yellow-500' : 'bg-blue-500'}`}></div>
+                </div>
+                <div className="flex-grow">
+                    <p className="font-semibold text-slate-100">{item.dog}</p>
+                    <p className="text-sm text-slate-400">{item.event}</p>
+                    <p className="text-xs text-slate-500 mt-1">{item.date} • {item.daysUntil} days • {item.breeder}</p>
+                </div>
+            </div>
+        );
+
+        // Dashboard View
+        const DashboardView = () => (
+            <div className="space-y-8">
+                {/* Stats Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <StatCard icon={IconHeart} label="Active Dams" value="24" color="text-emerald-400" />
+                    <StatCard icon={IconFire} label="Pregnant" value="3" color="text-amber-400" />
+                    <StatCard icon={IconBaby} label="Nursing" value="2" color="text-blue-400" />
+                    <StatCard icon={IconCalendar} label="Upcoming Heats" value="3" color="text-yellow-400" />
+                </div>
+
+                {/* Action Items */}
+                <div>
+                    <h2 className="text-2xl font-bold text-slate-100 mb-4">Action Items</h2>
+                    <div className="space-y-3">
+                        {actionItems.map((item, idx) => {
+                            let urgencyColor = '';
+                            if (item.urgency === 'Critical') urgencyColor = 'bg-red-950 border-red-700';
+                            else if (item.urgency === 'High') urgencyColor = 'bg-orange-950 border-orange-700';
+                            else if (item.urgency === 'Medium') urgencyColor = 'bg-yellow-950 border-yellow-700';
+                            else urgencyColor = 'bg-blue-950 border-blue-700';
+
+                            return <AlertItem key={idx} item={item} urgencyColor={urgencyColor} />;
+                        })}
+                    </div>
+                </div>
+
+                {/* Litter Pipeline */}
+                <div>
+                    <h2 className="text-2xl font-bold text-slate-100 mb-4">Litter Pipeline</h2>
+                    <div className="space-y-4">
+                        {litterPipeline.map((litter, idx) => (
+                            <div key={idx} className="bg-slate-900 rounded-lg p-6 border border-slate-800">
+                                <div className="flex justify-between items-start mb-3">
+                                    <div>
+                                        <p className="font-semibold text-slate-100">{litter.dog}</p>
+                                        <p className="text-sm text-slate-400">Bred: {litter.bred} • Due: {litter.due}</p>
+                                    </div>
+                                    <span className="text-xs bg-teal-900 text-teal-200 px-2 py-1 rounded">{litter.breeder}</span>
+                                </div>
+                                <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
+                                    <div className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full" style={{width: `${litter.progressPercent}%`}}></div>
+                                </div>
+                                <p className="text-xs text-slate-400 mt-2">{litter.progressPercent}% complete</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Nursing Litters */}
+                <div>
+                    <h2 className="text-2xl font-bold text-slate-100 mb-4">Nursing Litters</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {nursingLitters.map((litter, idx) => (
+                            <div key={idx} className="bg-slate-900 rounded-lg p-6 border border-slate-800">
+                                <div className="flex justify-between items-start mb-3">
+                                    <div>
+                                        <p className="font-semibold text-slate-100">{litter.dog}</p>
+                                        <p className="text-sm text-slate-400">Born: {litter.born}</p>
+                                    </div>
+                                    <span className="text-xs bg-blue-900 text-blue-200 px-2 py-1 rounded">{litter.breeder}</span>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-slate-400">Total Pups</span>
+                                        <span className="font-semibold text-slate-100">{litter.pups}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-slate-400">Females / Males</span>
+                                        <span className="font-semibold text-slate-100">{litter.females} / {litter.males}</span>
+                                    </div>
+                                    <div className="pt-2 border-t border-slate-700">
+                                        <p className="text-xs text-emerald-400 font-semibold">Go-Home Date: {litter.homeDate}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Program Overview */}
+                <div>
+                    <h2 className="text-2xl font-bold text-slate-100 mb-4">Program Overview</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-slate-900 rounded-lg p-6 border border-slate-800 text-center">
+                            <p className="text-4xl font-bold text-emerald-400">9</p>
+                            <p className="text-slate-400 mt-2">Spencer's Dogs</p>
+                        </div>
+                        <div className="bg-slate-900 rounded-lg p-6 border border-slate-800 text-center">
+                            <p className="text-4xl font-bold text-teal-400">7</p>
+                            <p className="text-slate-400 mt-2">Annie's Dogs</p>
+                        </div>
+                        <div className="bg-slate-900 rounded-lg p-6 border border-slate-800 text-center">
+                            <p className="text-4xl font-bold text-blue-400">9</p>
+                            <p className="text-slate-400 mt-2">Hayley's Dogs</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        // Dog Row Component
+        const DogRow = ({ dog, expanded, onToggle }) => (
+            <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+                <button
+                    onClick={onToggle}
+                    className="w-full p-4 flex items-center justify-between hover:bg-slate-800 transition text-left"
+                >
+                    <div className="flex-grow">
+                        <p className="font-semibold text-slate-100">{dog.name}</p>
+                        <p className="text-sm text-slate-400">{dog.nextEvent}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <span className={`text-xs px-3 py-1 rounded-full font-semibold
+                            ${dog.status === 'Pregnant' ? 'bg-amber-900 text-amber-200' :
+                              dog.status === 'Nursing' ? 'bg-blue-900 text-blue-200' :
+                              dog.status === 'Open' ? 'bg-emerald-900 text-emerald-200' :
+                              dog.status === 'Retired' ? 'bg-slate-700 text-slate-200' :
+                              'bg-purple-900 text-purple-200'}`}>
+                            {dog.status}
+                        </span>
+                        <svg className={`w-5 h-5 text-slate-400 transition ${expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                    </div>
+                </button>
+                {expanded && (
+                    <div className="bg-slate-800 p-4 border-t border-slate-700 text-sm">
+                        <div className="grid grid-cols-2 gap-4">
+                            {dog.guardian && <div><p className="text-slate-400">Guardian</p><p className="text-slate-100 font-semibold">{dog.guardian}</p></div>}
+                            {dog.weight && <div><p className="text-slate-400">Weight</p><p className="text-slate-100 font-semibold">{dog.weight}</p></div>}
+                            {dog.dob && <div><p className="text-slate-400">DOB</p><p className="text-slate-100 font-semibold">{dog.dob}</p></div>}
+                            {dog.dueDate && <div><p className="text-slate-400">Due Date</p><p className="text-slate-100 font-semibold">{dog.dueDate}</p></div>}
+                            {dog.pups && <div><p className="text-slate-400">Litter Size</p><p className="text-slate-100 font-semibold">{dog.pups}</p></div>}
+                            {dog.breed && <div><p className="text-slate-400">Breed Type</p><p className="text-slate-100 font-semibold">{dog.breed}</p></div>}
+                            {dog.microchip && <div className="col-span-2"><p className="text-slate-400">Microchip</p><p className="text-slate-100 font-semibold font-mono">{dog.microchip}</p></div>}
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+
+        // Dams View
+        const DamsView = () => {
+            const [searchTerm, setSearchTerm] = useState('');
+            const [filterBreeder, setFilterBreeder] = useState('All');
+            const [filterStatus, setFilterStatus] = useState('All');
+            const [expandedDog, setExpandedDog] = useState(null);
+
+            const allDogs = [...dogData.Spencer, ...dogData.Annie, ...dogData.Hayley];
+
+            const filteredDogs = allDogs.filter(dog => {
+                const matchesSearch = dog.name.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesBreeder = filterBreeder === 'All' || (
+                    (filterBreeder === 'Spencer' && dogData.Spencer.includes(dog)) ||
+                    (filterBreeder === 'Annie' && dogData.Annie.includes(dog)) ||
+                    (filterBreeder === 'Hayley' && dogData.Hayley.includes(dog))
+                );
+                const matchesStatus = filterStatus === 'All' || dog.status === filterStatus;
+                return matchesSearch && matchesBreeder && matchesStatus;
+            });
+
+            return (
+                <div className="space-y-6">
+                    {/* Search and Filters */}
+                    <div className="space-y-4">
+                        <div className="relative">
+                            <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 w-5 h-5" />
+                            <input
+                                type="text"
+                                placeholder="Search dogs..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                            />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <select
+                                value={filterBreeder}
+                                onChange={(e) => setFilterBreeder(e.target.value)}
+                                className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500"
+                            >
+                                <option>All Breeders</option>
+                                <option>Spencer</option>
+                                <option>Annie</option>
+                                <option>Hayley</option>
+                            </select>
+                            <select
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value)}
+                                className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500"
+                            >
+                                <option>All Statuses</option>
+                                <option>Open</option>
+                                <option>Pregnant</option>
+                                <option>Nursing</option>
+                                <option>Retired</option>
+                                <option>Too Young</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Dogs List */}
+                    <div className="space-y-3">
+                        {filteredDogs.length > 0 ? (
+                            filteredDogs.map(dog => (
+                                <DogRow
+                                    key={dog.id}
+                                    dog={dog}
+                                    expanded={expandedDog === dog.id}
+                                    onToggle={() => setExpandedDog(expandedDog === dog.id ? null : dog.id)}
+                                />
+                            ))
+                        ) : (
+                            <div className="text-center py-12">
+                                <p className="text-slate-400">No dogs found matching your filters</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Alerts View
+        const AlertsView = () => {
+            const groupedByUrgency = {
+                Critical: actionItems.filter(i => i.urgency === 'Critical'),
+                High: actionItems.filter(i => i.urgency === 'High'),
+                Medium: actionItems.filter(i => i.urgency === 'Medium'),
+                Low: actionItems.filter(i => i.urgency === 'Low')
+            };
+
+            const urgencyColors = {
+                Critical: 'bg-red-950 border-red-700',
+                High: 'bg-orange-950 border-orange-700',
+                Medium: 'bg-yellow-950 border-yellow-700',
+                Low: 'bg-blue-950 border-blue-700'
+            };
+
+            return (
+                <div className="space-y-8">
+                    {Object.entries(groupedByUrgency).map(([level, items]) => (
+                        items.length > 0 && (
+                            <div key={level}>
+                                <h2 className="text-xl font-bold text-slate-100 mb-4">{level} Priority</h2>
+                                <div className="space-y-3">
+                                    {items.map((item, idx) => (
+                                        <AlertItem key={idx} item={item} urgencyColor={urgencyColors[level]} />
+                                    ))}
+                                </div>
+                            </div>
+                        )
+                    ))}
+                </div>
+            );
+        };
+
+        // Main App Component
+        function BreedIQDashboard() {
+            const [sidebarOpen, setSidebarOpen] = useState(true);
+            const [currentView, setCurrentView] = useState('dashboard');
+
+            const navItems = [
+                { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+                { id: 'dams', label: 'Dams', icon: '🐕' },
+                { id: 'alerts', label: 'Alerts', icon: '⚠️' },
+                { id: 'calendar', label: 'Calendar', icon: '📅' },
+                { id: 'guardians', label: 'Guardians', icon: '👥' },
+                { id: 'analytics', label: 'Analytics', icon: '📈' },
+                { id: 'settings', label: 'Settings', icon: '⚙️' }
+            ];
+
+            return (
+                <div className="flex h-screen bg-slate-950">
+                    {/* Sidebar */}
+                    <div className={`fixed md:relative inset-y-0 left-0 z-40 transform transition duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-64 bg-slate-900 border-r border-slate-800 flex flex-col md:translate-x-0`}>
+                        {/* Logo */}
+                        <div className="p-6 border-b border-slate-800">
+                            <a href="/" className="flex items-center gap-2 font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
+                                <span className="text-2xl">🧬</span> BreedIQ
+                            </a>
+                        </div>
+
+                        {/* Navigation */}
+                        <nav className="flex-grow p-4 space-y-2">
+                            {navItems.map(item => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => setCurrentView(item.id)}
+                                    className={`w-full text-left px-4 py-3 rounded-lg transition ${
+                                        currentView === item.id
+                                            ? 'bg-emerald-900 text-emerald-100'
+                                            : 'text-slate-400 hover:bg-slate-800'
+                                    }`}
+                                >
+                                    <span className="mr-3">{item.icon}</span>
+                                    {item.label}
+                                </button>
+                            ))}
+                        </nav>
+
+                        {/* User Profile */}
+                        <div className="p-4 border-t border-slate-800">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center font-bold text-slate-900">SL</div>
+                                <div>
+                                    <p className="text-sm font-semibold text-slate-100">Spencer Leany</p>
+                                    <p className="text-xs text-slate-500">Owner/Operator</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Main Content */}
+                    <div className="flex-1 flex flex-col min-h-screen">
+                        {/* Top Bar */}
+                        <header className="bg-slate-900 border-b border-slate-800 p-4 sticky top-0 z-30">
+                            <div className="flex items-center justify-between">
+                                <button
+                                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                                    className="md:hidden text-slate-400 hover:text-slate-100 transition"
+                                >
+                                    {sidebarOpen ? <IconX /> : <IconMenu />}
+                                </button>
+
+                                <div className="flex-grow mx-4 hidden md:block">
+                                    <div className="relative max-w-md">
+                                        <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 w-5 h-5" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search dogs, events..."
+                                            className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-4">
+                                    <button className="relative text-slate-400 hover:text-slate-100 transition">
+                                        <IconBell />
+                                        <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                                    </button>
+                                    <button className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-600 transition">
+                                        + Add Dog
+                                    </button>
+                                </div>
+                            </div>
+                        </header>
+
+                        {/* Page Content */}
+                        <main className="flex-grow overflow-auto p-6">
+                            <div className="max-w-7xl mx-auto">
+                                {currentView === 'dashboard' && <DashboardView />}
+                                {currentView === 'dams' && <DamsView />}
+                                {currentView === 'alerts' && <AlertsView />}
+                                {(currentView === 'calendar' || currentView === 'guardians' || currentView === 'analytics' || currentView === 'settings') && (
+                                    <div className="text-center py-20">
+                                        <p className="text-slate-400 text-lg">Coming soon: {navItems.find(i => i.id === currentView)?.label}</p>
+                                    </div>
+                                )}
+                            </div>
+                        </main>
+                    </div>
+
+                    {/* Sidebar Overlay (Mobile) */}
+                    {sidebarOpen && (
+                        <div
+                            className="fixed inset-0 bg-black/50 md:hidden z-30"
+                            onClick={() => setSidebarOpen(false)}
+                        ></div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<BreedIQDashboard />);
+    </script>
+</body>
+</html>
