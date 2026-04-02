@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/onboarding", "destination": "/onboarding.html" },
+    { "source": "/dashboard", "destination": "/dashboard.html" }
+  ]
+}
