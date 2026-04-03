@@ -13,7 +13,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState } = React;
+        const { useState, useEffect } = React;
 
         // Dog data
         const dogData = {
@@ -411,6 +411,40 @@
         function BreedIQDashboard() {
             const [sidebarOpen, setSidebarOpen] = useState(true);
             const [currentView, setCurrentView] = useState('dashboard');
+            const [authState, setAuthState] = useState('loading'); // 'loading' | 'authenticated' | 'unauthenticated'
+            const [user, setUser] = useState(null);
+
+            useEffect(() => {
+                fetch('/api/auth/me', { credentials: 'include' })
+                    .then(res => {
+                        if (!res.ok) throw new Error('Not authenticated');
+                        return res.json();
+                    })
+                    .then(data => {
+                        setUser(data.user);
+                        setAuthState('authenticated');
+                    })
+                    .catch(() => {
+                        setAuthState('unauthenticated');
+                        window.location.href = '/login';
+                    });
+            }, []);
+
+            const handleSignOut = async () => {
+                await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+                window.location.href = '/';
+            };
+
+            if (authState === 'loading') {
+                return (
+                    <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                        <div className="text-center space-y-4">
+                            <div className="text-4xl">🧬</div>
+                            <p className="text-slate-400">Loading your dashboard...</p>
+                        </div>
+                    </div>
+                );
+            }
 
             const navItems = [
                 { id: 'dashboard', label: 'Dashboard', icon: '📊' },
@@ -419,7 +453,7 @@
                 { id: 'calendar', label: 'Calendar', icon: '📅' },
                 { id: 'guardians', label: 'Guardians', icon: '👥' },
                 { id: 'analytics', label: 'Analytics', icon: '📈' },
-                { id: 'settings', label: 'Settings', icon: '⚙️' }
+                { id: 'settings', label: 'Settings', icon: '⦙️' }
             ];
 
             return (
@@ -493,6 +527,9 @@
                                     </button>
                                     <button className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-600 transition">
                                         + Add Dog
+                                    </button>
+                                    <button onClick={handleSignOut} className="px-3 py-2 text-slate-400 hover:text-white border border-slate-700 rounded-lg text-sm hover:border-slate-500 transition">
+                                        Sign Out
                                     </button>
                                 </div>
                             </div>
