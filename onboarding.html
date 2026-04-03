@@ -107,6 +107,21 @@
         const { useState, useEffect, useRef } = React;
 
         function BreedIQOnboarding() {
+            const [authState, setAuthState] = useState('loading');
+
+            useEffect(() => {
+                fetch('/api/auth/me', { credentials: 'include' })
+                    .then(res => {
+                        if (!res.ok) throw new Error('Not authenticated');
+                        return res.json();
+                    })
+                    .then(() => setAuthState('authenticated'))
+                    .catch(() => {
+                        setAuthState('unauthenticated');
+                        window.location.href = '/login';
+                    });
+            }, []);
+
             const [step, setStep] = useState(1);
             const [files, setFiles] = useState([]);
             const [textInput, setTextInput] = useState('');
@@ -207,6 +222,17 @@
             };
 
             const canProceedStep1 = files.length > 0 || textInput.trim().length > 0;
+
+            if (authState === 'loading') {
+                return (
+                    <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                        <div className="text-center space-y-4">
+                            <div className="text-4xl">🧬</div>
+                            <p className="text-gray-400">Loading...</p>
+                        </div>
+                    </div>
+                );
+            }
 
             return (
                 <div className="min-h-screen bg-slate-950 gradient-bg">
@@ -350,7 +376,7 @@
 
                                 <div className="w-full max-w-xs bg-slate-800 rounded-full h-2 overflow-hidden">
                                     <div
-                                        className="progress-bar bg-gradient-to-r from-blue-500 to-green-500 h-full"
+                                     className="progress-bar bg-gradient-to-r from-blue-500 to-green-500 h-full"
                                     ></div>
                                 </div>
                             </div>
@@ -431,8 +457,8 @@
                                             setTextInput('');
                                         }}
                                         className="flex-1 py-3 rounded-lg font-semibold text-gray-300 border border-slate-700 hover:bg-slate-800 transition"
-                                    >
-                                        Start Over
+                                                    >
+                                    Start Over
                                     </button>
                                     <button
                                         onClick={() => setStep(4)}
@@ -481,7 +507,7 @@
                                     <div className="space-y-2 text-sm text-gray-300">
                                         <div className="flex justify-between">
                                             <span>Dogs added:</span>
-                                            <span className="font-semibold text-green-400">{summary ? summary.total_dogs : dogCards.length}</span>
+                                   <span className="font-semibold text-green-400">{summary ? summary.total_dogs : dogCards.length}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span>Active pregnancies tracked:</span>
