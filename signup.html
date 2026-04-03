@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up \u2014 BreedIQ</title>
+    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"><\/script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"><\/script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"><\/script>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; }
+        .gradient-button { background: linear-gradient(135deg, #3b82f6 0%, #22c55e 100%); transition: all 0.3s ease; }
+        .gradient-button:hover { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(34, 197, 94, 0.2); }
+        .gradient-text { background: linear-gradient(135deg, #3b82f6, #22c55e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState } = React;
+        function SignupPage() {
+            const [name, setName] = useState('');
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [confirmPassword, setConfirmPassword] = useState('');
+            const [error, setError] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError(null);
+                if (password !== confirmPassword) { setError('Passwords do not match'); return; }
+                if (password.length < 8) { setError('Password must be at least 8 characters'); return; }
+                setLoading(true);
+                try {
+                    const resp = await fetch('/api/auth/signup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, name }) });
+                    const data = await resp.json();
+                    if (!resp.ok) throw new Error(data.error || 'Signup failed');
+                    window.location.href = '/onboarding';
+                } catch (err) { setError(err.message); setLoading(false); }
+            };
+            return (
+                <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
+                    <div className="fixed inset-0 overflow-hidden pointer-events-none">
+                        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
+                        <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-green-500/5 rounded-full blur-3xl"></div>
+                    </div>
+                    <div className="w-full max-w-md relative z-10">
+                        <div className="text-center mb-8">
+                            <a href="/" className="inline-flex items-center gap-2">
+                                <span className="text-3xl">\ud83d\udc3e</span>
+                                <span className="text-2xl font-bold gradient-text">BreedIQ</span>
+                            </a>
+                        </div>
+                        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
+                            <h1 className="text-2xl font-bold text-gray-100 mb-2">Create your account</h1>
+                            <p className="text-gray-400 mb-6">Start managing your breeding program with AI</p>
+                            {error && (<div className="bg-red-900/20 border border-red-700/50 rounded-lg p-3 mb-4"><p className="text-sm text-red-300">{error}</p></div>)}
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div><label className="block text-sm font-medium text-gray-300 mb-1">Full name</label><input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition" placeholder="Your name" required /></div>
+                                <div><label className="block text-sm font-medium text-gray-300 mb-1">Email</label><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition" placeholder="you@example.com" required /></div>
+                                <div><label className="block text-sm font-medium text-gray-300 mb-1">Password</label><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition" placeholder="At least 8 characters" required minLength={8} /></div>
+                                <div><label className="block text-sm font-medium text-gray-300 mb-1">Confirm password</label><input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition" placeholder="Confirm your password" required minLength={8} /></div>
+                                <button type="submit" disabled={loading} className="w-full py-3 rounded-lg font-semibold text-white gradient-button disabled:opacity-50">{loading ? 'Creating account...' : 'Create Account'}</button>
+                            </form>
+                            <p className="text-center text-gray-400 text-sm mt-6">Already have an account? <a href="/login" className="text-blue-400 hover:text-blue-300 transition">Sign in</a></p>
+                        </div>
+                        <p className="text-center text-gray-500 text-xs mt-6">By creating an account, you agree to our Terms of Service and Privacy Policy.</p>
+                    </div>
+                </div>
+            );
+        }
+        ReactDOM.createRoot(document.getElementById('root')).render(<SignupPage />);
+    <\/script>
+</body>
+</html>
