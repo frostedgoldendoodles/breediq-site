@@ -1,3 +1,4 @@
+// BreedIQ Analyze API - deployed 2026-04-03T14:16:29.965Z
 export default async function handler(req, res) {
   // Only allow POST
   if (req.method !== 'POST') {
@@ -82,7 +83,7 @@ Return ONLY valid JSON in this exact format, no markdown, no explanation:
   }
 }
 
-Use null for any field you cannot determine. Be thorough — breeders often hide data in casual language like "she's due any day" or "bred to Cooper on the 5th".`;
+Use null for any field you cannot determine. Be thorough â breeders often hide data in casual language like "she's due any day" or "bred to Cooper on the 5th".`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
