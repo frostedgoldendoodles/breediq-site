@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="BreedIQ Terms of Service — Our commitment to you and guidelines for using our platform.">
+    <meta name="keywords" content="terms, service, conditions, agreement">
+    <meta name="author" content="BreedIQ">
+
+    <title>Terms of Service — BreedIQ</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%230F766E'>🐾</text></svg>">
+
+    <!-- Tailwind CSS from CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React 18 + ReactDOM from CDN (UMD builds) -->
+    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+
+    <!-- Babel Standalone -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        .gradient-text-blue-emerald {
+            background: linear-gradient(135deg, #2563eb 0%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-link {
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: #10b981;
+        }
+
+        .legal-section {
+            scroll-margin-top: 80px;
+        }
+
+        .legal-section h2 {
+            color: #10b981;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .legal-section h3 {
+            color: #e0e7ff;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .legal-section p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .legal-section ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .legal-section li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .disclaimer-box {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid #10b981;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 0.5rem;
+        }
+
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+
+        .pricing-table th,
+        .pricing-table td {
+            border: 1px solid #334155;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .pricing-table th {
+            background-color: #1e293b;
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .pricing-table tr:hover {
+            background-color: #0f172a;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        function TermsOfService() {
+            return (
+                <div className="min-h-screen bg-slate-950">
+                    {/* Navigation */}
+                    <nav className="sticky top-0 z-50 bg-slate-950/95 backdrop-blur border-b border-slate-800">
+                        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                            <a href="/" className="flex items-center gap-2 hover:opacity-80 transition">
+                                <span className="text-2xl">🐾</span>
+                                <span className="text-xl font-bold gradient-text-blue-emerald">BreedIQ</span>
+                            </a>
+                            <a href="/" className="text-slate-300 hover:text-white transition text-sm">← Back to home</a>
+                        </div>
+                    </nav>
+
+                    {/* Main Content */}
+                    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+                        {/* Header */}
+                        <div className="mb-12">
+                            <h1 className="text-4xl lg:text-5xl font-bold mb-4">Terms of Service</h1>
+                            <p className="text-slate-400">Effective date: April 2026</p>
+                        </div>
+
+                        {/* Disclaimer */}
+                        <div className="disclaimer-box">
+                            <p className="font-semibold mb-2">Important Disclaimer</p>
+                            <p className="text-sm">These terms are provided for informational purposes. Please consult a legal professional for compliance advice regarding your specific jurisdiction and use case.</p>
+                        </div>
+
+                        {/* Legal Content */}
+                        <div className="legal-section space-y-6 text-slate-200">
+
+                            <section>
+                                <h2>1. Agreement to Terms</h2>
+                                <p>By accessing and using BreedIQ (breediq.ai), you agree to be bound by these Terms of Service. If you do not agree to any part of these terms, you may not use the service. We reserve the right to modify these terms at any time, and your continued use of BreedIQ constitutes acceptance of any changes.</p>
+                            </section>
+
+                            <section>
+                                <h2>2. Description of Service</h2>
+                                <p>BreedIQ is an AI-powered breeding program management platform designed to help dog breeders organize, track, and analyze their breeding records, health data, litter information, guardian families, and calendars. The service includes features such as:</p>
+                                <ul className="list-disc">
+                                    <li>AI-powered onboarding and data organization</li>
+                                    <li>Heat cycle and breeding event tracking</li>
+                                    <li>Google Calendar integration and sync</li>
+                                    <li>Guardian family management and communications</li>
+                                    <li>Litter pipeline tracking and management</li>
+                                    <li>AI-powered insights and recommendations</li>
+                                </ul>
+                            </section>
+
+                            <section>
+                                <h2>3. Account Requirements</h2>
+                                <p>To use BreedIQ, you must:</p>
+                                <ul className="list-disc">
+                                    <li>Be at least 18 years old</li>
+                                    <li>Provide accurate, current, and complete information</li>
+                                    <li>Maintain one account per person (no account sharing without explicit permission)</li>
+                                    <li>Be responsible for maintaining the confidentiality of your password and account credentials</li>
+                                    <li>Notify us immediately of any unauthorized use of your account</li>
+                                </ul>
+                                <p>You are responsible for all activities under your account, whether authorized by you or not.</p>
+                            </section>
+
+                            <section>
+                                <h2>4. Acceptable Use</h2>
+                                <p>You agree to use BreedIQ only for legitimate dog breeding business purposes. You agree NOT to:</p>
+                                <ul className="list-disc">
+                                    <li>Use the service for illegal activities or to promote harm to animals</li>
+                                    <li>Harass, threaten, or abuse other users</li>
+                                    <li>Upload content that violates third-party intellectual property rights</li>
+                                    <li>Attempt to gain unauthorized access to the platform or other users' data</li>
+                                    <li>Use automated tools to scrape, collect, or extract data from BreedIQ</li>
+                                    <li>Reverse engineer or decompile any part of the service</li>
+                                    <li>Use the service in ways that could damage, disable, or impair the platform</li>
+                                </ul>
+                            </section>
+
+                            <section>
+                                <h2>5. Subscription Plans & Pricing</h2>
+                                <p>BreedIQ offers the following subscription plans:</p>
+
+                                <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden my-6">
+                                    <table className="pricing-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Plan</th>
+                                                <th>Price</th>
+                                                <th>Key Features</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td className="font-semibold">Starter</td>
+                                                <td>Free</td>
+                                                <td>Up to 5 dogs, basic tracking, heat cycle calendar</td>
+                                            </tr>
+                                            <tr>
+                                                <td className="font-semibold">Pro</td>
+                                                <td>$19.99/month</td>
+                                                <td>Unlimited dogs, AI onboarding, calendar sync, guardian management</td>
+                                            </tr>
+                                            <tr>
+                                                <td className="font-semibold">Kennel</td>
+                                                <td>$39.99/month</td>
+                                                <td>Everything in Pro + AI pairing advisor, CRM, financial tracking, priority support</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <p><strong>Annual Billing:</strong> Pro and Kennel plans are available with annual billing for 25% off monthly pricing.</p>
+                                <p><strong>Payment Processing:</strong> All payments are processed securely through Stripe. We do not store your credit card information.</p>
+                                <p><strong>Billing Cycle:</strong> Paid subscriptions renew automatically on the same date each month or year. You will receive renewal reminders before being charged.</p>
+                            </section>
+
+                            <section>
+                                <h2>6. Cancellation & Refunds</h2>
+                                <p><strong>Cancellation:</strong> You may cancel your subscription anytime through your account settings or by contacting us at spencer@breediq.ai. Cancellation takes effect immediately.</p>
+                                <p><strong>Access Period:</strong> You retain access to your account and data through the end of your current billing period. After that, paid features are no longer available, but you can continue using the free Starter plan.</p>
+                                <p><strong>Refunds:</strong> We do not offer refunds for partial months or unused portions of your subscription. If you cancel during a billing period, you will continue to have access through the end of that period.</p>
+                                <p><strong>Free Trial:</strong> Eligible users may receive a free trial period. Trial access is non-renewable and expires at the date specified. You will be prompted to enter payment information before trial expiration.</p>
+                            </section>
+
+                            <section>
+                                <h2>7. Intellectual Property</h2>
+                                <p><strong>BreedIQ Ownership:</strong> All content, features, functionality, design, and code of the BreedIQ platform are owned by Spencer Leany and protected by copyright and intellectual property laws. You may not copy, modify, or distribute the platform without permission.</p>
+                                <p><strong>Your Data Ownership:</strong> You retain full ownership of all breeding records, dog information, health data, and other content you input into BreedIQ. By uploading data to BreedIQ, you grant us the right to:</p>
+                                <ul className="list-disc">
+                                    <li>Store and maintain your data securely</li>
+                                    <li>Process and analyze your data using AI tools to provide platform features</li>
+                                    <li>Create backups and redundant copies for data protection</li>
+                                </ul>
+                                <p><strong>License to You:</strong> We grant you a limited, non-exclusive, non-transferable license to use BreedIQ for your personal breeding program management. This license terminates upon cancellation of your account.</p>
+                            </section>
+
+                            <section>
+                                <h2>8. Limitation of Liability</h2>
+                                <p><strong>Disclaimer:</strong> BreedIQ is provided "as is" without warranties of any kind, express or implied. We do not warrant that the service will be uninterrupted, error-free, or secure.</p>
+                                <p><strong>Not Medical or Veterinary Advice:</strong> BreedIQ is a business management tool only. It does not provide veterinary, medical, or breeding advice. All breeding, health, and genetic decisions remain your responsibility. Always consult with a licensed veterinarian before making health decisions for your dogs.</p>
+                                <p><strong>Liability Cap:</strong> To the maximum extent permitted by law, our liability for any damages arising from the use or inability to use BreedIQ is limited to the amount you paid us in the 12 months preceding the claim.</p>
+                                <p><strong>No Liability For:</strong> We are not liable for any indirect, incidental, special, or consequential damages, including loss of profits or data, even if we were advised of the possibility of such damages.</p>
+                            </section>
+
+                            <section>
+                                <h2>9. Indemnification</h2>
+                                <p>You agree to indemnify, defend, and hold harmless BreedIQ and its owner Spencer Leany from any claims, damages, or expenses (including legal fees) arising from:</p>
+                                <ul className="list-disc">
+                                    <li>Your use of the platform in violation of these terms</li>
+                                    <li>Your breeding practices or decisions made outside of BreedIQ</li>
+                                    <li>Content you upload to the platform</li>
+                                    <li>Your relationship with your dogs, guardian families, or other users</li>
+                                </ul>
+                            </section>
+
+                            <section>
+                                <h2>10. Data & Content Storage</h2>
+                                <p><strong>Your Responsibility:</strong> You are responsible for backing up your own data. While we maintain industry-standard backups, we recommend you export your data regularly.</p>
+                                <p><strong>Deletion:</strong> Upon account deletion, all your data is permanently removed within 30 days. We cannot recover deleted data.</p>
+                                <p><strong>Service Interruptions:</strong> We may need to temporarily suspend the service for maintenance, updates, or security reasons. We will provide advance notice when possible.</p>
+                            </section>
+
+                            <section>
+                                <h2>11. Termination</h2>
+                                <p>We may terminate your account and access to BreedIQ at any time, with or without cause, by providing written notice. Termination may occur if you:</p>
+                                <ul className="list-disc">
+                                    <li>Violate these terms of service</li>
+                                    <li>Engage in fraudulent or illegal activities</li>
+                                    <li>Abuse other users or the platform</li>
+                                    <li>Fail to pay subscription fees</li>
+                                </ul>
+                                <p>Upon termination, your right to use BreedIQ ceases immediately, and you lose access to all data.</p>
+                            </section>
+
+                            <section>
+                                <h2>12. Governing Law & Jurisdiction</h2>
+                                <p>These Terms of Service are governed by and construed in accordance with the laws of the State of Utah, without regard to its conflict of law provisions. Any legal action or proceeding arising under these terms shall be brought exclusively in the state or federal courts located in Utah.</p>
+                            </section>
+
+                            <section>
+                                <h2>13. Entire Agreement</h2>
+                                <p>These Terms of Service, together with our Privacy Policy, constitute the entire agreement between you and BreedIQ regarding your use of the platform. If any portion of these terms is found to be unenforceable, the remaining portions shall continue in full force and effect.</p>
+                            </section>
+
+                            <section>
+                                <h2>14. Contact & Support</h2>
+                                <p>If you have questions about these terms or need support, please contact us:</p>
+                                <p>
+                                    <strong>Email:</strong> spencer@breediq.ai<br/>
+                                    <strong>Website:</strong> breediq.ai
+                                </p>
+                            </section>
+
+                        </div>
+
+                        {/* Footer CTA */}
+                        <div className="mt-16 pt-8 border-t border-slate-800">
+                            <p className="text-slate-400 text-sm mb-6">Have questions about our terms?</p>
+                            <a href="mailto:spencer@breediq.ai" className="inline-block bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 px-6 py-3 rounded-lg hover:bg-emerald-500/30 transition font-medium">
+                                Contact Us
+                            </a>
+                        </div>
+                    </main>
+
+                    {/* Footer */}
+                    <footer className="bg-slate-900 border-t border-slate-800 mt-20 py-12">
+                        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex flex-col sm:flex-row justify-between items-center text-slate-400 text-sm">
+                                <p>© 2026 BreedIQ. All rights reserved.</p>
+                                <div className="flex gap-6 mt-4 sm:mt-0">
+                                    <a href="/" className="hover:text-white transition">Home</a>
+                                    <a href="/privacy" className="hover:text-white transition">Privacy</a>
+                                    <a href="/terms" className="hover:text-white transition">Terms</a>
+                                </div>
+                            </div>
+                        </div>
+                    </footer>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<TermsOfService />, document.getElementById('root'));
+    </script>
+</body>
+</html>
