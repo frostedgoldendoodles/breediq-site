@@ -121,7 +121,7 @@
                             <div className="hidden md:flex items-center gap-8">
                                 <a href="#features" className="nav-link text-slate-300">Features</a>
                                 <a href="#pricing" className="nav-link text-slate-300">Pricing</a>
-                                                  <a href="#faq" className="nav-link text-slate-300">FAQ</a>
+                                <a href="#faq" className="nav-link text-slate-300">FAQ</a>
                             </div>
 
                             {/* Desktop Buttons */}
@@ -340,8 +340,12 @@
                                     </div>
                                     <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
                                     <p className="text-slate-400 text-sm">{item.desc}</p>
-                                                                        </div>
-                                            <div className="bg-gradient-to-r from-blue-600/20 to-emerald-500/20 border border-emerald-500/30 rounded-lg p-8 text-center">
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Stat Callout */}
+                        <div className="bg-gradient-to-r from-blue-600/20 to-emerald-500/20 border border-emerald-500/30 rounded-lg p-8 text-center">
                             <p className="text-2xl font-bold flex items-center justify-center gap-2"><svg className="w-7 h-7 text-yellow-400" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="0.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Average onboarding time: under 3 minutes</p>
                         </div>
                     </section>
@@ -352,7 +356,7 @@
 
                         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {[
-                                { id: 'ai' , title: 'AI Onboarding', desc: 'Upload your records in any format. Our AI extracts and organizes everything automatically.', color: '#3b82f6' },
+                                { id: 'ai', title: 'AI Onboarding', desc: 'Upload your records in any format. Our AI extracts and organizes everything automatically.', color: '#3b82f6' },
                                 { id: 'heat', title: 'Heat Cycle Intelligence', desc: 'Predictive heat tracking that learns each dog\'s unique cycle patterns over time.', color: '#ef4444' },
                                 { id: 'calendar', title: 'Calendar Sync', desc: 'Due dates, heat windows, vet checkpoints, and go-home dates auto-sync to Google Calendar.', color: '#eab308' },
                                 { id: 'guardian', title: 'Guardian Management', desc: 'Track guardian families, check-in reminders, and cycle reports in one place.', color: '#10b981' },
@@ -504,7 +508,7 @@
                                                 ? 'gradient-blue-emerald text-white hover:shadow-xl'
                                                 : 'border border-slate-700 text-white hover:border-emerald-500'
                                         }`}
-                                                      >
+                                    >
                                         {plan.cta}
                                     </a>
                                     <ul className="space-y-4">
