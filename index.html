@@ -1,556 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="BreedIQ — AI-powered breeding program management platform. Organize your breeding records, track heat cycles, sync with Google Calendar, and manage guardians all in one place.">
-    <meta name="keywords" content="dog breeding, breeding management, AI, heat cycle tracking, pedigree management">
-    <meta name="author" content="BreedIQ">
+# Puppy Photos — How to Use This Folder
 
-    <title>BreedIQ — AI-Powered Breeding Program Management</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%230F766E'>🐾</text></svg>">
+This folder is your central hub for all litter photos and videos. It's organized so Claude can quickly find, sort, and use your photos for buyer emails, social media posts, and documents.
 
-    <!-- Tailwind CSS from CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+---
 
-    <!-- React 18 + ReactDOM from CDN (UMD builds) -->
-    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+## Folder Structure (per litter)
 
-    <!-- Babel Standalone -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+For each new litter, **duplicate the `_NEW LITTER TEMPLATE` folder** and rename it like this:
 
-    <style>
-        html {
-            scroll-behavior: smooth;
-        }
+```
+Litter Name - Month Year
+Example: Ruby x Scout - January 2026
+```
 
-        .gradient-blue-emerald {
-            background: linear-gradient(135deg, #2563eb 0%, #10b981 100%);
-        }
+Inside each litter folder:
 
-        .gradient-text-blue-emerald {
-            background: linear-gradient(135deg, #2563eb 0%, #10b981 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+| Subfolder | What goes here |
+|---|---|
+| `1 - All Photos` | Dump everything here first — straight from iCloud/iPhone |
+| `2 - By Puppy` | Create one subfolder per puppy (use their call name or collar color) |
+| `3 - Ready to Share` → `Buyer Photos` | Curated photos ready to send to a specific buyer |
+| `3 - Ready to Share` → `Social Media` | Edited/cropped photos ready to post |
+| `3 - Ready to Share` → `Documents & Ads` | Photos used in flyers, PDFs, or listings |
 
-        .nav-link {
-            transition: color 0.3s ease;
-        }
+---
 
-        .nav-link:hover {
-            color: #10b981;
-        }
+## How to Get Photos from iPhone / iCloud
 
-        .feature-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
+### Option A — From the Mac Photos App (easiest)
+1. Open the **Photos** app on your Mac
+2. Click **Shared Albums** in the sidebar and open the litter's album
+3. Select all photos (⌘A) or pick the ones you want
+4. Go to **File → Export → Export [X] Photos...**
+5. Choose the litter's `1 - All Photos` folder as the destination
+6. Click **Export**
 
-        .feature-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.2);
-        }
+### Option B — Drag from iPhone via Finder
+1. Plug your iPhone into your Mac with a USB cable
+2. Open **Finder** and click your iPhone in the sidebar
+3. Click the **Photos** tab
+4. Drag photos directly into the `1 - All Photos` folder
 
-        .pricing-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
+### Option C — AirDrop from iPhone
+1. On your iPhone, open the Photos app and select photos
+2. Tap the Share icon → **AirDrop** → select your Mac
+3. Photos will land in your Mac's **Downloads** folder
+4. Move them into the appropriate litter's `1 - All Photos` folder
 
-        .pricing-card.popular {
-            border: 2px solid #10b981;
-        }
+---
 
-        .pricing-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.2);
-        }
+## Tips for Working with Claude
 
-        .accordion-header {
-            cursor: pointer;
-            user-select: none;
-        }
+Once photos are in this folder, just tell Claude things like:
 
-        .accordion-header:hover {
-            color: #10b981;
-        }
-    </style>
-</head>
-<body class="bg-slate-950 text-slate-100 font-sans antialiased">
-    <div id="root"></div>
+- *"Send [Puppy Name]'s best photos to [Buyer Name] at [email]"*
+- *"Pick 5 photos from Ruby x Scout for an Instagram post"*
+- *"Create a puppy availability flyer for the January litter"*
+- *"Move the red collar puppy photos into the By Puppy folder"*
 
-    <script type="text/babel">
-        const { useState } = React;
+The clearer your folder and puppy names, the faster Claude can help!
 
-        function BreedIQLanding() {
-            const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-            const [billingAnnual, setBillingAnnual] = useState(false);
-            const [expandedFAQ, setExpandedFAQ] = useState(null);
+---
 
-            const toggleFAQ = (id) => {
-                setExpandedFAQ(expandedFAQ === id ? null : id);
-            };
+## Naming Conventions
 
-            return (
-                <div className="min-h-screen bg-slate-950">
-                    {/* Navigation */}
-                    <nav className="sticky top-0 z-50 bg-slate-950/95 backdrop-blur border-b border-slate-800">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-                            <div className="flex items-center gap-2">
-                                <span className="text-2xl">🐾</span>
-                                <span className="text-xl font-bold gradient-text-blue-emerald">BreedIQ</span>
-                            </div>
-
-                            {/* Desktop Menu */}
-                            <div className="hidden md:flex items-center gap-8">
-                                <a href="#features" className="nav-link text-slate-300">Features</a>
-                                <a href="#pricing" className="nav-link text-slate-300">Pricing</a>
-                                <a href="#faq" className="nav-link text-slate-300">FAQ</a>
-                            </div>
-
-                            {/* Desktop Buttons */}
-                            <div className="hidden md:flex items-center gap-4">
-                                <a href="/login" className="text-slate-300 hover:text-white transition">Sign In</a>
-                                <a href="/signup" className="gradient-blue-emerald text-white px-6 py-2 rounded-lg font-medium hover:shadow-lg transition">
-                                    Get Started Free
-                                </a>
-                            </div>
-
-                            {/* Mobile Menu Button */}
-                            <button
-                                className="md:hidden text-white"
-                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                </svg>
-                            </button>
-                        </div>
-
-                        {/* Mobile Menu */}
-                        {mobileMenuOpen && (
-                            <div className="md:hidden bg-slate-900 border-t border-slate-800 px-4 py-4 space-y-4">
-                                <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-slate-300 hover:text-white">Features</a>
-                                <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block text-slate-300 hover:text-white">Pricing</a>
-                                <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block text-slate-300 hover:text-white">FAQ</a>
-                                <div className="pt-4 space-y-2 border-t border-slate-800">
-                                    <a href="/login" onClick={() => setMobileMenuOpen(false)} className="block text-slate-300 hover:text-white">Sign In</a>
-                                    <a href="/signup" onClick={() => setMobileMenuOpen(false)} className="block gradient-blue-emerald text-white px-4 py-2 rounded-lg font-medium text-center">
-                                        Get Started Free
-                                    </a>
-                                </div>
-                            </div>
-                        )}
-                    </nav>
-
-                    {/* Hero Section */}
-                    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
-                        <div className="grid lg:grid-cols-2 gap-12 items-center">
-                            <div className="space-y-8">
-                                <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
-                                    Stop juggling spreadsheets. Start breeding smarter.
-                                </h1>
-                                <p className="text-xl text-slate-300 leading-relaxed">
-                                    BreedIQ uses AI to organize your entire breeding program — dams, studs, litters, guardians, and calendars — in minutes, not months.
-                                </p>
-
-                                {/* CTAs */}
-                                <div className="flex flex-col sm:flex-row gap-4">
-                                    <a href="/signup" className="gradient-blue-emerald text-white px-8 py-4 rounded-lg font-semibold text-lg hover:shadow-xl transition text-center">
-                                        Start Free
-                                    </a>
-                                    <button className="border-2 border-emerald-500 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-emerald-500/10 transition text-center">
-                                        Watch Demo
-                                    </button>
-                                </div>
-
-                                {/* Trust Badges */}
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 border-t border-slate-800">
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-2xl">✓</span>
-                                        <span className="text-sm text-slate-300">Free to start</span>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-2xl">✓</span>
-                                        <span className="text-sm text-slate-300">No credit card required</span>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-2xl">✓</span>
-                                        <span className="text-sm text-slate-300">Set up in under 3 minutes</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Hero Image Placeholder */}
-                            <div className="hidden lg:block">
-                                <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 border border-slate-700 shadow-2xl">
-                                    <div className="space-y-4">
-                                        <div className="flex gap-2">
-                                            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                                            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                                        </div>
-                                        <div className="space-y-3">
-                                            <div className="h-8 bg-gradient-to-r from-blue-600 to-emerald-500 rounded w-3/4"></div>
-                                            <div className="h-4 bg-slate-700 rounded w-full"></div>
-                                            <div className="h-4 bg-slate-700 rounded w-5/6"></div>
-                                        </div>
-                                        <div className="pt-6 grid grid-cols-3 gap-4">
-                                            <div className="bg-slate-700/50 rounded h-20 flex items-center justify-center text-slate-400">
-                                                <span className="text-3xl">📊</span>
-                                            </div>
-                                            <div className="bg-slate-700/50 rounded h-20 flex items-center justify-center text-slate-400">
-                                                <span className="text-3xl">📅</span>
-                                            </div>
-                                            <div className="bg-slate-700/50 rounded h-20 flex items-center justify-center text-slate-400">
-                                                <span className="text-3xl">🧬</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* Social Proof Bar */}
-                    <section className="bg-slate-900/50 border-y border-slate-800 py-12">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            <p className="text-center text-slate-400 mb-8">Built and trusted by real breeders</p>
-                            <div className="flex flex-wrap justify-center items-center gap-12">
-                                <div className="flex flex-col items-center gap-2">
-                                    <img src="https://img1.wsimg.com/isteam/ip/483ef3c6-7986-44d1-992f-2c08d17f6202/001frostedlogo.png" alt="Frosted Goldendoodles" className="h-16 w-auto rounded-full" />
-                                    <span className="text-xs text-slate-500">Frosted Goldendoodles</span>
-                                </div>
-                                <div className="flex flex-col items-center gap-2 opacity-40">
-                                    <div className="h-16 w-16 rounded-full bg-slate-800 border-2 border-dashed border-slate-600 flex items-center justify-center text-slate-500 text-xs">Soon</div>
-                                    <span className="text-xs text-slate-600">Your kennel here</span>
-                                </div>
-                                <div className="flex flex-col items-center gap-2 opacity-40">
-                                    <div className="h-16 w-16 rounded-full bg-slate-800 border-2 border-dashed border-slate-600 flex items-center justify-center text-slate-500 text-xs">Soon</div>
-                                    <span className="text-xs text-slate-600">Your kennel here</span>
-                                </div>
-                                <div className="flex flex-col items-center gap-2 opacity-40">
-                                    <div className="h-16 w-16 rounded-full bg-slate-800 border-2 border-dashed border-slate-600 flex items-center justify-center text-slate-500 text-xs">Soon</div>
-                                    <span className="text-xs text-slate-600">Your kennel here</span>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* AI Onboarding Showcase */}
-                    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-                        <div className="text-center mb-16">
-                            <h2 className="text-4xl lg:text-5xl font-bold mb-6">Upload your mess. We'll organize it.</h2>
-                            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
-                                Other platforms make you enter every dog one by one. BreedIQ's AI reads your notes, spreadsheets, and screenshots — and builds your program in minutes.
-                            </p>
-                        </div>
-
-                        {/* Input Types Cards */}
-                        <div className="grid md:grid-cols-4 gap-6 mb-12">
-                            {[
-                                { icon: '📝', title: 'Apple Notes', desc: 'Paste your notes and we extract the data' },
-                                { icon: '📊', title: 'Spreadsheets', desc: 'CSV, Excel, Google Sheets — we handle them all' },
-                                { icon: '📸', title: 'Screenshots', desc: 'Photos of pedigrees and records' },
-                                { icon: '📄', title: 'PDFs', desc: 'Scanned documents and pedigree charts' }
-                            ].map((item, idx) => (
-                                <div key={idx} className="bg-slate-900 border border-slate-800 rounded-lg p-6 text-center hover:border-emerald-500/50 transition">
-                                    <div className="text-4xl mb-4">{item.icon}</div>
-                                    <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
-                                    <p className="text-slate-400 text-sm">{item.desc}</p>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Stat Callout */}
-                        <div className="bg-gradient-to-r from-blue-600/20 to-emerald-500/20 border border-emerald-500/30 rounded-lg p-8 text-center">
-                            <p className="text-2xl font-bold">⚡ Average onboarding time: under 3 minutes</p>
-                        </div>
-                    </section>
-
-                    {/* Features Grid */}
-                    <section id="features" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 bg-slate-900/30">
-                        <h2 className="text-4xl lg:text-5xl font-bold text-center mb-16">Everything you need to manage your program</h2>
-
-                        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {[
-                                { icon: '🧠', title: 'AI Onboarding', desc: 'Upload your records in any format. Our AI extracts and organizes everything automatically.' },
-                                { icon: '📅', title: 'Heat Cycle Intelligence', desc: 'Predictive heat tracking that learns each dog\'s unique cycle patterns over time.' },
-                                { icon: '⏰', title: 'Calendar Sync', desc: 'Due dates, heat windows, vet checkpoints, and go-home dates auto-sync to Google Calendar.' },
-                                { icon: '👥', title: 'Guardian Management', desc: 'Track guardian families, check-in reminders, and cycle reports in one place.' },
-                                { icon: '📊', title: 'Litter Pipeline', desc: 'Visual gestation progress, puppy counts, and go-home date tracking for every litter.' },
-                                { icon: '🔗', title: 'Embark Integration', desc: 'Pull genetic data directly from Embark profiles for health and pairing analysis.' },
-                                { icon: '📈', title: 'Smart Analytics', desc: 'Program-wide insights on litter sizes, cycle patterns, and breeding success rates.' },
-                                { icon: '🛡️', title: 'Security & Privacy', desc: 'Your breeding data is encrypted and private. Only you control who sees what.' }
-                            ].map((feature, idx) => (
-                                <div key={idx} className="feature-card bg-slate-900 border border-slate-800 rounded-lg p-6">
-                                    <div className="text-4xl mb-4">{feature.icon}</div>
-                                    <h3 className="font-semibold text-lg mb-3">{feature.title}</h3>
-                                    <p className="text-slate-400 text-sm leading-relaxed">{feature.desc}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-
-                    {/* How It Works */}
-                    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-                        <h2 className="text-4xl lg:text-5xl font-bold text-center mb-16">How BreedIQ works</h2>
-
-                        <div className="grid md:grid-cols-3 gap-12">
-                            {[
-                                { num: '1', title: 'Upload Your Records', desc: 'Start with what you have — notes, spreadsheets, screenshots, PDFs. Anything goes.', icon: '📤' },
-                                { num: '2', title: 'AI Organizes Everything', desc: 'Our AI reads, understands, and organizes your data into a complete breeding program.', icon: '🤖' },
-                                { num: '3', title: 'Manage & Grow', desc: 'Use real dashboards, automated tracking, and insights to breed smarter from day one.', icon: '🚀' }
-                            ].map((step, idx) => (
-                                <div key={idx} className="text-center">
-                                    <div className="inline-block text-5xl mb-6">{step.icon}</div>
-                                    <div className="text-4xl font-bold text-emerald-500 mb-4">Step {step.num}</div>
-                                    <h3 className="text-2xl font-semibold mb-4">{step.title}</h3>
-                                    <p className="text-slate-400 leading-relaxed">{step.desc}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-
-                    {/* Testimonial */}
-                    <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-                        <div className="bg-slate-900 border border-slate-800 rounded-lg p-12 text-center">
-                            <div className="flex justify-center gap-1 mb-6">
-                                {[...Array(5)].map((_, i) => (
-                                    <span key={i} className="text-2xl">⭐</span>
-                                ))}
-                            </div>
-                            <blockquote className="text-2xl font-light mb-8 italic text-slate-100">
-                                "I had years of breeding records scattered across Apple Notes, spreadsheets, and text threads. BreedIQ organized everything in minutes and now I can actually see my whole program at a glance."
-                            </blockquote>
-                            <p className="font-semibold text-lg">Spencer L.</p>
-                            <p className="text-slate-400">Frosted Goldendoodles, Utah</p>
-                        </div>
-                    </section>
-
-                    {/* Pricing Section */}
-                    <section id="pricing" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 bg-slate-900/30">
-                        <h2 className="text-4xl lg:text-5xl font-bold text-center mb-4">Simple, transparent pricing</h2>
-                        <p className="text-center text-slate-400 mb-12">Choose the plan that's right for your breeding program</p>
-
-                        {/* Billing Toggle */}
-                        <div className="flex justify-center items-center gap-4 mb-16">
-                            <span className={billingAnnual ? 'text-slate-400' : 'text-white font-semibold'}>Monthly</span>
-                            <button
-                                onClick={() => setBillingAnnual(!billingAnnual)}
-                                className={`relative inline-flex h-8 w-14 items-center rounded-full transition ${billingAnnual ? 'bg-emerald-500' : 'bg-slate-700'}`}
-                            >
-                                <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition ${billingAnnual ? 'translate-x-7' : 'translate-x-1'}`} />
-                            </button>
-                            <span className={billingAnnual ? 'text-white font-semibold' : 'text-slate-400'}>
-                                Annual <span className="text-emerald-500">(Save 25%)</span>
-                            </span>
-                        </div>
-
-                        {/* Pricing Cards */}
-                        <div className="grid md:grid-cols-3 gap-8">
-                            {[
-                                {
-                                    name: 'Starter',
-                                    price: billingAnnual ? '$0' : '$0',
-                                    period: '/month',
-                                    popular: false,
-                                    features: [
-                                        'Up to 5 dogs',
-                                        'Basic dam tracking',
-                                        'Heat cycle calendar',
-                                        'Email support'
-                                    ],
-                                    cta: 'Start Free'
-                                },
-                                {
-                                    name: 'Pro',
-                                    price: billingAnnual ? '$179' : '$19.99',
-                                    period: billingAnnual ? '/year' : '/month',
-                                    popular: true,
-                                    features: [
-                                        'Unlimited dogs',
-                                        'AI onboarding',
-                                        'Guardian family management',
-                                        'Google Calendar sync',
-                                        'Embark integration',
-                                        'Litter pipeline tracking',
-                                        'Priority email support'
-                                    ],
-                                    cta: 'Start 14-Day Free Trial'
-                                },
-                                {
-                                    name: 'Kennel',
-                                    price: billingAnnual ? '$359' : '$39.99',
-                                    period: billingAnnual ? '/year' : '/month',
-                                    popular: false,
-                                    features: [
-                                        'Everything in Pro',
-                                        'AI pairing advisor',
-                                        'Buyer communications',
-                                        'CRM & waitlist management',
-                                        'Financial tracking',
-                                        'Priority phone support'
-                                    ],
-                                    cta: 'Start 14-Day Free Trial'
-                                }
-                            ].map((plan, idx) => (
-                                <div key={idx} className={`pricing-card bg-slate-900 rounded-lg p-8 border ${plan.popular ? 'popular border-2' : 'border-slate-800'} relative`}>
-                                    {plan.popular && (
-                                        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                                            MOST POPULAR
-                                        </div>
-                                    )}
-                                    <h3 className="text-2xl font-bold mb-4 pt-4">{plan.name}</h3>
-                                    <div className="mb-6">
-                                        <span className="text-5xl font-bold">{plan.price}</span>
-                                        <span className="text-slate-400 ml-2">{plan.period}</span>
-                                    </div>
-                                    <a
-                                        href="/signup"
-                                        className={`w-full block text-center py-3 rounded-lg font-semibold mb-8 transition ${
-                                            plan.popular
-                                                ? 'gradient-blue-emerald text-white hover:shadow-xl'
-                                                : 'border border-slate-700 text-white hover:border-emerald-500'
-                                        }`}
-                                    >
-                                        {plan.cta}
-                                    </a>
-                                    <ul className="space-y-4">
-                                        {plan.features.map((feature, fIdx) => (
-                                            <li key={fIdx} className="flex items-start gap-3">
-                                                <span className="text-emerald-500 mt-1">✓</span>
-                                                <span className="text-slate-300">{feature}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
-                        </div>
-
-                        <p className="text-center text-slate-400 mt-12">No credit card required for free trial. Cancel anytime.</p>
-                    </section>
-
-                    {/* FAQ Section */}
-                    <section id="faq" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-                        <h2 className="text-4xl lg:text-5xl font-bold text-center mb-16">Frequently asked questions</h2>
-
-                        <div className="space-y-4">
-                            {[
-                                {
-                                    id: 'q1',
-                                    question: 'What types of files can I upload?',
-                                    answer: 'You can upload notes, spreadsheets, screenshots, PDFs, text files — anything with breeding data. Our AI will read and organize it.'
-                                },
-                                {
-                                    id: 'q2',
-                                    question: 'How does the AI onboarding work?',
-                                    answer: 'Upload your records in any format. Our AI extracts dog profiles, breeding history, and health data. You review and confirm everything before it\'s saved.'
-                                },
-                                {
-                                    id: 'q3',
-                                    question: 'Can I manage guardian homes?',
-                                    answer: 'Yes, BreedIQ tracks guardian families, their dogs, check-in reminders, and cycle reports all in one place. It\'s built for multi-location programs.'
-                                },
-                                {
-                                    id: 'q4',
-                                    question: 'Is my data secure?',
-                                    answer: 'Yes, your breeding data is encrypted at rest and in transit. You control who has access to your program — whether that\'s just you or your entire team.'
-                                },
-                                {
-                                    id: 'q5',
-                                    question: 'Can I cancel anytime?',
-                                    answer: 'Yes. Cancel anytime without penalty. Your free tier is always free, and paid plans have no lock-in contracts.'
-                                },
-                                {
-                                    id: 'q6',
-                                    question: 'Do you support species other than dogs?',
-                                    answer: 'Dogs are our first focus, but the platform is built to expand. Contact us if you have other breeding interests.'
-                                }
-                            ].map((faq) => (
-                                <div key={faq.id} className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
-                                    <button
-                                        onClick={() => toggleFAQ(faq.id)}
-                                        className="accordion-header w-full px-6 py-4 text-left font-semibold flex justify-between items-center hover:bg-slate-800/50 transition"
-                                    >
-                                        <span>{faq.question}</span>
-                                        <span className={`text-2xl transition ${expandedFAQ === faq.id ? 'rotate-180' : ''}`}>▼</span>
-                                    </button>
-                                    {expandedFAQ === faq.id && (
-                                        <div className="px-6 py-4 bg-slate-800/30 border-t border-slate-800 text-slate-300">
-                                            {faq.answer}
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-
-                    {/* Final CTA */}
-                    <section className="gradient-blue-emerald py-20">
-                        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                            <h2 className="text-4xl font-bold text-white mb-8">Ready to breed smarter?</h2>
-                            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-                                <input
-                                    type="email"
-                                    placeholder="Enter your email"
-                                    className="px-6 py-3 rounded-lg w-full sm:w-auto text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-white"
-                                />
-                                <a
-                                    href="/signup"
-                                    className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-slate-100 transition whitespace-nowrap"
-                                >
-                                    Get Started Free
-                                </a>
-                            </div>
-                            <p className="text-white/80 mt-6 text-sm">No credit card required. Takes under 3 minutes to set up.</p>
-                        </div>
-                    </section>
-
-                    {/* Footer */}
-                    <footer className="bg-slate-900 border-t border-slate-800 py-16">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="grid md:grid-cols-4 gap-8 mb-12">
-                                <div>
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <span className="text-2xl">🐾</span>
-                                        <span className="text-lg font-bold gradient-text-blue-emerald">BreedIQ</span>
-                                    </div>
-                                    <p className="text-slate-400 text-sm">AI-powered breeding program management for modern breeders.</p>
-                                </div>
-                                <div>
-                                    <h4 className="font-semibold mb-4">Product</h4>
-                                    <ul className="space-y-2 text-slate-400 text-sm">
-                                        <li><a href="#features" className="hover:text-white transition">Features</a></li>
-                                        <li><a href="#pricing" className="hover:text-white transition">Pricing</a></li>
-                                        <li><a href="#faq" className="hover:text-white transition">FAQ</a></li>
-                                    </ul>
-                                </div>
-                                <div>
-                                    <h4 className="font-semibold mb-4">Company</h4>
-                                    <ul className="space-y-2 text-slate-400 text-sm">
-                                        <li><a href="/contact" className="hover:text-white transition">Contact</a></li>
-                                        <li><a href="/privacy" className="hover:text-white transition">Privacy Policy</a></li>
-                                        <li><a href="/terms" className="hover:text-white transition">Terms of Service</a></li>
-                                    </ul>
-                                </div>
-                                <div>
-                                    <h4 className="font-semibold mb-4">Connect</h4>
-                                    <p className="text-slate-400 text-sm">Social channels coming soon.</p>
-                                    <a href="/contact" className="text-emerald-400 hover:text-emerald-300 transition text-sm mt-2 inline-block">Contact us</a>
-                                </div>
-                            </div>
-                            <div className="border-t border-slate-800 pt-8 flex flex-col sm:flex-row justify-between items-center text-slate-400 text-sm">
-                                <p>© 2026 BreedIQ. All rights reserved.</p>
-                                <p>Built for breeders, by breeders.</p>
-                            </div>
-                        </div>
-                    </footer>
-                </div>
-            );
-        }
-
-        ReactDOM.render(<BreedIQLanding />, document.getElementById('root'));
-    </script>
-</body>
-</html>
+- **Litter folders:** `[Dam] x [Sire] - [Month Year]` → `Ruby x Scout - January 2026`
+- **Puppy subfolders:** Use collar color or call name → `Red Collar` or `Maple`
+- **Shared albums on iPhone:** Match the litter folder name for easy cross-reference
