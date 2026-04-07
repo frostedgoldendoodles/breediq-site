@@ -1,69 +1,647 @@
-# Puppy Photos — How to Use This Folder
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="BreedIQ — AI-powered breeding program management platform. Organize your breeding records, track heat cycles, sync with Google Calendar, and manage guardians all in one place.">
+    <meta name="keywords" content="dog breeding, breeding management, AI, heat cycle tracking, pedigree management">
+    <meta name="author" content="BreedIQ">
 
-This folder is your central hub for all litter photos and videos. It's organized so Claude can quickly find, sort, and use your photos for buyer emails, social media posts, and documents.
+    <title>BreedIQ — AI-Powered Breeding Program Management</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z'/><path d='M8 14s1.5 2 4 2 4-2 4-2'/><line x1='9' y1='9' x2='9.01' y2='9'/><line x1='15' y1='9' x2='15.01' y2='9'/></svg>">
 
----
+    <!-- Tailwind CSS from CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-## Folder Structure (per litter)
+    <!-- React 18 + ReactDOM from CDN (UMD builds) -->
+    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
 
-For each new litter, **duplicate the `_NEW LITTER TEMPLATE` folder** and rename it like this:
+    <!-- Babel Standalone -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 
-```
-Litter Name - Month Year
-Example: Ruby x Scout - January 2026
-```
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
 
-Inside each litter folder:
+        .gradient-blue-emerald {
+            background: linear-gradient(135deg, #2563eb 0%, #10b981 100%);
+        }
 
-| Subfolder | What goes here |
-|---|---|
-| `1 - All Photos` | Dump everything here first — straight from iCloud/iPhone |
-| `2 - By Puppy` | Create one subfolder per puppy (use their call name or collar color) |
-| `3 - Ready to Share` → `Buyer Photos` | Curated photos ready to send to a specific buyer |
-| `3 - Ready to Share` → `Social Media` | Edited/cropped photos ready to post |
-| `3 - Ready to Share` → `Documents & Ads` | Photos used in flyers, PDFs, or listings |
+        .gradient-text-blue-emerald {
+            background: linear-gradient(135deg, #2563eb 0%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
----
+        .nav-link {
+            transition: color 0.3s ease;
+        }
 
-## How to Get Photos from iPhone / iCloud
+        .nav-link:hover {
+            color: #10b981;
+        }
 
-### Option A — From the Mac Photos App (easiest)
-1. Open the **Photos** app on your Mac
-2. Click **Shared Albums** in the sidebar and open the litter's album
-3. Select all photos (⌘A) or pick the ones you want
-4. Go to **File → Export → Export [X] Photos...**
-5. Choose the litter's `1 - All Photos` folder as the destination
-6. Click **Export**
+        .feature-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
 
-### Option B — Drag from iPhone via Finder
-1. Plug your iPhone into your Mac with a USB cable
-2. Open **Finder** and click your iPhone in the sidebar
-3. Click the **Photos** tab
-4. Drag photos directly into the `1 - All Photos` folder
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.2);
+        }
 
-### Option C — AirDrop from iPhone
-1. On your iPhone, open the Photos app and select photos
-2. Tap the Share icon → **AirDrop** → select your Mac
-3. Photos will land in your Mac's **Downloads** folder
-4. Move them into the appropriate litter's `1 - All Photos` folder
+        .pricing-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
 
----
+        .pricing-card.popular {
+            border: 2px solid #10b981;
+        }
 
-## Tips for Working with Claude
+        .pricing-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.2);
+        }
 
-Once photos are in this folder, just tell Claude things like:
+        .accordion-header {
+            cursor: pointer;
+            user-select: none;
+        }
 
-- *"Send [Puppy Name]'s best photos to [Buyer Name] at [email]"*
-- *"Pick 5 photos from Ruby x Scout for an Instagram post"*
-- *"Create a puppy availability flyer for the January litter"*
-- *"Move the red collar puppy photos into the By Puppy folder"*
+        .accordion-header:hover {
+            color: #10b981;
+        }
 
-The clearer your folder and puppy names, the faster Claude can help!
+        @keyframes heatPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .heat-pulse {
+            animation: heatPulse 1.5s ease-in-out infinite;
+        }
 
----
+        @keyframes progressFill {
+            from { width: 0%; }
+            to { width: 28%; }
+        }
+        .progress-fill {
+            animation: progressFill 2s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased">
+    <div id="root"></div>
 
-## Naming Conventions
+    <script type="text/babel">
+        const { useState } = React;
 
-- **Litter folders:** `[Dam] x [Sire] - [Month Year]` → `Ruby x Scout - January 2026`
-- **Puppy subfolders:** Use collar color or call name → `Red Collar` or `Maple`
-- **Shared albums on iPhone:** Match the litter folder name for easy cross-reference
+        function BreedIQLanding() {
+            const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+            const [billingAnnual, setBillingAnnual] = useState(false);
+            const [expandedFAQ, setExpandedFAQ] = useState(null);
+
+            const toggleFAQ = (id) => {
+                setExpandedFAQ(expandedFAQ === id ? null : id);
+            };
+
+            return (
+                <div className="min-h-screen bg-slate-950">
+                    {/* Navigation */}
+                    <nav className="sticky top-0 z-50 bg-slate-950/95 backdrop-blur border-b border-slate-800">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                                <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="url(#navGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="navGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#2563eb"/><stop offset="100%" stopColor="#10b981"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                                <span className="text-xl font-bold gradient-text-blue-emerald">BreedIQ</span>
+                            </div>
+
+                            {/* Desktop Menu */}
+                            <div className="hidden md:flex items-center gap-8">
+                                <a href="#features" className="nav-link text-slate-300">Features</a>
+                                <a href="#pricing" className="nav-link text-slate-300">Pricing</a>
+                                                  <a href="#faq" className="nav-link text-slate-300">FAQ</a>
+                            </div>
+
+                            {/* Desktop Buttons */}
+                            <div className="hidden md:flex items-center gap-4">
+                                <a href="/login" className="text-slate-300 hover:text-white transition">Sign In</a>
+                                <a href="/signup" className="gradient-blue-emerald text-white px-6 py-2 rounded-lg font-medium hover:shadow-lg transition">
+                                    Get Started Free
+                                </a>
+                            </div>
+
+                            {/* Mobile Menu Button */}
+                            <button
+                                className="md:hidden text-white"
+                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Mobile Menu */}
+                        {mobileMenuOpen && (
+                            <div className="md:hidden bg-slate-900 border-t border-slate-800 px-4 py-4 space-y-4">
+                                <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-slate-300 hover:text-white">Features</a>
+                                <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block text-slate-300 hover:text-white">Pricing</a>
+                                <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block text-slate-300 hover:text-white">FAQ</a>
+                                <div className="pt-4 space-y-2 border-t border-slate-800">
+                                    <a href="/login" onClick={() => setMobileMenuOpen(false)} className="block text-slate-300 hover:text-white">Sign In</a>
+                                    <a href="/signup" onClick={() => setMobileMenuOpen(false)} className="block gradient-blue-emerald text-white px-4 py-2 rounded-lg font-medium text-center">
+                                        Get Started Free
+                                    </a>
+                                </div>
+                            </div>
+                        )}
+                    </nav>
+
+                    {/* Hero Section */}
+                    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
+                        <div className="grid lg:grid-cols-2 gap-12 items-center">
+                            <div className="space-y-8">
+                                <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
+                                    Stop juggling spreadsheets. Start breeding smarter.
+                                </h1>
+                                <p className="text-xl text-slate-300 leading-relaxed">
+                                    BreedIQ uses AI to organize your entire breeding program — dams, studs, litters, guardians, and calendars — in minutes, not months.
+                                </p>
+
+                                {/* CTAs */}
+                                <div className="flex flex-col sm:flex-row gap-4">
+                                    <a href="/signup" className="gradient-blue-emerald text-white px-8 py-4 rounded-lg font-semibold text-lg hover:shadow-xl transition text-center">
+                                        Start Free
+                                    </a>
+                                    <button className="border-2 border-emerald-500 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-emerald-500/10 transition text-center">
+                                        Watch Demo
+                                    </button>
+                                </div>
+
+                                {/* Trust Badges */}
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 border-t border-slate-800">
+                                    <div className="flex items-center gap-3">
+                                        <svg className="w-5 h-5 text-emerald-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                        <span className="text-sm text-slate-300">Free to start</span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <svg className="w-5 h-5 text-emerald-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                        <span className="text-sm text-slate-300">No credit card required</span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <svg className="w-5 h-5 text-emerald-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                        <span className="text-sm text-slate-300">Set up in under 3 minutes</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Dashboard Mockup */}
+                            <div className="hidden lg:block" style={{position:'relative'}}>
+                                {/* Glow effect */}
+                                <div style={{position:'absolute',inset:'-20px',background:'radial-gradient(ellipse at 30% 50%, rgba(37,99,235,0.15) 0%, transparent 60%), radial-gradient(ellipse at 70% 50%, rgba(16,185,129,0.12) 0%, transparent 60%)',filter:'blur(40px)',borderRadius:'24px',zIndex:0}}></div>
+                                <div style={{position:'relative',zIndex:1,background:'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',border:'1px solid #334155',borderRadius:'16px',overflow:'hidden',boxShadow:'0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(148,163,184,0.1)'}}>
+                                    {/* Title bar */}
+                                    <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'12px 16px',background:'#1e293b',borderBottom:'1px solid #334155'}}>
+                                        <div style={{width:'10px',height:'10px',borderRadius:'50%',background:'#ef4444'}}></div>
+                                        <div style={{width:'10px',height:'10px',borderRadius:'50%',background:'#eab308'}}></div>
+                                        <div style={{width:'10px',height:'10px',borderRadius:'50%',background:'#22c55e'}}></div>
+                                        <div style={{flex:1,textAlign:'center',color:'#94a3b8',fontSize:'11px',fontWeight:500,letterSpacing:'0.5px'}}>breediq.ai/dashboard</div>
+                                        <div style={{width:'38px'}}></div>
+                                    </div>
+                                    <div style={{padding:'16px'}}>
+                                        {/* Nav */}
+                                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px'}}>
+                                            <div style={{fontSize:'14px',fontWeight:700,background:'linear-gradient(135deg, #3b82f6, #10b981)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>BreedIQ</div>
+                                            <div style={{display:'flex',gap:'4px'}}>
+                                                <span style={{padding:'4px 10px',borderRadius:'6px',fontSize:'10px',background:'rgba(16,185,129,0.15)',color:'#10b981',fontWeight:600}}>Overview</span>
+                                                <span style={{padding:'4px 10px',borderRadius:'6px',fontSize:'10px',color:'#64748b'}}>Dogs</span>
+                                                <span style={{padding:'4px 10px',borderRadius:'6px',fontSize:'10px',color:'#64748b'}}>Litters</span>
+                                                <span style={{padding:'4px 10px',borderRadius:'6px',fontSize:'10px',color:'#64748b'}}>Calendar</span>
+                                            </div>
+                                        </div>
+                                        {/* Stat Cards */}
+                                        <div style={{display:'grid',gridTemplateColumns:'repeat(4, 1fr)',gap:'8px',marginBottom:'14px'}}>
+                                            <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'10px',textAlign:'center'}}>
+                                                <div style={{width:'28px',height:'28px',borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 6px',background:'rgba(59,130,246,0.15)'}}>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+                                                </div>
+                                                <div style={{fontSize:'20px',fontWeight:800,color:'#f1f5f9',lineHeight:1,marginBottom:'2px'}}>9</div>
+                                                <div style={{fontSize:'9px',color:'#64748b',textTransform:'uppercase',letterSpacing:'0.5px',fontWeight:500}}>Active Dogs</div>
+                                            </div>
+                                            <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'10px',textAlign:'center'}}>
+                                                <div style={{width:'28px',height:'28px',borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 6px',background:'rgba(168,85,247,0.15)'}}>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2.5" strokeLinecap="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 6v6l4 2"/></svg>
+                                                </div>
+                                                <div style={{fontSize:'20px',fontWeight:800,color:'#f1f5f9',lineHeight:1,marginBottom:'2px'}}>1</div>
+                                                <div style={{fontSize:'9px',color:'#64748b',textTransform:'uppercase',letterSpacing:'0.5px',fontWeight:500}}>Pregnant</div>
+                                            </div>
+                                            <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'10px',textAlign:'center'}}>
+                                                <div style={{width:'28px',height:'28px',borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 6px',background:'rgba(239,68,68,0.15)'}}>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                                </div>
+                                                <div style={{fontSize:'20px',fontWeight:800,color:'#f1f5f9',lineHeight:1,marginBottom:'2px',display:'flex',alignItems:'center',justifyContent:'center',gap:'4px'}}><span className="heat-pulse" style={{display:'inline-block',width:'6px',height:'6px',background:'#f87171',borderRadius:'50%'}}></span>2</div>
+                                                <div style={{fontSize:'9px',color:'#64748b',textTransform:'uppercase',letterSpacing:'0.5px',fontWeight:500}}>Heats Due</div>
+                                            </div>
+                                            <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'10px',textAlign:'center'}}>
+                                                <div style={{width:'28px',height:'28px',borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 6px',background:'rgba(16,185,129,0.15)'}}>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                                </div>
+                                                <div style={{fontSize:'20px',fontWeight:800,color:'#f1f5f9',lineHeight:1,marginBottom:'2px'}}>6</div>
+                                                <div style={{fontSize:'9px',color:'#64748b',textTransform:'uppercase',letterSpacing:'0.5px',fontWeight:500}}>Guardians</div>
+                                            </div>
+                                        </div>
+                                        {/* Litter Pipeline */}
+                                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px'}}>
+                                            <div style={{fontSize:'11px',fontWeight:700,color:'#e2e8f0',textTransform:'uppercase',letterSpacing:'0.5px'}}>Litter Pipeline</div>
+                                            <div style={{fontSize:'9px',padding:'2px 8px',borderRadius:'10px',fontWeight:600,background:'rgba(168,85,247,0.15)',color:'#c084fc'}}>1 Active</div>
+                                        </div>
+                                        <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'12px',marginBottom:'10px'}}>
+                                            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px'}}>
+                                                <div style={{fontSize:'12px',fontWeight:600,color:'#e2e8f0'}}>Gigi <span style={{color:'#64748b',fontWeight:400}}>bred 3/21</span></div>
+                                                <div style={{fontSize:'9px',padding:'2px 8px',borderRadius:'10px',fontWeight:600,background:'rgba(168,85,247,0.15)',color:'#c084fc'}}>Pregnant</div>
+                                            </div>
+                                            <div style={{marginBottom:'6px'}}>
+                                                <div style={{height:'6px',background:'#334155',borderRadius:'3px',overflow:'hidden'}}>
+                                                    <div className="progress-fill" style={{height:'100%',borderRadius:'3px',background:'linear-gradient(90deg, #8b5cf6, #c084fc)',width:'28%'}}></div>
+                                                </div>
+                                                <div style={{display:'flex',justifyContent:'space-between',marginTop:'4px'}}>
+                                                    <span style={{fontSize:'9px',color:'#64748b'}}>Day <strong style={{color:'#c084fc'}}>17</strong> of 61</span>
+                                                    <span style={{fontSize:'9px',color:'#64748b'}}>Due <strong style={{color:'#c084fc'}}>May 21</strong></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {/* Alert chips */}
+                                        <div style={{display:'flex',gap:'6px',marginTop:'10px'}}>
+                                            <div style={{flex:1,display:'flex',alignItems:'center',gap:'6px',background:'#1e293b',border:'1px solid #334155',borderRadius:'8px',padding:'8px 10px',fontSize:'10px',color:'#94a3b8'}}>
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#eab308" strokeWidth="2" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                                <span><strong style={{color:'#e2e8f0'}}>Gigi</strong> ultrasound in 11 days</span>
+                                            </div>
+                                            <div style={{flex:1,display:'flex',alignItems:'center',gap:'6px',background:'#1e293b',border:'1px solid #334155',borderRadius:'8px',padding:'8px 10px',fontSize:'10px',color:'#94a3b8'}}>
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                                <span><strong style={{color:'#e2e8f0'}}>Stormi</strong> heat cycle imminent</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Social Proof Bar */}
+                    <section className="bg-slate-900/50 border-y border-slate-800 py-12">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <p className="text-center text-slate-400 mb-8">Built and trusted by real breeders</p>
+                            <div className="flex flex-wrap justify-center items-center gap-12">
+                                <div className="flex flex-col items-center gap-2">
+                                    <img src="https://img1.wsimg.com/isteam/ip/483ef3c6-7986-44d1-992f-2c08d17f6202/001frostedlogo.png" alt="Frosted Goldendoodles" className="h-16 w-auto rounded-full" />
+                                    <span className="text-xs text-slate-500">Frosted Goldendoodles</span>
+                                </div>
+                                <div className="flex flex-col items-center gap-2 opacity-40">
+                                    <div className="h-16 w-16 rounded-full bg-slate-800 border-2 border-dashed border-slate-600 flex items-center justify-center text-slate-500 text-xs">Soon</div>
+                                    <span className="text-xs text-slate-600">Your kennel here</span>
+                                </div>
+                                <div className="flex flex-col items-center gap-2 opacity-40">
+                                    <div className="h-16 w-16 rounded-full bg-slate-800 border-2 border-dashed border-slate-600 flex items-center justify-center text-slate-500 text-xs">Soon</div>
+                                    <span className="text-xs text-slate-600">Your kennel here</span>
+                                </div>
+                                <div className="flex flex-col items-center gap-2 opacity-40">
+                                    <div className="h-16 w-16 rounded-full bg-slate-800 border-2 border-dashed border-slate-600 flex items-center justify-center text-slate-500 text-xs">Soon</div>
+                                    <span className="text-xs text-slate-600">Your kennel here</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* AI Onboarding Showcase */}
+                    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+                        <div className="text-center mb-16">
+                            <h2 className="text-4xl lg:text-5xl font-bold mb-6">Upload your mess. We'll organize it.</h2>
+                            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+                                Other platforms make you enter every dog one by one. BreedIQ's AI reads your notes, spreadsheets, and screenshots — and builds your program in minutes.
+                            </p>
+                        </div>
+
+                        {/* Input Types Cards */}
+                        <div className="grid md:grid-cols-4 gap-6 mb-12">
+                            {[
+                                { icon: 'notes', title: 'Apple Notes', desc: 'Paste your notes and we extract the data' },
+                                { icon: 'spreadsheet', title: 'Spreadsheets', desc: 'CSV, Excel, Google Sheets — we handle them all' },
+                                { icon: 'camera', title: 'Screenshots', desc: 'Photos of pedigrees and records' },
+                                { icon: 'file', title: 'PDFs', desc: 'Scanned documents and pedigree charts' }
+                            ].map((item, idx) => (
+                                <div key={idx} className="bg-slate-900 border border-slate-800 rounded-lg p-6 text-center hover:border-emerald-500/50 transition">
+                                    <div className="flex justify-center mb-4">
+                                        {item.icon === 'notes' && <svg className="w-10 h-10 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>}
+                                        {item.icon === 'spreadsheet' && <svg className="w-10 h-10 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>}
+                                        {item.icon === 'camera' && <svg className="w-10 h-10 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>}
+                                        {item.icon === 'file' && <svg className="w-10 h-10 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>}
+                                    </div>
+                                    <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
+                                    <p className="text-slate-400 text-sm">{item.desc}</p>
+                                                                        </div>
+                                            <div className="bg-gradient-to-r from-blue-600/20 to-emerald-500/20 border border-emerald-500/30 rounded-lg p-8 text-center">
+                            <p className="text-2xl font-bold flex items-center justify-center gap-2"><svg className="w-7 h-7 text-yellow-400" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="0.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Average onboarding time: under 3 minutes</p>
+                        </div>
+                    </section>
+
+                    {/* Features Grid */}
+                    <section id="features" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 bg-slate-900/30">
+                        <h2 className="text-4xl lg:text-5xl font-bold text-center mb-16">Everything you need to manage your program</h2>
+
+                        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {[
+                                { id: 'ai' , title: 'AI Onboarding', desc: 'Upload your records in any format. Our AI extracts and organizes everything automatically.', color: '#3b82f6' },
+                                { id: 'heat', title: 'Heat Cycle Intelligence', desc: 'Predictive heat tracking that learns each dog\'s unique cycle patterns over time.', color: '#ef4444' },
+                                { id: 'calendar', title: 'Calendar Sync', desc: 'Due dates, heat windows, vet checkpoints, and go-home dates auto-sync to Google Calendar.', color: '#eab308' },
+                                { id: 'guardian', title: 'Guardian Management', desc: 'Track guardian families, check-in reminders, and cycle reports in one place.', color: '#10b981' },
+                                { id: 'litter', title: 'Litter Pipeline', desc: 'Visual gestation progress, puppy counts, and go-home date tracking for every litter.', color: '#a855f7' },
+                                { id: 'embark', title: 'Embark Integration', desc: 'Pull genetic data directly from Embark profiles for health and pairing analysis.', color: '#06b6d4' },
+                                { id: 'analytics', title: 'Smart Analytics', desc: 'Program-wide insights on litter sizes, cycle patterns, and breeding success rates.', color: '#f97316' },
+                                { id: 'security', title: 'Security & Privacy', desc: 'Your breeding data is encrypted and private. Only you control who sees what.', color: '#64748b' }
+                            ].map((feature, idx) => (
+                                <div key={idx} className="feature-card bg-slate-900 border border-slate-800 rounded-lg p-6">
+                                    <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{background: feature.color + '20'}}>
+                                        {feature.id === 'ai' && <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke={feature.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93"/><path d="M12 2a4 4 0 0 0-4 4c0 1.95 1.4 3.58 3.25 3.93"/><path d="M12 18v4"/><path d="M8 22h8"/><path d="M7 12h10"/><path d="M7 16h10"/></svg>}
+                                        {feature.id === 'heat' && <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke={feature.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>}
+                                        {feature.id === 'calendar' && <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke={feature.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}
+                                        {feature.id === 'guardian' && <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke={feature.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
+                                        {feature.id === 'litter' && <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke={feature.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>}
+                                        {feature.id === 'embark' && <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke={feature.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>}
+                                        {feature.id === 'analytics' && <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke={feature.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>}
+                                        {feature.id === 'security' && <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke={feature.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>}
+                                    </div>
+                                    <h3 className="font-semibold text-lg mb-3">{feature.title}</h3>
+                                    <p className="text-slate-400 text-sm leading-relaxed">{feature.desc}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* How It Works */}
+                    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+                        <h2 className="text-4xl lg:text-5xl font-bold text-center mb-16">How BreedIQ works</h2>
+
+                        <div className="grid md:grid-cols-3 gap-12">
+                            {[
+                                { num: '1', title: 'Upload Your Records', desc: 'Start with what you have — notes, spreadsheets, screenshots, PDFs. Anything goes.', id: 'upload' },
+                                { num: '2', title: 'AI Organizes Everything', desc: 'Our AI reads, understands, and organizes your data into a complete breeding program.', id: 'organize' },
+                                { num: '3', title: 'Manage & Grow', desc: 'Use real dashboards, automated tracking, and insights to breed smarter from day one.', id: 'grow' }
+                            ].map((step, idx) => (
+                                <div key={idx} className="text-center">
+                                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6" style={{background: idx === 0 ? 'rgba(59,130,246,0.15)' : idx === 1 ? 'rgba(168,85,247,0.15)' : 'rgba(16,185,129,0.15)'}}>
+                                        {step.id === 'upload' && <svg className="w-8 h-8 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>}
+                                        {step.id === 'organize' && <svg className="w-8 h-8 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="8" height="8" rx="1"/></svg>}
+                                        {step.id === 'grow' && <svg className="w-8 h-8 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>}
+                                    </div>
+                                    <div className="text-4xl font-bold text-emerald-500 mb-4">Step {step.num}</div>
+                                    <h3 className="text-2xl font-semibold mb-4">{step.title}</h3>
+                                    <p className="text-slate-400 leading-relaxed">{step.desc}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* Testimonial */}
+                    <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+                        <div className="bg-slate-900 border border-slate-800 rounded-lg p-12 text-center">
+                            <div className="flex justify-center gap-1 mb-6">
+                                {[...Array(5)].map((_, i) => (
+                                    <svg key={i} className="w-6 h-6 text-yellow-500" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                ))}
+                            </div>
+                            <blockquote className="text-2xl font-light mb-8 italic text-slate-100">
+                                "I had years of breeding records scattered across Apple Notes, spreadsheets, and text threads. BreedIQ organized everything in minutes and now I can actually see my whole program at a glance."
+                            </blockquote>
+                            <p className="font-semibold text-lg">Spencer L.</p>
+                            <p className="text-slate-400">Frosted Goldendoodles, Utah</p>
+                        </div>
+                    </section>
+
+                    {/* Pricing Section */}
+                    <section id="pricing" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 bg-slate-900/30">
+                        <h2 className="text-4xl lg:text-5xl font-bold text-center mb-4">Simple, transparent pricing</h2>
+                        <p className="text-center text-slate-400 mb-12">Choose the plan that's right for your breeding program</p>
+
+                        {/* Billing Toggle */}
+                        <div className="flex justify-center items-center gap-4 mb-16">
+                            <span className={billingAnnual ? 'text-slate-400' : 'text-white font-semibold'}>Monthly</span>
+                            <button
+                                onClick={() => setBillingAnnual(!billingAnnual)}
+                                className={`relative inline-flex h-8 w-14 items-center rounded-full transition ${billingAnnual ? 'bg-emerald-500' : 'bg-slate-700'}`}
+                            >
+                                <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition ${billingAnnual ? 'translate-x-7' : 'translate-x-1'}`} />
+                            </button>
+                            <span className={billingAnnual ? 'text-white font-semibold' : 'text-slate-400'}>
+                                Annual <span className="text-emerald-500">(Save 25%)</span>
+                            </span>
+                        </div>
+
+                        {/* Pricing Cards */}
+                        <div className="grid md:grid-cols-3 gap-8">
+                            {[
+                                {
+                                    name: 'Starter',
+                                    price: billingAnnual ? '$0' : '$0',
+                                    period: '/month',
+                                    popular: false,
+                                    features: [
+                                        'Up to 5 dogs',
+                                        'Basic dam tracking',
+                                        'Heat cycle calendar',
+                                        'Email support'
+                                    ],
+                                    cta: 'Start Free'
+                                },
+                                {
+                                    name: 'Pro',
+                                    price: billingAnnual ? '$179' : '$19.99',
+                                    period: billingAnnual ? '/year' : '/month',
+                                    popular: true,
+                                    features: [
+                                        'Unlimited dogs',
+                                        'AI onboarding',
+                                        'Guardian family management',
+                                        'Google Calendar sync',
+                                        'Embark integration',
+                                        'Litter pipeline tracking',
+                                        'Priority email support'
+                                    ],
+                                    cta: 'Start 14-Day Free Trial'
+                                },
+                                {
+                                    name: 'Kennel',
+                                    price: billingAnnual ? '$359' : '$39.99',
+                                    period: billingAnnual ? '/year' : '/month',
+                                    popular: false,
+                                    features: [
+                                        'Everything in Pro',
+                                        'AI pairing advisor',
+                                        'Buyer communications',
+                                        'CRM & waitlist management',
+                                        'Financial tracking',
+                                        'Priority phone support'
+                                    ],
+                                    cta: 'Start 14-Day Free Trial'
+                                }
+                            ].map((plan, idx) => (
+                                <div key={idx} className={`pricing-card bg-slate-900 rounded-lg p-8 border ${plan.popular ? 'popular border-2' : 'border-slate-800'} relative`}>
+                                    {plan.popular && (
+                                        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                                            MOST POPULAR
+                                        </div>
+                                    )}
+                                    <h3 className="text-2xl font-bold mb-4 pt-4">{plan.name}</h3>
+                                    <div className="mb-6">
+                                        <span className="text-5xl font-bold">{plan.price}</span>
+                                        <span className="text-slate-400 ml-2">{plan.period}</span>
+                                    </div>
+                                    <a
+                                        href="/signup"
+                                        className={`w-full block text-center py-3 rounded-lg font-semibold mb-8 transition ${
+                                            plan.popular
+                                                ? 'gradient-blue-emerald text-white hover:shadow-xl'
+                                                : 'border border-slate-700 text-white hover:border-emerald-500'
+                                        }`}
+                                                      >
+                                        {plan.cta}
+                                    </a>
+                                    <ul className="space-y-4">
+                                        {plan.features.map((feature, fIdx) => (
+                                            <li key={fIdx} className="flex items-start gap-3">
+                                                <svg className="w-4 h-4 text-emerald-500 mt-1 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                                <span className="text-slate-300">{feature}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ))}
+                        </div>
+
+                        <p className="text-center text-slate-400 mt-12">No credit card required for free trial. Cancel anytime.</p>
+                    </section>
+
+                    {/* FAQ Section */}
+                    <section id="faq" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+                        <h2 className="text-4xl lg:text-5xl font-bold text-center mb-16">Frequently asked questions</h2>
+
+                        <div className="space-y-4">
+                            {[
+                                {
+                                    id: 'q1',
+                                    question: 'What types of files can I upload?',
+                                    answer: 'You can upload notes, spreadsheets, screenshots, PDFs, text files — anything with breeding data. Our AI will read and organize it.'
+                                },
+                                {
+                                    id: 'q2',
+                                    question: 'How does the AI onboarding work?',
+                                    answer: 'Upload your records in any format. Our AI extracts dog profiles, breeding history, and health data. You review and confirm everything before it\'s saved.'
+                                },
+                                {
+                                    id: 'q3',
+                                    question: 'Can I manage guardian homes?',
+                                    answer: 'Yes, BreedIQ tracks guardian families, their dogs, check-in reminders, and cycle reports all in one place. It\'s built for multi-location programs.'
+                                },
+                                {
+                                    id: 'q4',
+                                    question: 'Is my data secure?',
+                                    answer: 'Yes, your breeding data is encrypted at rest and in transit. You control who has access to your program — whether that\'s just you or your entire team.'
+                                },
+                                {
+                                    id: 'q5',
+                                    question: 'Can I cancel anytime?',
+                                    answer: 'Yes. Cancel anytime without penalty. Your free tier is always free, and paid plans have no lock-in contracts.'
+                                },
+                                {
+                                    id: 'q6',
+                                    question: 'Do you support species other than dogs?',
+                                    answer: 'Dogs are our first focus, but the platform is built to expand. Contact us if you have other breeding interests.'
+                                }
+                            ].map((faq) => (
+                                <div key={faq.id} className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+                                    <button
+                                        onClick={() => toggleFAQ(faq.id)}
+                                        className="accordion-header w-full px-6 py-4 text-left font-semibold flex justify-between items-center hover:bg-slate-800/50 transition"
+                                    >
+                                        <span>{faq.question}</span>
+                                        <svg className={`w-5 h-5 text-slate-400 transition-transform ${expandedFAQ === faq.id ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                                    </button>
+                                    {expandedFAQ === faq.id && (
+                                        <div className="px-6 py-4 bg-slate-800/30 border-t border-slate-800 text-slate-300">
+                                            {faq.answer}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* Final CTA */}
+                    <section className="gradient-blue-emerald py-20">
+                        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                            <h2 className="text-4xl font-bold text-white mb-8">Ready to breed smarter?</h2>
+                            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+                                <input
+                                    type="email"
+                                    placeholder="Enter your email"
+                                    className="px-6 py-3 rounded-lg w-full sm:w-auto text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-white"
+                                />
+                                <a
+                                    href="/signup"
+                                    className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-slate-100 transition whitespace-nowrap"
+                                >
+                                    Get Started Free
+                                </a>
+                            </div>
+                            <p className="text-white/80 mt-6 text-sm">No credit card required. Takes under 3 minutes to set up.</p>
+                        </div>
+                    </section>
+
+                    {/* Footer */}
+                    <footer className="bg-slate-900 border-t border-slate-800 py-16">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="grid md:grid-cols-4 gap-8 mb-12">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="url(#footGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="footGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#2563eb"/><stop offset="100%" stopColor="#10b981"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                                        <span className="text-lg font-bold gradient-text-blue-emerald">BreedIQ</span>
+                                    </div>
+                                    <p className="text-slate-400 text-sm">AI-powered breeding program management for modern breeders.</p>
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold mb-4">Product</h4>
+                                    <ul className="space-y-2 text-slate-400 text-sm">
+                                        <li><a href="#features" className="hover:text-white transition">Features</a></li>
+                                        <li><a href="#pricing" className="hover:text-white transition">Pricing</a></li>
+                                        <li><a href="#faq" className="hover:text-white transition">FAQ</a></li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold mb-4">Company</h4>
+                                    <ul className="space-y-2 text-slate-400 text-sm">
+                                        <li><a href="/contact" className="hover:text-white transition">Contact</a></li>
+                                        <li><a href="/privacy" className="hover:text-white transition">Privacy Policy</a></li>
+                                        <li><a href="/terms" className="hover:text-white transition">Terms of Service</a></li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold mb-4">Connect</h4>
+                                    <p className="text-slate-400 text-sm">Social channels coming soon.</p>
+                                    <a href="/contact" className="text-emerald-400 hover:text-emerald-300 transition text-sm mt-2 inline-block">Contact us</a>
+                                </div>
+                            </div>
+                            <div className="border-t border-slate-800 pt-8 flex flex-col sm:flex-row justify-between items-center text-slate-400 text-sm">
+                                <p>© 2026 BreedIQ. All rights reserved.</p>
+                                <p>Built for breeders, by breeders.</p>
+                            </div>
+                        </div>
+                    </footer>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<BreedIQLanding />, document.getElementById('root'));
+    </script>
+</body>
+</html>
