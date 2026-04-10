@@ -6,7 +6,9 @@
     { "source": "/login", "destination": "/login.html" },
     { "source": "/privacy", "destination": "/privacy.html" },
     { "source": "/terms", "destination": "/terms.html" },
-    { "source": "/contact", "destination": "/contact.html" }
+    { "source": "/contact", "destination": "/contact.html" },
+    { "source": "/dogs", "destination": "/dogs.html" },
+    { "source": "/dog", "destination": "/dog.html" }
   ],
   "functions": {
     "api/**/*.js": {
