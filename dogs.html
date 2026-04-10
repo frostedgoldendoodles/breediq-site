@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dogs · BreedIQ</title>
+    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        const STATUS_STYLES = {
+            active:   'bg-emerald-900 text-emerald-200',
+            retired:  'bg-slate-700 text-slate-200',
+            guardian: 'bg-purple-900 text-purple-200',
+            sold:     'bg-slate-700 text-slate-200',
+            deceased: 'bg-slate-800 text-slate-400'
+        };
+
+        const HEAT_STYLES = {
+            none:     'bg-slate-800 text-slate-300',
+            in_heat:  'bg-pink-900 text-pink-200',
+            bred:     'bg-indigo-900 text-indigo-200',
+            pregnant: 'bg-amber-900 text-amber-200',
+            nursing:  'bg-blue-900 text-blue-200'
+        };
+
+        const prettyHeat = (h) => {
+            if (!h || h === 'none') return null;
+            return h.replace('_', ' ');
+        };
+
+        const ageFromDob = (dob) => {
+            if (!dob) return null;
+            const birth = new Date(dob);
+            if (isNaN(birth.getTime())) return null;
+            const now = new Date();
+            let years = now.getFullYear() - birth.getFullYear();
+            let months = now.getMonth() - birth.getMonth();
+            if (months < 0) { years--; months += 12; }
+            if (years === 0) return `${months}mo`;
+            if (months === 0) return `${years}y`;
+            return `${years}y ${months}mo`;
+        };
+
+        // Compute next heat estimate for a dam
+        const nextHeatEstimate = (dog) => {
+            if (!dog.last_heat_date) return null;
+            const cycle = dog.avg_heat_cycle_days || 180;
+            const last = new Date(dog.last_heat_date);
+            const next = new Date(last.getTime() + cycle * 86400000);
+            const days = Math.round((next - new Date()) / 86400000);
+            if (days < -30) return null;
+            if (days < 0) return `Heat overdue ${Math.abs(days)}d`;
+            if (days === 0) return 'Heat today';
+            if (days <= 14) return `Heat in ${days}d`;
+            return `Heat ~${next.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+        };
+
+        const Spinner = () => (
+            <div className="flex items-center justify-center py-16">
+                <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+
+        const DogCard = ({ dog }) => {
+            const heat = prettyHeat(dog.heat_status);
+            const age = ageFromDob(dog.date_of_birth);
+            const nextHeat = nextHeatEstimate(dog);
+
+            return (
+                <a
+                    href={`/dog?id=${dog.id}`}
+                    className="group bg-slate-900 border border-slate-800 rounded-xl overflow-hidden hover:border-emerald-600 transition block"
+                >
+                    <div className="aspect-square bg-slate-800 relative overflow-hidden">
+                        {dog.photo_url ? (
+                            <img
+                                src={dog.photo_url}
+                                alt={dog.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition"
+                                onError={(e) => { e.target.style.display = 'none'; }}
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-slate-600">
+                                <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.5 12.75l6 6 9-13.5" />
+                                </svg>
+                            </div>
+                        )}
+                        <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
+                            {dog.status && (
+                                <span className={`text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full font-semibold ${STATUS_STYLES[dog.status] || 'bg-slate-800 text-slate-300'}`}>
+                                    {dog.status}
+                                </span>
+                            )}
+                            {heat && (
+                                <span className={`text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full font-semibold ${HEAT_STYLES[dog.heat_status] || 'bg-slate-800 text-slate-300'}`}>
+                                    {heat}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                    <div className="p-4">
+                        <div className="flex items-baseline justify-between gap-2">
+                            <p className="font-semibold text-slate-100 truncate">{dog.name}</p>
+                            {dog.sex && (
+                                <span className={`text-xs font-semibold ${dog.sex === 'female' ? 'text-pink-400' : 'text-blue-400'}`}>
+                                    {dog.sex === 'female' ? '♀' : '♂'}
+                                </span>
+                            )}
+                        </div>
+                        {dog.call_name && dog.call_name !== dog.name && (
+                            <p className="text-xs text-slate-500 truncate">"{dog.call_name}"</p>
+                        )}
+                        <div className="mt-2 text-xs text-slate-400 space-y-0.5">
+                            {dog.role && <p className="capitalize">{dog.role}{age ? ` · ${age}` : ''}</p>}
+                            {dog.guardian?.family_name && <p className="truncate">Guardian: {dog.guardian.family_name}</p>}
+                            {nextHeat && <p className="text-emerald-400">{nextHeat}</p>}
+                        </div>
+                    </div>
+                </a>
+            );
+        };
+
+        const AddDogModal = ({ open, onClose, onCreated }) => {
+            const [form, setForm] = useState({
+                name: '', call_name: '', sex: 'female', role: 'dam',
+                date_of_birth: '', breed: 'Goldendoodle', status: 'active',
+                photo_url: '', notes: ''
+            });
+            const [saving, setSaving] = useState(false);
+            const [error, setError] = useState(null);
+
+            if (!open) return null;
+
+            const submit = async (e) => {
+                e.preventDefault();
+                setSaving(true);
+                setError(null);
+                try {
+                    const res = await fetch('/api/dogs', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(form)
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Failed to create dog');
+                    onCreated(data.dog);
+                    onClose();
+                } catch (err) {
+                    setError(err.message);
+                } finally {
+                    setSaving(false);
+                }
+            };
+
+            const field = (key, label, type = 'text', extra = {}) => (
+                <div>
+                    <label className="block text-xs text-slate-400 mb-1">{label}</label>
+                    <input
+                        type={type}
+                        value={form[key] || ''}
+                        onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-100 focus:outline-none focus:border-emerald-500"
+                        {...extra}
+                    />
+                </div>
+            );
+
+            return (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
+                    <div className="bg-slate-900 rounded-xl border border-slate-800 p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-bold">Add Dog</h2>
+                            <button onClick={onClose} className="text-slate-400 hover:text-slate-100">✕</button>
+                        </div>
+                        <form onSubmit={submit} className="space-y-3">
+                            {field('name', 'Name *')}
+                            {field('call_name', 'Call Name')}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-xs text-slate-400 mb-1">Sex</label>
+                                    <select value={form.sex} onChange={(e) => setForm({...form, sex: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-100">
+                                        <option value="female">Female</option>
+                                        <option value="male">Male</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-slate-400 mb-1">Role</label>
+                                    <select value={form.role} onChange={(e) => setForm({...form, role: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-100">
+                                        <option value="dam">Dam</option>
+                                        <option value="stud">Stud</option>
+                                        <option value="prospect">Prospect</option>
+                                    </select>
+                                </div>
+                            </div>
+                            {field('date_of_birth', 'Date of Birth', 'date')}
+                            {field('breed', 'Breed')}
+                            <div>
+                                <label className="block text-xs text-slate-400 mb-1">Status</label>
+                                <select value={form.status} onChange={(e) => setForm({...form, status: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-100">
+                                    <option value="active">Active</option>
+                                    <option value="guardian">Guardian</option>
+                                    <option value="retired">Retired</option>
+                                </select>
+                            </div>
+                            {field('photo_url', 'Photo URL')}
+                            <div>
+                                <label className="block text-xs text-slate-400 mb-1">Notes</label>
+                                <textarea
+                                    value={form.notes}
+                                    onChange={(e) => setForm({...form, notes: e.target.value})}
+                                    rows="3"
+                                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-100 focus:outline-none focus:border-emerald-500"
+                                />
+                            </div>
+                            {error && <p className="text-red-400 text-sm">{error}</p>}
+                            <div className="flex gap-2 pt-2">
+                                <button type="button" onClick={onClose} className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded text-slate-100">Cancel</button>
+                                <button type="submit" disabled={saving || !form.name} className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded text-white font-semibold">
+                                    {saving ? 'Adding...' : 'Add Dog'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        function DogsPage() {
+            const [dogs, setDogs] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [authError, setAuthError] = useState(false);
+            const [search, setSearch] = useState('');
+            const [filterRole, setFilterRole] = useState('all');
+            const [filterStatus, setFilterStatus] = useState('all');
+            const [showAdd, setShowAdd] = useState(false);
+
+            const loadDogs = async () => {
+                setLoading(true);
+                try {
+                    const res = await fetch('/api/dogs', { credentials: 'include' });
+                    if (res.status === 401) {
+                        setAuthError(true);
+                        return;
+                    }
+                    const data = await res.json();
+                    setDogs(data.dogs || []);
+                } catch (err) {
+                    console.error(err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            useEffect(() => { loadDogs(); }, []);
+
+            const filtered = useMemo(() => {
+                return dogs.filter(d => {
+                    if (filterRole !== 'all' && d.role !== filterRole) return false;
+                    if (filterStatus !== 'all' && d.status !== filterStatus) return false;
+                    if (search) {
+                        const q = search.toLowerCase();
+                        const hay = `${d.name || ''} ${d.call_name || ''} ${d.breed || ''}`.toLowerCase();
+                        if (!hay.includes(q)) return false;
+                    }
+                    return true;
+                });
+            }, [dogs, filterRole, filterStatus, search]);
+
+            const counts = useMemo(() => ({
+                total: dogs.length,
+                dams: dogs.filter(d => d.role === 'dam').length,
+                studs: dogs.filter(d => d.role === 'stud').length,
+                active: dogs.filter(d => d.status === 'active').length
+            }), [dogs]);
+
+            if (authError) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center">
+                        <div className="text-center">
+                            <p className="text-slate-400 mb-4">You need to sign in.</p>
+                            <a href="/login" className="text-emerald-400 hover:text-emerald-300">Go to login →</a>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen">
+                    {/* Header */}
+                    <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-10">
+                        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+                            <div className="flex items-center gap-6">
+                                <a href="/dashboard" className="text-lg font-bold text-emerald-400">BreedIQ</a>
+                                <nav className="hidden md:flex gap-4 text-sm">
+                                    <a href="/dashboard" className="text-slate-400 hover:text-slate-100">Dashboard</a>
+                                    <a href="/dogs" className="text-slate-100 font-semibold">Dogs</a>
+                                </nav>
+                            </div>
+                            <button
+                                onClick={() => setShowAdd(true)}
+                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-white text-sm font-semibold"
+                            >
+                                + Add Dog
+                            </button>
+                        </div>
+                    </header>
+
+                    <main className="max-w-7xl mx-auto px-6 py-8">
+                        {/* Title + Stats */}
+                        <div className="mb-8">
+                            <h1 className="text-3xl font-bold mb-2">Dogs</h1>
+                            <div className="flex gap-6 text-sm text-slate-400">
+                                <span><span className="text-slate-100 font-semibold">{counts.total}</span> total</span>
+                                <span><span className="text-emerald-400 font-semibold">{counts.dams}</span> dams</span>
+                                <span><span className="text-blue-400 font-semibold">{counts.studs}</span> studs</span>
+                                <span><span className="text-slate-100 font-semibold">{counts.active}</span> active</span>
+                            </div>
+                        </div>
+
+                        {/* Filters */}
+                        <div className="mb-6 flex flex-col md:flex-row gap-3">
+                            <input
+                                type="text"
+                                placeholder="Search by name..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="flex-1 px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                            />
+                            <select
+                                value={filterRole}
+                                onChange={(e) => setFilterRole(e.target.value)}
+                                className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500"
+                            >
+                                <option value="all">All Roles</option>
+                                <option value="dam">Dams</option>
+                                <option value="stud">Studs</option>
+                                <option value="prospect">Prospects</option>
+                            </select>
+                            <select
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value)}
+                                className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500"
+                            >
+                                <option value="all">All Statuses</option>
+                                <option value="active">Active</option>
+                                <option value="guardian">Guardian</option>
+                                <option value="retired">Retired</option>
+                            </select>
+                        </div>
+
+                        {/* Grid */}
+                        {loading ? <Spinner /> : filtered.length === 0 ? (
+                            <div className="text-center py-16">
+                                <p className="text-slate-400 mb-4">
+                                    {dogs.length === 0 ? 'No dogs yet.' : 'No dogs match your filters.'}
+                                </p>
+                                {dogs.length === 0 && (
+                                    <button
+                                        onClick={() => setShowAdd(true)}
+                                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-white font-semibold"
+                                    >
+                                        Add Your First Dog
+                                    </button>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {filtered.map(dog => <DogCard key={dog.id} dog={dog} />)}
+                            </div>
+                        )}
+                    </main>
+
+                    <AddDogModal
+                        open={showAdd}
+                        onClose={() => setShowAdd(false)}
+                        onCreated={(dog) => setDogs([...dogs, dog].sort((a,b) => a.name.localeCompare(b.name)))}
+                    />
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<DogsPage />);
+    </script>
+</body>
+</html>
