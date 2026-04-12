@@ -453,7 +453,7 @@
                 { id: 'calendar', label: 'Calendar', icon: '📅' },
                 { id: 'guardians', label: 'Guardians', icon: '👥' },
                 { id: 'analytics', label: 'Analytics', icon: '📈' },
-                { id: 'settings', label: 'Settings', icon: '⦙️' }
+                { id: 'settings', label: 'Settings', icon: '⚙️' }
             ];
 
             return (
@@ -525,7 +525,10 @@
                                         <IconBell />
                                         <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                                     </button>
-                                    <button className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-600 transition">
+                                    <button
+                                        onClick={() => { window.location.href = '/dogs?add=1'; }}
+                                        className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-600 transition"
+                                    >
                                         + Add Dog
                                     </button>
                                     <button onClick={handleSignOut} className="px-3 py-2 text-slate-400 hover:text-white border border-slate-700 rounded-lg text-sm hover:border-slate-500 transition">
