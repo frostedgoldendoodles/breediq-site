@@ -242,7 +242,11 @@
             const [search, setSearch] = useState('');
             const [filterRole, setFilterRole] = useState('all');
             const [filterStatus, setFilterStatus] = useState('all');
-            const [showAdd, setShowAdd] = useState(false);
+            const [showAdd, setShowAdd] = useState(() => {
+                // Auto-open modal when arriving with ?add=1 (e.g. from dashboard button)
+                if (typeof window === 'undefined') return false;
+                return new URLSearchParams(window.location.search).get('add') === '1';
+            });
 
             const loadDogs = async () => {
                 setLoading(true);
@@ -262,6 +266,14 @@
             };
 
             useEffect(() => { loadDogs(); }, []);
+
+            // If we auto-opened via ?add=1, strip it so a refresh doesn't re-trigger the modal
+            useEffect(() => {
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('add') === '1' && window.history.replaceState) {
+                    window.history.replaceState({}, '', '/dogs');
+                }
+            }, []);
 
             const filtered = useMemo(() => {
                 return dogs.filter(d => {
