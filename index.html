@@ -90,13 +90,275 @@
         .progress-fill {
             animation: progressFill 2s ease-out forwards;
         }
+
+        .demo-screen {
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .demo-screen-enter {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .demo-screen-exit {
+            opacity: 0;
+            transform: translateY(8px);
+            position: absolute;
+            inset: 0;
+        }
+        .demo-tab {
+            transition: all 0.3s ease;
+        }
+        .demo-tab-active {
+            background: linear-gradient(135deg, #2563eb, #10b981);
+            color: white;
+        }
+        @keyframes demoPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.3); }
+            50% { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+        }
+        .demo-tab-active {
+            animation: demoPulse 2s ease-in-out infinite;
+        }
+        @keyframes progressGrow {
+            from { width: 0%; }
+            to { width: var(--target-width); }
+        }
+        .progress-animate {
+            animation: progressGrow 1.5s ease-out forwards;
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans antialiased">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState } = React;
+        const { useState, useEffect, useRef } = React;
+
+        /* ── Animated Demo Component ── */
+        function AnimatedDemo() {
+            const [active, setActive] = useState(0);
+            const [fading, setFading] = useState(false);
+            const timerRef = useRef(null);
+            const screens = ['Overview', 'Calendar', 'Litters', 'Co-Breeders'];
+
+            const resetTimer = () => {
+                if (timerRef.current) clearInterval(timerRef.current);
+                timerRef.current = setInterval(() => {
+                    setFading(true);
+                    setTimeout(() => { setActive(p => (p + 1) % 4); setFading(false); }, 400);
+                }, 5000);
+            };
+
+            useEffect(() => { resetTimer(); return () => clearInterval(timerRef.current); }, []);
+
+            const goTo = (i) => {
+                setFading(true);
+                setTimeout(() => { setActive(i); setFading(false); }, 400);
+                resetTimer();
+            };
+
+            const s = {card:'background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;',label:'font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;font-weight:500;',val:'font-size:20px;font-weight:800;color:#f1f5f9;line-height:1;margin-bottom:2px;'};
+
+            /* Screen 0: Dashboard Overview */
+            const ScreenOverview = () => (
+                <div>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
+                        <div style={{fontSize:'13px',fontWeight:700,color:'#e2e8f0'}}>Program Overview</div>
+                        <div style={{fontSize:'9px',padding:'3px 8px',borderRadius:'10px',fontWeight:600,background:'rgba(16,185,129,0.15)',color:'#34d399'}}>Live</div>
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'6px',marginBottom:'12px'}}>
+                        {[{v:'9',l:'Active Dogs',c:'#3b82f6'},{v:'1',l:'Pregnant',c:'#a855f7'},{v:'2',l:'Heats Due',c:'#ef4444'},{v:'6',l:'Guardians',c:'#10b981'}].map((s,i)=>(
+                            <div key={i} style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'8px',textAlign:'center'}}>
+                                <div style={{width:'24px',height:'24px',borderRadius:'6px',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 4px',background:s.c+'25'}}>
+                                    <div style={{width:'8px',height:'8px',borderRadius:'50%',background:s.c}}></div>
+                                </div>
+                                <div style={{fontSize:'18px',fontWeight:800,color:'#f1f5f9',lineHeight:1,marginBottom:'2px'}}>{s.v}</div>
+                                <div style={{fontSize:'8px',color:'#64748b',textTransform:'uppercase',letterSpacing:'0.4px',fontWeight:500}}>{s.l}</div>
+                            </div>
+                        ))}
+                    </div>
+                    <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'10px',marginBottom:'10px'}}>
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}}>
+                            <div style={{fontSize:'11px',fontWeight:600,color:'#e2e8f0'}}>Gigi <span style={{color:'#64748b',fontWeight:400}}>× Cooper</span></div>
+                            <div style={{fontSize:'8px',padding:'2px 8px',borderRadius:'10px',fontWeight:600,background:'rgba(168,85,247,0.15)',color:'#c084fc'}}>Pregnant</div>
+                        </div>
+                        <div style={{height:'5px',background:'#334155',borderRadius:'3px',overflow:'hidden',marginBottom:'4px'}}>
+                            <div className="progress-animate" style={{'--target-width':'28%',height:'100%',borderRadius:'3px',background:'linear-gradient(90deg,#8b5cf6,#c084fc)'}}></div>
+                        </div>
+                        <div style={{display:'flex',justifyContent:'space-between'}}>
+                            <span style={{fontSize:'8px',color:'#64748b'}}>Day <strong style={{color:'#c084fc'}}>17</strong> of 61</span>
+                            <span style={{fontSize:'8px',color:'#64748b'}}>Due <strong style={{color:'#c084fc'}}>May 21</strong></span>
+                        </div>
+                    </div>
+                    <div style={{display:'flex',gap:'6px'}}>
+                        <div style={{flex:1,display:'flex',alignItems:'center',gap:'5px',background:'#1e293b',border:'1px solid #334155',borderRadius:'8px',padding:'7px 8px',fontSize:'9px',color:'#94a3b8'}}>
+                            <div style={{width:'6px',height:'6px',borderRadius:'50%',background:'#eab308',flexShrink:0}}></div>
+                            <span><strong style={{color:'#e2e8f0'}}>Gigi</strong> ultrasound 11d</span>
+                        </div>
+                        <div style={{flex:1,display:'flex',alignItems:'center',gap:'5px',background:'#1e293b',border:'1px solid #334155',borderRadius:'8px',padding:'7px 8px',fontSize:'9px',color:'#94a3b8'}}>
+                            <div className="heat-pulse" style={{width:'6px',height:'6px',borderRadius:'50%',background:'#ef4444',flexShrink:0}}></div>
+                            <span><strong style={{color:'#e2e8f0'}}>Stormi</strong> heat imminent</span>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            /* Screen 1: Calendar View */
+            const ScreenCalendar = () => {
+                const days = ['S','M','T','W','T','F','S'];
+                const apr = [null,null,null,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,null,null];
+                const events = {3:{c:'#ef4444',t:'Heat due'},7:{c:'#3b82f6',t:'Breed'},14:{c:'#a855f7',t:'Ultrasound'},21:{c:'#c084fc',t:'Due date'},25:{c:'#10b981',t:'Vet check'},28:{c:'#eab308',t:'Go home'}};
+                return (
+                    <div>
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px'}}>
+                            <div style={{fontSize:'13px',fontWeight:700,color:'#e2e8f0'}}>Breeding Calendar</div>
+                            <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                                <span style={{fontSize:'11px',fontWeight:600,color:'#94a3b8'}}>April 2026</span>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                            </div>
+                        </div>
+                        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:'2px',marginBottom:'6px'}}>
+                            {days.map((d,i)=><div key={i} style={{textAlign:'center',fontSize:'8px',color:'#64748b',fontWeight:600,padding:'2px 0'}}>{d}</div>)}
+                        </div>
+                        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:'2px',marginBottom:'10px'}}>
+                            {apr.map((d,i)=>(
+                                <div key={i} style={{textAlign:'center',padding:'4px 0',borderRadius:'4px',fontSize:'9px',color: d===16?'#0f172a': d?'#94a3b8':'transparent',fontWeight: d===16?700:400,background: d===16?'linear-gradient(135deg,#3b82f6,#10b981)':'transparent',position:'relative',minHeight:'22px'}}>
+                                    {d || ''}
+                                    {d && events[d] && <div style={{width:'5px',height:'5px',borderRadius:'50%',background:events[d].c,position:'absolute',bottom:'1px',left:'50%',transform:'translateX(-50%)'}}></div>}
+                                </div>
+                            ))}
+                        </div>
+                        <div style={{fontSize:'9px',fontWeight:700,color:'#e2e8f0',marginBottom:'6px',textTransform:'uppercase',letterSpacing:'0.5px'}}>Upcoming</div>
+                        {[{d:'Apr 21',n:'Gigi',e:'Due date',c:'#c084fc'},{d:'Apr 25',n:'Bella',e:'Vet check',c:'#10b981'},{d:'Apr 28',n:'Daisy L3',e:'Go home day',c:'#eab308'}].map((ev,i)=>(
+                            <div key={i} style={{display:'flex',alignItems:'center',gap:'8px',padding:'5px 8px',background:'#1e293b',border:'1px solid #334155',borderRadius:'6px',marginBottom:'4px',fontSize:'9px'}}>
+                                <div style={{width:'3px',height:'20px',borderRadius:'2px',background:ev.c,flexShrink:0}}></div>
+                                <div style={{color:'#64748b',width:'40px',flexShrink:0}}>{ev.d}</div>
+                                <div style={{color:'#e2e8f0',fontWeight:600,flex:1}}>{ev.n}</div>
+                                <div style={{color:ev.c,fontWeight:500}}>{ev.e}</div>
+                            </div>
+                        ))}
+                    </div>
+                );
+            };
+
+            /* Screen 2: Litter Management */
+            const ScreenLitters = () => {
+                const milestones = [
+                    {label:'Bred',date:'Mar 21',done:true,c:'#3b82f6'},
+                    {label:'Ultrasound',date:'Apr 11',done:true,c:'#a855f7'},
+                    {label:'X-Ray',date:'May 7',done:false,c:'#64748b'},
+                    {label:'Whelp',date:'May 21',done:false,c:'#64748b'},
+                    {label:'Go Home',date:'Jul 16',done:false,c:'#64748b'}
+                ];
+                return (
+                    <div>
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px'}}>
+                            <div style={{fontSize:'13px',fontWeight:700,color:'#e2e8f0'}}>Litter Pipeline</div>
+                            <div style={{fontSize:'9px',padding:'3px 8px',borderRadius:'10px',fontWeight:600,background:'rgba(168,85,247,0.15)',color:'#c084fc'}}>1 Active</div>
+                        </div>
+                        <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'12px',marginBottom:'10px'}}>
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
+                                <div><span style={{fontSize:'12px',fontWeight:700,color:'#e2e8f0'}}>Gigi</span><span style={{fontSize:'11px',color:'#64748b'}}> × Cooper</span></div>
+                                <div style={{fontSize:'9px',padding:'2px 8px',borderRadius:'10px',background:'rgba(168,85,247,0.15)',color:'#c084fc',fontWeight:600}}>Day 17 / 61</div>
+                            </div>
+                            <div style={{position:'relative',paddingLeft:'16px'}}>
+                                {milestones.map((m,i)=>(
+                                    <div key={i} style={{display:'flex',alignItems:'flex-start',gap:'10px',marginBottom: i<milestones.length-1?'10px':'0',position:'relative'}}>
+                                        <div style={{position:'absolute',left:'-13px',top:'3px',width:'10px',height:'10px',borderRadius:'50%',background: m.done?m.c:'#334155',border: m.done?'none':'2px solid #475569',zIndex:1}}></div>
+                                        {i<milestones.length-1 && <div style={{position:'absolute',left:'-9px',top:'13px',width:'2px',height:'18px',background: m.done?'#475569':'#1e293b'}}></div>}
+                                        <div style={{flex:1}}>
+                                            <div style={{fontSize:'10px',fontWeight:600,color: m.done?'#e2e8f0':'#64748b'}}>{m.label}</div>
+                                            <div style={{fontSize:'8px',color:'#64748b'}}>{m.date}</div>
+                                        </div>
+                                        {m.done && <div style={{fontSize:'8px',padding:'1px 6px',borderRadius:'8px',background:'rgba(16,185,129,0.15)',color:'#34d399',fontWeight:600}}>Done</div>}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'6px'}}>
+                            {[{v:'TBD',l:'Puppies',c:'#c084fc'},{v:'8',l:'Waitlist',c:'#3b82f6'},{v:'$0',l:'Deposits',c:'#10b981'}].map((s,i)=>(
+                                <div key={i} style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'8px',padding:'8px',textAlign:'center'}}>
+                                    <div style={{fontSize:'14px',fontWeight:800,color:s.c,lineHeight:1,marginBottom:'2px'}}>{s.v}</div>
+                                    <div style={{fontSize:'8px',color:'#64748b',textTransform:'uppercase',letterSpacing:'0.3px'}}>{s.l}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            };
+
+            /* Screen 3: Multi-Breeder / Guardians */
+            const ScreenCobreeders = () => (
+                <div>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px'}}>
+                        <div style={{fontSize:'13px',fontWeight:700,color:'#e2e8f0'}}>Guardian Network</div>
+                        <div style={{fontSize:'9px',padding:'3px 8px',borderRadius:'10px',fontWeight:600,background:'rgba(16,185,129,0.15)',color:'#34d399'}}>6 Families</div>
+                    </div>
+                    {[
+                        {name:'Johnson Family',loc:'Provo, UT',dog:'Bella',status:'Heat tracked',sc:'#ef4444',avatar:'J'},
+                        {name:'Martinez Family',loc:'SLC, UT',dog:'Stormi',status:'Active',sc:'#10b981',avatar:'M'},
+                        {name:'Williams Family',loc:'Orem, UT',dog:'Rosie',status:'Vet due',sc:'#eab308',avatar:'W'}
+                    ].map((g,i)=>(
+                        <div key={i} style={{display:'flex',alignItems:'center',gap:'10px',background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'10px',marginBottom:'6px'}}>
+                            <div style={{width:'32px',height:'32px',borderRadius:'8px',background:'linear-gradient(135deg,#2563eb,#10b981)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'white',flexShrink:0}}>{g.avatar}</div>
+                            <div style={{flex:1,minWidth:0}}>
+                                <div style={{fontSize:'11px',fontWeight:600,color:'#e2e8f0'}}>{g.name}</div>
+                                <div style={{fontSize:'9px',color:'#64748b'}}>{g.loc} • {g.dog}</div>
+                            </div>
+                            <div style={{fontSize:'8px',padding:'2px 8px',borderRadius:'10px',fontWeight:600,background:g.sc+'20',color:g.sc,flexShrink:0}}>{g.status}</div>
+                        </div>
+                    ))}
+                    <div style={{background:'#1e293b',border:'1px solid rgba(37,99,235,0.3)',borderRadius:'10px',padding:'10px',marginTop:'6px'}}>
+                        <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'6px'}}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            <span style={{fontSize:'10px',fontWeight:600,color:'#93c5fd'}}>Shared Access</span>
+                        </div>
+                        <div style={{fontSize:'9px',color:'#64748b',lineHeight:1.4}}>Guardians see their dog's profile, heat logs, and vet reminders. You control all breeding decisions.</div>
+                    </div>
+                </div>
+            );
+
+            const renderScreen = [ScreenOverview, ScreenCalendar, ScreenLitters, ScreenCobreeders];
+            const ActiveScreen = renderScreen[active];
+
+            return (
+                <div className="hidden lg:block" style={{position:'relative'}}>
+                    {/* Glow */}
+                    <div style={{position:'absolute',inset:'-20px',background:'radial-gradient(ellipse at 30% 50%, rgba(37,99,235,0.15) 0%, transparent 60%), radial-gradient(ellipse at 70% 50%, rgba(16,185,129,0.12) 0%, transparent 60%)',filter:'blur(40px)',borderRadius:'24px',zIndex:0}}></div>
+                    <div style={{position:'relative',zIndex:1,background:'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',border:'1px solid #334155',borderRadius:'16px',overflow:'hidden',boxShadow:'0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(148,163,184,0.1)'}}>
+                        {/* Title bar */}
+                        <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'12px 16px',background:'#1e293b',borderBottom:'1px solid #334155'}}>
+                            <div style={{width:'10px',height:'10px',borderRadius:'50%',background:'#ef4444'}}></div>
+                            <div style={{width:'10px',height:'10px',borderRadius:'50%',background:'#eab308'}}></div>
+                            <div style={{width:'10px',height:'10px',borderRadius:'50%',background:'#22c55e'}}></div>
+                            <div style={{flex:1,textAlign:'center',color:'#94a3b8',fontSize:'11px',fontWeight:500,letterSpacing:'0.5px'}}>breediq.ai/dashboard</div>
+                            <div style={{width:'38px'}}></div>
+                        </div>
+                        {/* Nav inside mockup */}
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 16px 0'}}>
+                            <div style={{fontSize:'14px',fontWeight:700,background:'linear-gradient(135deg, #3b82f6, #10b981)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>BreedIQ</div>
+                            <div style={{display:'flex',gap:'3px'}}>
+                                {screens.map((name,i)=>(
+                                    <button key={i} onClick={()=>goTo(i)} className={`demo-tab ${active===i?'demo-tab-active':''}`} style={{padding:'3px 10px',borderRadius:'6px',fontSize:'9px',fontWeight:600,color: active===i?'white':'#64748b',cursor:'pointer',border:'none',background: active===i?'linear-gradient(135deg,#2563eb,#10b981)':'transparent'}}>{name}</button>
+                                ))}
+                            </div>
+                        </div>
+                        {/* Screen content */}
+                        <div style={{padding:'12px 16px 16px',minHeight:'260px',position:'relative'}}>
+                            <div style={{opacity: fading?0:1,transform: fading?'translateY(8px)':'translateY(0)',transition:'opacity 0.4s ease, transform 0.4s ease'}}>
+                                <ActiveScreen />
+                            </div>
+                        </div>
+                    </div>
+                    {/* Progress dots */}
+                    <div style={{display:'flex',justifyContent:'center',gap:'6px',marginTop:'12px'}}>
+                        {screens.map((_,i)=>(
+                            <button key={i} onClick={()=>goTo(i)} style={{width: active===i?'20px':'6px',height:'6px',borderRadius:'3px',background: active===i?'linear-gradient(135deg,#2563eb,#10b981)':'#475569',border:'none',cursor:'pointer',transition:'all 0.3s ease'}}></button>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
 
         function BreedIQLanding() {
             const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -175,9 +437,9 @@
                                     <a href="/signup" className="gradient-blue-emerald text-white px-8 py-4 rounded-lg font-semibold text-lg hover:shadow-xl transition text-center">
                                         Start Free
                                     </a>
-                                    <button className="border-2 border-emerald-500 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-emerald-500/10 transition text-center">
-                                        Watch Demo
-                                    </button>
+                                    <a href="#features" className="border-2 border-emerald-500 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-emerald-500/10 transition text-center">
+                                        See Features
+                                    </a>
                                 </div>
 
                                 {/* Trust Badges */}
@@ -197,95 +459,8 @@
                                 </div>
                             </div>
 
-                            {/* Dashboard Mockup */}
-                            <div className="hidden lg:block" style={{position:'relative'}}>
-                                {/* Glow effect */}
-                                <div style={{position:'absolute',inset:'-20px',background:'radial-gradient(ellipse at 30% 50%, rgba(37,99,235,0.15) 0%, transparent 60%), radial-gradient(ellipse at 70% 50%, rgba(16,185,129,0.12) 0%, transparent 60%)',filter:'blur(40px)',borderRadius:'24px',zIndex:0}}></div>
-                                <div style={{position:'relative',zIndex:1,background:'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',border:'1px solid #334155',borderRadius:'16px',overflow:'hidden',boxShadow:'0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(148,163,184,0.1)'}}>
-                                    {/* Title bar */}
-                                    <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'12px 16px',background:'#1e293b',borderBottom:'1px solid #334155'}}>
-                                        <div style={{width:'10px',height:'10px',borderRadius:'50%',background:'#ef4444'}}></div>
-                                        <div style={{width:'10px',height:'10px',borderRadius:'50%',background:'#eab308'}}></div>
-                                        <div style={{width:'10px',height:'10px',borderRadius:'50%',background:'#22c55e'}}></div>
-                                        <div style={{flex:1,textAlign:'center',color:'#94a3b8',fontSize:'11px',fontWeight:500,letterSpacing:'0.5px'}}>breediq.ai/dashboard</div>
-                                        <div style={{width:'38px'}}></div>
-                                    </div>
-                                    <div style={{padding:'16px'}}>
-                                        {/* Nav */}
-                                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px'}}>
-                                            <div style={{fontSize:'14px',fontWeight:700,background:'linear-gradient(135deg, #3b82f6, #10b981)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>BreedIQ</div>
-                                            <div style={{display:'flex',gap:'4px'}}>
-                                                <span style={{padding:'4px 10px',borderRadius:'6px',fontSize:'10px',background:'rgba(16,185,129,0.15)',color:'#10b981',fontWeight:600}}>Overview</span>
-                                                <span style={{padding:'4px 10px',borderRadius:'6px',fontSize:'10px',color:'#64748b'}}>Dogs</span>
-                                                <span style={{padding:'4px 10px',borderRadius:'6px',fontSize:'10px',color:'#64748b'}}>Litters</span>
-                                                <span style={{padding:'4px 10px',borderRadius:'6px',fontSize:'10px',color:'#64748b'}}>Calendar</span>
-                                            </div>
-                                        </div>
-                                        {/* Stat Cards */}
-                                        <div style={{display:'grid',gridTemplateColumns:'repeat(4, 1fr)',gap:'8px',marginBottom:'14px'}}>
-                                            <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'10px',textAlign:'center'}}>
-                                                <div style={{width:'28px',height:'28px',borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 6px',background:'rgba(59,130,246,0.15)'}}>
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
-                                                </div>
-                                                <div style={{fontSize:'20px',fontWeight:800,color:'#f1f5f9',lineHeight:1,marginBottom:'2px'}}>9</div>
-                                                <div style={{fontSize:'9px',color:'#64748b',textTransform:'uppercase',letterSpacing:'0.5px',fontWeight:500}}>Active Dogs</div>
-                                            </div>
-                                            <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'10px',textAlign:'center'}}>
-                                                <div style={{width:'28px',height:'28px',borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 6px',background:'rgba(168,85,247,0.15)'}}>
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2.5" strokeLinecap="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 6v6l4 2"/></svg>
-                                                </div>
-                                                <div style={{fontSize:'20px',fontWeight:800,color:'#f1f5f9',lineHeight:1,marginBottom:'2px'}}>1</div>
-                                                <div style={{fontSize:'9px',color:'#64748b',textTransform:'uppercase',letterSpacing:'0.5px',fontWeight:500}}>Pregnant</div>
-                                            </div>
-                                            <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'10px',textAlign:'center'}}>
-                                                <div style={{width:'28px',height:'28px',borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 6px',background:'rgba(239,68,68,0.15)'}}>
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                                                </div>
-                                                <div style={{fontSize:'20px',fontWeight:800,color:'#f1f5f9',lineHeight:1,marginBottom:'2px',display:'flex',alignItems:'center',justifyContent:'center',gap:'4px'}}><span className="heat-pulse" style={{display:'inline-block',width:'6px',height:'6px',background:'#f87171',borderRadius:'50%'}}></span>2</div>
-                                                <div style={{fontSize:'9px',color:'#64748b',textTransform:'uppercase',letterSpacing:'0.5px',fontWeight:500}}>Heats Due</div>
-                                            </div>
-                                            <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'10px',textAlign:'center'}}>
-                                                <div style={{width:'28px',height:'28px',borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 6px',background:'rgba(16,185,129,0.15)'}}>
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                                                </div>
-                                                <div style={{fontSize:'20px',fontWeight:800,color:'#f1f5f9',lineHeight:1,marginBottom:'2px'}}>6</div>
-                                                <div style={{fontSize:'9px',color:'#64748b',textTransform:'uppercase',letterSpacing:'0.5px',fontWeight:500}}>Guardians</div>
-                                            </div>
-                                        </div>
-                                        {/* Litter Pipeline */}
-                                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px'}}>
-                                            <div style={{fontSize:'11px',fontWeight:700,color:'#e2e8f0',textTransform:'uppercase',letterSpacing:'0.5px'}}>Litter Pipeline</div>
-                                            <div style={{fontSize:'9px',padding:'2px 8px',borderRadius:'10px',fontWeight:600,background:'rgba(168,85,247,0.15)',color:'#c084fc'}}>1 Active</div>
-                                        </div>
-                                        <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'12px',marginBottom:'10px'}}>
-                                            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px'}}>
-                                                <div style={{fontSize:'12px',fontWeight:600,color:'#e2e8f0'}}>Gigi <span style={{color:'#64748b',fontWeight:400}}>bred 3/21</span></div>
-                                                <div style={{fontSize:'9px',padding:'2px 8px',borderRadius:'10px',fontWeight:600,background:'rgba(168,85,247,0.15)',color:'#c084fc'}}>Pregnant</div>
-                                            </div>
-                                            <div style={{marginBottom:'6px'}}>
-                                                <div style={{height:'6px',background:'#334155',borderRadius:'3px',overflow:'hidden'}}>
-                                                    <div className="progress-fill" style={{height:'100%',borderRadius:'3px',background:'linear-gradient(90deg, #8b5cf6, #c084fc)',width:'28%'}}></div>
-                                                </div>
-                                                <div style={{display:'flex',justifyContent:'space-between',marginTop:'4px'}}>
-                                                    <span style={{fontSize:'9px',color:'#64748b'}}>Day <strong style={{color:'#c084fc'}}>17</strong> of 61</span>
-                                                    <span style={{fontSize:'9px',color:'#64748b'}}>Due <strong style={{color:'#c084fc'}}>May 21</strong></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {/* Alert chips */}
-                                        <div style={{display:'flex',gap:'6px',marginTop:'10px'}}>
-                                            <div style={{flex:1,display:'flex',alignItems:'center',gap:'6px',background:'#1e293b',border:'1px solid #334155',borderRadius:'8px',padding:'8px 10px',fontSize:'10px',color:'#94a3b8'}}>
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#eab308" strokeWidth="2" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                                <span><strong style={{color:'#e2e8f0'}}>Gigi</strong> ultrasound in 11 days</span>
-                                            </div>
-                                            <div style={{flex:1,display:'flex',alignItems:'center',gap:'6px',background:'#1e293b',border:'1px solid #334155',borderRadius:'8px',padding:'8px 10px',fontSize:'10px',color:'#94a3b8'}}>
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                                                <span><strong style={{color:'#e2e8f0'}}>Stormi</strong> heat cycle imminent</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            {/* Animated Dashboard Demo */}
+                            <AnimatedDemo />
                         </div>
                     </section>
 
