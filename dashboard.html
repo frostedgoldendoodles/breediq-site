@@ -425,7 +425,7 @@
             const isPro = user && (user.plan === 'pro' || user.plan === 'kennel');
 
             useEffect(() => {
-                fetch('/api/calendar', { credentials: 'include' })
+                fetch('/api/litters/calendar', { credentials: 'include' })
                     .then(res => {
                         if (!res.ok) throw new Error('Failed to load calendar');
                         return res.json();
