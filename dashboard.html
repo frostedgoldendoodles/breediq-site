@@ -407,6 +407,248 @@
             );
         };
 
+        // Calendar View — derived events from dogs + litters
+        const CalendarView = ({ user }) => {
+            const [events, setEvents] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+            const [viewMode, setViewMode] = useState(() => {
+                // Default: month grid on desktop, agenda on mobile
+                if (typeof window === 'undefined') return 'agenda';
+                return window.innerWidth >= 768 ? 'month' : 'agenda';
+            });
+            const [cursor, setCursor] = useState(() => {
+                const d = new Date();
+                return { year: d.getFullYear(), month: d.getMonth() };
+            });
+
+            const isPro = user && (user.plan === 'pro' || user.plan === 'kennel');
+
+            useEffect(() => {
+                fetch('/api/calendar', { credentials: 'include' })
+                    .then(res => {
+                        if (!res.ok) throw new Error('Failed to load calendar');
+                        return res.json();
+                    })
+                    .then(data => {
+                        setEvents(data.events || []);
+                        setLoading(false);
+                    })
+                    .catch(err => {
+                        setError(err.message);
+                        setLoading(false);
+                    });
+            }, []);
+
+            // Group events by date string for month grid lookup
+            const eventsByDate = {};
+            events.forEach(ev => {
+                if (!eventsByDate[ev.date]) eventsByDate[ev.date] = [];
+                eventsByDate[ev.date].push(ev);
+            });
+
+            // Filter upcoming events for agenda (today forward)
+            const todayIso = new Date().toISOString().slice(0, 10);
+            const upcoming = events.filter(ev => ev.date >= todayIso);
+            const past = events.filter(ev => ev.date < todayIso).slice(-5);
+
+            // Build month grid cells (42 cells = 6 weeks)
+            const firstOfMonth = new Date(cursor.year, cursor.month, 1);
+            const startDayOfWeek = firstOfMonth.getDay(); // 0=Sun
+            const daysInMonth = new Date(cursor.year, cursor.month + 1, 0).getDate();
+            const cells = [];
+            for (let i = 0; i < 42; i++) {
+                const dayNum = i - startDayOfWeek + 1;
+                if (dayNum < 1 || dayNum > daysInMonth) {
+                    cells.push(null);
+                } else {
+                    const dt = new Date(cursor.year, cursor.month, dayNum);
+                    const iso = dt.toISOString().slice(0, 10);
+                    cells.push({ dayNum, iso, events: eventsByDate[iso] || [] });
+                }
+            }
+
+            const monthName = new Date(cursor.year, cursor.month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+            const prevMonth = () => setCursor(c => {
+                const m = c.month - 1;
+                return m < 0 ? { year: c.year - 1, month: 11 } : { year: c.year, month: m };
+            });
+            const nextMonth = () => setCursor(c => {
+                const m = c.month + 1;
+                return m > 11 ? { year: c.year + 1, month: 0 } : { year: c.year, month: m };
+            });
+
+            const formatDate = (iso) => {
+                const d = new Date(iso + 'T12:00:00');
+                return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            };
+
+            return (
+                <div className="space-y-6">
+                    {/* Pro Sync Banner */}
+                    {isPro ? (
+                        <div className="bg-gradient-to-r from-emerald-950 to-teal-950 border border-emerald-800 rounded-lg p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <span className="text-2xl">🔄</span>
+                                <div>
+                                    <p className="font-semibold text-emerald-100">Google Calendar sync available</p>
+                                    <p className="text-sm text-emerald-300/80">Push heat cycles, whelp dates, and go-home dates to your Google Calendar.</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => alert('Google Calendar sync — coming in Phase 2')}
+                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg transition whitespace-nowrap"
+                            >
+                                Connect
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 rounded-lg p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <span className="text-2xl">🔄</span>
+                                <div>
+                                    <p className="font-semibold text-slate-100">
+                                        Sync with Google Calendar
+                                        <span className="ml-2 px-2 py-0.5 text-xs bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-bold rounded">PRO</span>
+                                    </p>
+                                    <p className="text-sm text-slate-400">Auto-push heat cycles, whelp dates, and go-home dates to your Google Calendar.</p>
+                                </div>
+                            </div>
+                            <a
+                                href="/#pricing"
+                                className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-600 transition whitespace-nowrap"
+                            >
+                                Upgrade to Pro
+                            </a>
+                        </div>
+                    )}
+
+                    {/* Header: month nav + view toggle */}
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                            <button onClick={prevMonth} className="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-100 transition">←</button>
+                            <h2 className="text-xl font-bold text-slate-100 min-w-[180px] text-center">{monthName}</h2>
+                            <button onClick={nextMonth} className="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-100 transition">→</button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setViewMode('month')}
+                                className={`px-3 py-1 rounded-lg text-sm transition ${viewMode === 'month' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
+                            >
+                                Month
+                            </button>
+                            <button
+                                onClick={() => setViewMode('agenda')}
+                                className={`px-3 py-1 rounded-lg text-sm transition ${viewMode === 'agenda' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
+                            >
+                                Agenda
+                            </button>
+                        </div>
+                    </div>
+
+                    {loading && (
+                        <div className="text-center py-12 text-slate-400">Loading calendar...</div>
+                    )}
+
+                    {error && !loading && (
+                        <div className="bg-red-950 border border-red-800 rounded-lg p-4 text-red-200">
+                            Failed to load calendar: {error}
+                        </div>
+                    )}
+
+                    {!loading && !error && events.length === 0 && (
+                        <div className="text-center py-12 bg-slate-900 border border-slate-800 rounded-lg">
+                            <p className="text-4xl mb-3">📅</p>
+                            <p className="text-slate-300 font-semibold">No events in the next 90 days</p>
+                            <p className="text-slate-500 text-sm mt-2">Add heat dates to your dams or create a litter to see events here.</p>
+                        </div>
+                    )}
+
+                    {/* Month grid */}
+                    {!loading && !error && events.length > 0 && viewMode === 'month' && (
+                        <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+                            <div className="grid grid-cols-7 bg-slate-800 border-b border-slate-700">
+                                {weekdays.map(wd => (
+                                    <div key={wd} className="p-2 text-center text-xs font-semibold text-slate-400">{wd}</div>
+                                ))}
+                            </div>
+                            <div className="grid grid-cols-7">
+                                {cells.map((cell, idx) => (
+                                    <div key={idx} className={`min-h-[90px] p-1 border-r border-b border-slate-800 ${cell ? 'bg-slate-900' : 'bg-slate-950/50'}`}>
+                                        {cell && (
+                                            <>
+                                                <div className={`text-xs font-semibold mb-1 ${cell.iso === todayIso ? 'text-emerald-400' : 'text-slate-400'}`}>
+                                                    {cell.dayNum}
+                                                </div>
+                                                <div className="space-y-0.5">
+                                                    {cell.events.slice(0, 3).map(ev => (
+                                                        <div key={ev.id} className={`${ev.color} text-[10px] text-white px-1 py-0.5 rounded truncate`} title={ev.title}>
+                                                            {ev.dogName || ev.label}
+                                                        </div>
+                                                    ))}
+                                                    {cell.events.length > 3 && (
+                                                        <div className="text-[10px] text-slate-500">+{cell.events.length - 3} more</div>
+                                                    )}
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Agenda */}
+                    {!loading && !error && events.length > 0 && viewMode === 'agenda' && (
+                        <div className="space-y-4">
+                            {upcoming.length > 0 && (
+                                <div>
+                                    <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">Upcoming</h3>
+                                    <div className="space-y-2">
+                                        {upcoming.map(ev => (
+                                            <div key={ev.id} className="flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-lg p-3 hover:border-slate-700 transition">
+                                                <div className={`w-2 h-10 ${ev.color} rounded-full flex-shrink-0`}></div>
+                                                <div className="flex-grow min-w-0">
+                                                    <p className="text-slate-100 font-semibold truncate">{ev.title}</p>
+                                                    <p className="text-xs text-slate-500">{formatDate(ev.date)} · {ev.label}</p>
+                                                </div>
+                                                <button
+                                                    disabled={!isPro}
+                                                    onClick={() => isPro && alert('Google Calendar push — coming in Phase 2')}
+                                                    className={`text-xs px-2 py-1 rounded transition flex-shrink-0 ${isPro ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-800/50 text-slate-600 cursor-not-allowed'}`}
+                                                    title={isPro ? 'Push to Google Calendar' : 'Pro feature'}
+                                                >
+                                                    {isPro ? '📤 Push' : '🔒 Pro'}
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {past.length > 0 && (
+                                <div>
+                                    <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2 mt-6">Recent (past 30 days)</h3>
+                                    <div className="space-y-2 opacity-60">
+                                        {past.map(ev => (
+                                            <div key={ev.id} className="flex items-center gap-3 bg-slate-900/50 border border-slate-800 rounded-lg p-3">
+                                                <div className={`w-2 h-10 ${ev.color} rounded-full flex-shrink-0`}></div>
+                                                <div className="flex-grow min-w-0">
+                                                    <p className="text-slate-300 truncate">{ev.title}</p>
+                                                    <p className="text-xs text-slate-500">{formatDate(ev.date)} · {ev.label}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
         // Main App Component
         function BreedIQDashboard() {
             const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -544,7 +786,8 @@
                                 {currentView === 'dashboard' && <DashboardView />}
                                 {currentView === 'dams' && <DamsView />}
                                 {currentView === 'alerts' && <AlertsView />}
-                                {(currentView === 'calendar' || currentView === 'guardians' || currentView === 'analytics' || currentView === 'settings') && (
+                                {currentView === 'calendar' && <CalendarView user={user} />}
+                                {(currentView === 'guardians' || currentView === 'analytics' || currentView === 'settings') && (
                                     <div className="text-center py-20">
                                         <p className="text-slate-400 text-lg">Coming soon: {navItems.find(i => i.id === currentView)?.label}</p>
                                     </div>
