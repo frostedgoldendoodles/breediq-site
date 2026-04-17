@@ -182,12 +182,14 @@ export default async function handler(req, res) {
     const supabase = getServiceClient();
     const userId = auth.user.id;
 
-    // Determine if this is a single-item request
-    const slug = req.query.slug;
-    const id = slug && slug.length > 0 ? slug[0] : null;
+  // Parse route from URL path (reliable across all Vercel function types)
+  const urlPath = (req.url || '').split('?')[0];
+  const segment = urlPath.replace(/^\/api\/litters\/?/, '').split('/')[0] || null;
+  // Treat _list as collection request (rewritten from /api/litters)
+  const id = (segment && segment !== '_list') ? segment : null;
 
     // ── Calendar route: /api/litters/calendar ───────────────
-    if (id === 'calendar') {
+    if (segment === 'calendar') {
         return handleCalendar(req, res, supabase, userId);
     }
 
