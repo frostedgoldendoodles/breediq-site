@@ -1,9 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QVB6YGC57F"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-QVB6YGC57F');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dog Profile · BreedIQ</title>
+    <title>Dog Profile Â· BreedIQ</title>
     <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
@@ -16,7 +24,7 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef } = React;
 
-        // Supabase client (for storage uploads only — API uses cookies)
+        // Supabase client (for storage uploads only â API uses cookies)
         // Configured in config.js if present, otherwise disabled
         let supabaseClient = null;
         try {
@@ -51,9 +59,9 @@
             nursing:  'bg-blue-900 text-blue-200'
         };
 
-        // ───────── Helpers ─────────
+        // âââââââââ Helpers âââââââââ
         const fmtDate = (iso) => {
-            if (!iso) return '—';
+            if (!iso) return 'â';
             const d = new Date(iso);
             if (isNaN(d.getTime())) return iso;
             return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
@@ -74,7 +82,7 @@
 
         const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
 
-        // ───────── Schedule stats ─────────
+        // âââââââââ Schedule stats âââââââââ
         const computeScheduleStats = (dog, litters) => {
             const stats = [];
             const today = new Date();
@@ -124,7 +132,7 @@
                         const days = daysBetween(whelp, today);
                         const goHome = new Date(whelp.getTime() + 56 * 86400000); // 8 weeks
                         const daysToGo = daysBetween(today, goHome);
-                        stats.push({ label: 'Whelped', value: fmtDate(whelp), sub: `${days} days ago · ${litter.puppy_count || '?'} pups` });
+                        stats.push({ label: 'Whelped', value: fmtDate(whelp), sub: `${days} days ago Â· ${litter.puppy_count || '?'} pups` });
                         stats.push({
                             label: 'Go-home (8wk)',
                             value: fmtDate(goHome),
@@ -149,7 +157,7 @@
             return stats;
         };
 
-        // ───────── Editable field ─────────
+        // âââââââââ Editable field âââââââââ
         const EditField = ({ label, value, field, onSave, type = 'text', options = null, format = null, readOnly = false }) => {
             const [editing, setEditing] = useState(false);
             const [val, setVal] = useState(value || '');
@@ -190,7 +198,7 @@
             };
 
             const displayValue = () => {
-                if (value === null || value === undefined || value === '') return <span className="text-slate-600 italic">— click to add —</span>;
+                if (value === null || value === undefined || value === '') return <span className="text-slate-600 italic">â click to add â</span>;
                 if (format) return format(value);
                 if (type === 'date') return fmtDate(value);
                 return String(value);
@@ -226,7 +234,7 @@
                             onKeyDown={(e) => { if (e.key === 'Escape') cancel(); }}
                             className="w-full mt-1 px-2 py-1 bg-slate-900 border border-emerald-600 rounded text-slate-100 focus:outline-none"
                         >
-                            <option value="">—</option>
+                            <option value="">â</option>
                             {options.map(o => <option key={o} value={o}>{o}</option>)}
                         </select>
                     ) : type === 'textarea' ? (
@@ -258,7 +266,7 @@
             );
         };
 
-        // ───────── Section wrapper ─────────
+        // âââââââââ Section wrapper âââââââââ
         const Section = ({ title, children, cols = 2 }) => (
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
                 <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wide mb-3">{title}</h2>
@@ -268,7 +276,7 @@
             </div>
         );
 
-        // ───────── Photo section ─────────
+        // âââââââââ Photo section âââââââââ
         const PhotoSection = ({ dog, onSave }) => {
             const [uploading, setUploading] = useState(false);
             const [urlInput, setUrlInput] = useState('');
@@ -332,7 +340,7 @@
                             disabled={uploading}
                             className="w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded text-white text-sm font-semibold"
                         >
-                            {uploading ? 'Uploading...' : '📷 Upload Photo'}
+                            {uploading ? 'Uploading...' : 'ð· Upload Photo'}
                         </button>
                         {showUrlInput ? (
                             <div className="space-y-2">
@@ -353,7 +361,7 @@
                                 onClick={() => setShowUrlInput(true)}
                                 className="w-full px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 text-sm"
                             >
-                                🔗 Paste URL Instead
+                                ð Paste URL Instead
                             </button>
                         )}
                         {dog.photo_url && (
@@ -369,7 +377,7 @@
             );
         };
 
-        // ───────── Schedule stats widget ─────────
+        // âââââââââ Schedule stats widget âââââââââ
         const ScheduleStats = ({ dog, litters }) => {
             const stats = useMemo(() => computeScheduleStats(dog, litters), [dog, litters]);
             if (stats.length === 0) return null;
@@ -391,7 +399,7 @@
             );
         };
 
-        // ───────── Litter history ─────────
+        // âââââââââ Litter history âââââââââ
         const LitterHistory = ({ litters }) => {
             if (!litters || litters.length === 0) return null;
             return (
@@ -415,7 +423,7 @@
             );
         };
 
-        // ───────── Main page ─────────
+        // âââââââââ Main page âââââââââ
         function DogProfile() {
             const [dog, setDog] = useState(null);
             const [litters, setLitters] = useState([]);
@@ -457,7 +465,7 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Save failed');
                 setDog(data.dog);
-                setToast(`✓ Saved ${field}`);
+                setToast(`â Saved ${field}`);
                 setTimeout(() => setToast(null), 2000);
             };
 
@@ -474,7 +482,7 @@
                     <div className="min-h-screen flex items-center justify-center">
                         <div className="text-center">
                             <p className="text-slate-400 mb-4">{error || 'Dog not found'}</p>
-                            <a href="/dogs" className="text-emerald-400 hover:text-emerald-300">← Back to dogs</a>
+                            <a href="/dogs" className="text-emerald-400 hover:text-emerald-300">â Back to dogs</a>
                         </div>
                     </div>
                 );
@@ -495,7 +503,7 @@
                                     <a href="/dogs" className="text-slate-400 hover:text-slate-100">Dogs</a>
                                 </nav>
                             </div>
-                            <a href="/dogs" className="text-sm text-slate-400 hover:text-slate-100">← All dogs</a>
+                            <a href="/dogs" className="text-sm text-slate-400 hover:text-slate-100">â All dogs</a>
                         </div>
                     </header>
 
@@ -513,7 +521,7 @@
                                 <h1 className="text-4xl font-bold">{dog.name}</h1>
                                 {dog.sex && (
                                     <span className={`text-2xl ${dog.sex === 'female' ? 'text-pink-400' : 'text-blue-400'}`}>
-                                        {dog.sex === 'female' ? '♀' : '♂'}
+                                        {dog.sex === 'female' ? 'â' : 'â'}
                                     </span>
                                 )}
                                 {dog.status && (
@@ -532,12 +540,12 @@
                             )}
                             <p className="text-slate-400 text-sm mt-1">
                                 {dog.role && <span className="capitalize">{dog.role}</span>}
-                                {dog.breed && <span> · {dog.breed}</span>}
-                                {age && <span> · {age}</span>}
+                                {dog.breed && <span> Â· {dog.breed}</span>}
+                                {age && <span> Â· {age}</span>}
                             </p>
                         </div>
 
-                        <p className="text-xs text-slate-500 mb-4">💡 Click any field below to edit it inline</p>
+                        <p className="text-xs text-slate-500 mb-4">ð¡ Click any field below to edit it inline</p>
 
                         {/* Layout: photo/stats on left, details on right */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

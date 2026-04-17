@@ -1,13 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QVB6YGC57F"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-QVB6YGC57F');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="BreedIQ — AI-powered breeding program management platform. Organize your breeding records, track heat cycles, sync with Google Calendar, and manage guardians all in one place.">
+    <meta name="description" content="BreedIQ â AI-powered breeding program management platform. Organize your breeding records, track heat cycles, sync with Google Calendar, and manage guardians all in one place.">
     <meta name="keywords" content="dog breeding, breeding management, AI, heat cycle tracking, pedigree management">
     <meta name="author" content="BreedIQ">
 
-    <title>BreedIQ — AI-Powered Breeding Program Management</title>
+    <title>BreedIQ â AI-Powered Breeding Program Management</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z'/><path d='M8 14s1.5 2 4 2 4-2 4-2'/><line x1='9' y1='9' x2='9.01' y2='9'/><line x1='15' y1='9' x2='15.01' y2='9'/></svg>">
 
     <!-- Tailwind CSS from CDN -->
@@ -133,7 +141,7 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        /* ── Animated Demo Component ── */
+        /* ââ Animated Demo Component ââ */
         function AnimatedDemo() {
             const [active, setActive] = useState(0);
             const [fading, setFading] = useState(false);
@@ -178,7 +186,7 @@
                     </div>
                     <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'10px',marginBottom:'10px'}}>
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}}>
-                            <div style={{fontSize:'11px',fontWeight:600,color:'#e2e8f0'}}>Gigi <span style={{color:'#64748b',fontWeight:400}}>× Cooper</span></div>
+                            <div style={{fontSize:'11px',fontWeight:600,color:'#e2e8f0'}}>Gigi <span style={{color:'#64748b',fontWeight:400}}>Ã Cooper</span></div>
                             <div style={{fontSize:'8px',padding:'2px 8px',borderRadius:'10px',fontWeight:600,background:'rgba(168,85,247,0.15)',color:'#c084fc'}}>Pregnant</div>
                         </div>
                         <div style={{height:'5px',background:'#334155',borderRadius:'3px',overflow:'hidden',marginBottom:'4px'}}>
@@ -258,7 +266,7 @@
                         </div>
                         <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'12px',marginBottom:'10px'}}>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
-                                <div><span style={{fontSize:'12px',fontWeight:700,color:'#e2e8f0'}}>Gigi</span><span style={{fontSize:'11px',color:'#64748b'}}> × Cooper</span></div>
+                                <div><span style={{fontSize:'12px',fontWeight:700,color:'#e2e8f0'}}>Gigi</span><span style={{fontSize:'11px',color:'#64748b'}}> Ã Cooper</span></div>
                                 <div style={{fontSize:'9px',padding:'2px 8px',borderRadius:'10px',background:'rgba(168,85,247,0.15)',color:'#c084fc',fontWeight:600}}>Day 17 / 61</div>
                             </div>
                             <div style={{position:'relative',paddingLeft:'16px'}}>
@@ -303,7 +311,7 @@
                             <div style={{width:'32px',height:'32px',borderRadius:'8px',background:'linear-gradient(135deg,#2563eb,#10b981)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'white',flexShrink:0}}>{g.avatar}</div>
                             <div style={{flex:1,minWidth:0}}>
                                 <div style={{fontSize:'11px',fontWeight:600,color:'#e2e8f0'}}>{g.name}</div>
-                                <div style={{fontSize:'9px',color:'#64748b'}}>{g.loc} • {g.dog}</div>
+                                <div style={{fontSize:'9px',color:'#64748b'}}>{g.loc} â¢ {g.dog}</div>
                             </div>
                             <div style={{fontSize:'8px',padding:'2px 8px',borderRadius:'10px',fontWeight:600,background:g.sc+'20',color:g.sc,flexShrink:0}}>{g.status}</div>
                         </div>
@@ -429,7 +437,7 @@
                                     Stop juggling spreadsheets. Start breeding smarter.
                                 </h1>
                                 <p className="text-xl text-slate-300 leading-relaxed">
-                                    BreedIQ uses AI to organize your entire breeding program — dams, studs, litters, guardians, and calendars — in minutes, not months.
+                                    BreedIQ uses AI to organize your entire breeding program â dams, studs, litters, guardians, and calendars â in minutes, not months.
                                 </p>
 
                                 {/* CTAs */}
@@ -494,7 +502,7 @@
                         <div className="text-center mb-16">
                             <h2 className="text-4xl lg:text-5xl font-bold mb-6">Upload your mess. We'll organize it.</h2>
                             <p className="text-xl text-slate-300 max-w-3xl mx-auto">
-                                Other platforms make you enter every dog one by one. BreedIQ's AI reads your notes, spreadsheets, and screenshots — and builds your program in minutes.
+                                Other platforms make you enter every dog one by one. BreedIQ's AI reads your notes, spreadsheets, and screenshots â and builds your program in minutes.
                             </p>
                         </div>
 
@@ -502,7 +510,7 @@
                         <div className="grid md:grid-cols-4 gap-6 mb-12">
                             {[
                                 { icon: 'notes', title: 'Apple Notes', desc: 'Paste your notes and we extract the data' },
-                                { icon: 'spreadsheet', title: 'Spreadsheets', desc: 'CSV, Excel, Google Sheets — we handle them all' },
+                                { icon: 'spreadsheet', title: 'Spreadsheets', desc: 'CSV, Excel, Google Sheets â we handle them all' },
                                 { icon: 'camera', title: 'Screenshots', desc: 'Photos of pedigrees and records' },
                                 { icon: 'file', title: 'PDFs', desc: 'Scanned documents and pedigree charts' }
                             ].map((item, idx) => (
@@ -564,7 +572,7 @@
 
                         <div className="grid md:grid-cols-3 gap-12">
                             {[
-                                { num: '1', title: 'Upload Your Records', desc: 'Start with what you have — notes, spreadsheets, screenshots, PDFs. Anything goes.', id: 'upload' },
+                                { num: '1', title: 'Upload Your Records', desc: 'Start with what you have â notes, spreadsheets, screenshots, PDFs. Anything goes.', id: 'upload' },
                                 { num: '2', title: 'AI Organizes Everything', desc: 'Our AI reads, understands, and organizes your data into a complete breeding program.', id: 'organize' },
                                 { num: '3', title: 'Manage & Grow', desc: 'Use real dashboards, automated tracking, and insights to breed smarter from day one.', id: 'grow' }
                             ].map((step, idx) => (
@@ -710,7 +718,7 @@
                                 {
                                     id: 'q1',
                                     question: 'What types of files can I upload?',
-                                    answer: 'You can upload notes, spreadsheets, screenshots, PDFs, text files — anything with breeding data. Our AI will read and organize it.'
+                                    answer: 'You can upload notes, spreadsheets, screenshots, PDFs, text files â anything with breeding data. Our AI will read and organize it.'
                                 },
                                 {
                                     id: 'q2',
@@ -725,7 +733,7 @@
                                 {
                                     id: 'q4',
                                     question: 'Is my data secure?',
-                                    answer: 'Yes, your breeding data is encrypted at rest and in transit. You control who has access to your program — whether that\'s just you or your entire team.'
+                                    answer: 'Yes, your breeding data is encrypted at rest and in transit. You control who has access to your program â whether that\'s just you or your entire team.'
                                 },
                                 {
                                     id: 'q5',
@@ -811,7 +819,7 @@
                                 </div>
                             </div>
                             <div className="border-t border-slate-800 pt-8 flex flex-col sm:flex-row justify-between items-center text-slate-400 text-sm">
-                                <p>© 2026 BreedIQ. All rights reserved.</p>
+                                <p>Â© 2026 BreedIQ. All rights reserved.</p>
                                 <p>Built for breeders, by breeders.</p>
                             </div>
                         </div>

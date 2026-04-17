@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QVB6YGC57F"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-QVB6YGC57F');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BreedIQ Dashboard</title>
@@ -145,7 +153,7 @@
                 <div className="flex-grow">
                     <p className="font-semibold text-slate-100">{item.dog}</p>
                     <p className="text-sm text-slate-400">{item.event}</p>
-                    <p className="text-xs text-slate-500 mt-1">{item.date} • {item.daysUntil} days • {item.breeder}</p>
+                    <p className="text-xs text-slate-500 mt-1">{item.date} â¢ {item.daysUntil} days â¢ {item.breeder}</p>
                 </div>
             </div>
         );
@@ -186,7 +194,7 @@
                                 <div className="flex justify-between items-start mb-3">
                                     <div>
                                         <p className="font-semibold text-slate-100">{litter.dog}</p>
-                                        <p className="text-sm text-slate-400">Bred: {litter.bred} • Due: {litter.due}</p>
+                                        <p className="text-sm text-slate-400">Bred: {litter.bred} â¢ Due: {litter.due}</p>
                                     </div>
                                     <span className="text-xs bg-teal-900 text-teal-200 px-2 py-1 rounded">{litter.breeder}</span>
                                 </div>
@@ -407,7 +415,7 @@
             );
         };
 
-        // Calendar View — derived events from dogs + litters
+        // Calendar View â derived events from dogs + litters
         const CalendarView = ({ user }) => {
             const [events, setEvents] = useState([]);
             const [loading, setLoading] = useState(true);
@@ -491,14 +499,14 @@
                     {isPro ? (
                         <div className="bg-gradient-to-r from-emerald-950 to-teal-950 border border-emerald-800 rounded-lg p-4 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <span className="text-2xl">🔄</span>
+                                <span className="text-2xl">ð</span>
                                 <div>
                                     <p className="font-semibold text-emerald-100">Google Calendar sync available</p>
                                     <p className="text-sm text-emerald-300/80">Push heat cycles, whelp dates, and go-home dates to your Google Calendar.</p>
                                 </div>
                             </div>
                             <button
-                                onClick={() => alert('Google Calendar sync — coming in Phase 2')}
+                                onClick={() => alert('Google Calendar sync â coming in Phase 2')}
                                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg transition whitespace-nowrap"
                             >
                                 Connect
@@ -507,7 +515,7 @@
                     ) : (
                         <div className="bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 rounded-lg p-4 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <span className="text-2xl">🔄</span>
+                                <span className="text-2xl">ð</span>
                                 <div>
                                     <p className="font-semibold text-slate-100">
                                         Sync with Google Calendar
@@ -528,9 +536,9 @@
                     {/* Header: month nav + view toggle */}
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                         <div className="flex items-center gap-3">
-                            <button onClick={prevMonth} className="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-100 transition">←</button>
+                            <button onClick={prevMonth} className="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-100 transition">â</button>
                             <h2 className="text-xl font-bold text-slate-100 min-w-[180px] text-center">{monthName}</h2>
-                            <button onClick={nextMonth} className="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-100 transition">→</button>
+                            <button onClick={nextMonth} className="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-100 transition">â</button>
                         </div>
                         <div className="flex items-center gap-2">
                             <button
@@ -560,7 +568,7 @@
 
                     {!loading && !error && events.length === 0 && (
                         <div className="text-center py-12 bg-slate-900 border border-slate-800 rounded-lg">
-                            <p className="text-4xl mb-3">📅</p>
+                            <p className="text-4xl mb-3">ð</p>
                             <p className="text-slate-300 font-semibold">No events in the next 90 days</p>
                             <p className="text-slate-500 text-sm mt-2">Add heat dates to your dams or create a litter to see events here.</p>
                         </div>
@@ -612,15 +620,15 @@
                                                 <div className={`w-2 h-10 ${ev.color} rounded-full flex-shrink-0`}></div>
                                                 <div className="flex-grow min-w-0">
                                                     <p className="text-slate-100 font-semibold truncate">{ev.title}</p>
-                                                    <p className="text-xs text-slate-500">{formatDate(ev.date)} · {ev.label}</p>
+                                                    <p className="text-xs text-slate-500">{formatDate(ev.date)} Â· {ev.label}</p>
                                                 </div>
                                                 <button
                                                     disabled={!isPro}
-                                                    onClick={() => isPro && alert('Google Calendar push — coming in Phase 2')}
+                                                    onClick={() => isPro && alert('Google Calendar push â coming in Phase 2')}
                                                     className={`text-xs px-2 py-1 rounded transition flex-shrink-0 ${isPro ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-800/50 text-slate-600 cursor-not-allowed'}`}
                                                     title={isPro ? 'Push to Google Calendar' : 'Pro feature'}
                                                 >
-                                                    {isPro ? '📤 Push' : '🔒 Pro'}
+                                                    {isPro ? 'ð¤ Push' : 'ð Pro'}
                                                 </button>
                                             </div>
                                         ))}
@@ -636,7 +644,7 @@
                                                 <div className={`w-2 h-10 ${ev.color} rounded-full flex-shrink-0`}></div>
                                                 <div className="flex-grow min-w-0">
                                                     <p className="text-slate-300 truncate">{ev.title}</p>
-                                                    <p className="text-xs text-slate-500">{formatDate(ev.date)} · {ev.label}</p>
+                                                    <p className="text-xs text-slate-500">{formatDate(ev.date)} Â· {ev.label}</p>
                                                 </div>
                                             </div>
                                         ))}
@@ -681,7 +689,7 @@
                 return (
                     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
                         <div className="text-center space-y-4">
-                            <div className="text-4xl">🧬</div>
+                            <div className="text-4xl">ð§¬</div>
                             <p className="text-slate-400">Loading your dashboard...</p>
                         </div>
                     </div>
@@ -689,13 +697,13 @@
             }
 
             const navItems = [
-                { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-                { id: 'dams', label: 'Dams', icon: '🐕' },
-                { id: 'alerts', label: 'Alerts', icon: '⚠️' },
-                { id: 'calendar', label: 'Calendar', icon: '📅' },
-                { id: 'guardians', label: 'Guardians', icon: '👥' },
-                { id: 'analytics', label: 'Analytics', icon: '📈' },
-                { id: 'settings', label: 'Settings', icon: '⚙️' }
+                { id: 'dashboard', label: 'Dashboard', icon: 'ð' },
+                { id: 'dams', label: 'Dams', icon: 'ð' },
+                { id: 'alerts', label: 'Alerts', icon: 'â ï¸' },
+                { id: 'calendar', label: 'Calendar', icon: 'ð' },
+                { id: 'guardians', label: 'Guardians', icon: 'ð¥' },
+                { id: 'analytics', label: 'Analytics', icon: 'ð' },
+                { id: 'settings', label: 'Settings', icon: 'âï¸' }
             ];
 
             return (
@@ -705,7 +713,7 @@
                         {/* Logo */}
                         <div className="p-6 border-b border-slate-800">
                             <a href="/" className="flex items-center gap-2 font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
-                                <span className="text-2xl">🧬</span> BreedIQ
+                                <span className="text-2xl">ð§¬</span> BreedIQ
                             </a>
                         </div>
 

@@ -1,9 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QVB6YGC57F"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-QVB6YGC57F');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dogs · BreedIQ</title>
+    <title>Dogs Â· BreedIQ</title>
     <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
@@ -112,7 +120,7 @@
                             <p className="font-semibold text-slate-100 truncate">{dog.name}</p>
                             {dog.sex && (
                                 <span className={`text-xs font-semibold ${dog.sex === 'female' ? 'text-pink-400' : 'text-blue-400'}`}>
-                                    {dog.sex === 'female' ? '♀' : '♂'}
+                                    {dog.sex === 'female' ? 'â' : 'â'}
                                 </span>
                             )}
                         </div>
@@ -120,7 +128,7 @@
                             <p className="text-xs text-slate-500 truncate">"{dog.call_name}"</p>
                         )}
                         <div className="mt-2 text-xs text-slate-400 space-y-0.5">
-                            {dog.role && <p className="capitalize">{dog.role}{age ? ` · ${age}` : ''}</p>}
+                            {dog.role && <p className="capitalize">{dog.role}{age ? ` Â· ${age}` : ''}</p>}
                             {dog.guardian?.family_name && <p className="truncate">Guardian: {dog.guardian.family_name}</p>}
                             {nextHeat && <p className="text-emerald-400">{nextHeat}</p>}
                         </div>
@@ -180,7 +188,7 @@
                     <div className="bg-slate-900 rounded-xl border border-slate-800 p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-xl font-bold">Add Dog</h2>
-                            <button onClick={onClose} className="text-slate-400 hover:text-slate-100">✕</button>
+                            <button onClick={onClose} className="text-slate-400 hover:text-slate-100">â</button>
                         </div>
                         <form onSubmit={submit} className="space-y-3">
                             {field('name', 'Name *')}
@@ -300,7 +308,7 @@
                     <div className="min-h-screen flex items-center justify-center">
                         <div className="text-center">
                             <p className="text-slate-400 mb-4">You need to sign in.</p>
-                            <a href="/login" className="text-emerald-400 hover:text-emerald-300">Go to login →</a>
+                            <a href="/login" className="text-emerald-400 hover:text-emerald-300">Go to login â</a>
                         </div>
                     </div>
                 );
