@@ -254,8 +254,9 @@ async function handleSignup(req, res) {
 // MAIN HANDLER — Route by slug
 // ═══════════════════════════════════════════════════════════
 export default async function handler(req, res) {
-  const slug = req.query.slug;
-  const route = slug && slug.length > 0 ? slug[0] : null;
+  // Parse route from URL path (works reliably across all Vercel function types)
+  const urlPath = (req.url || '').split('?')[0];
+  const route = urlPath.replace(/^\/api\/auth\/?/, '').split('/')[0] || null;
 
   switch (route) {
     case 'login':  return handleLogin(req, res);
