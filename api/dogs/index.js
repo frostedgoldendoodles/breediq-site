@@ -10,15 +10,35 @@ export default async function handler(req, res) {
     const supabase = getServiceClient();
     const userId = auth.user.id;
 
-    // ── GET: List dogs ──────────────────────────────────────
+    // ── GET: List dogs ──────────────────────────────────────────────
     if (req.method === 'GET') {
         try {
             const { status, role, sex, search } = req.query;
 
+            // Check if user is a program owner with sub-breeders
+            const { data: relationships } = await supabase
+                .from('breeder_relationships')
+                .select('breeder_id, profiles!breeder_relationships_breeder_id_fkey(email, kennel_name, full_name)')
+                .eq('owner_id', userId)
+                .eq('status', 'active');
+
+            const breederIds = (relationships || []).map(r => r.breeder_id);
+            const allUserIds = [userId, ...breederIds];
+
+            // Build breeder lookup map
+            const breederMap = {};
+            (relationships || []).forEach(r => {
+                breederMap[r.breeder_id] = {
+                    kennel_name: r.profiles?.kennel_name,
+                    full_name: r.profiles?.full_name,
+                    email: r.profiles?.email
+                };
+            });
+
             let query = supabase
                 .from('dogs')
                 .select('*, guardian:guardians(id, family_name, contact_name)')
-                .eq('user_id', userId)
+                .in('user_id', allUserIds)
                 .order('name', { ascending: true });
 
             if (status) query = query.eq('status', status);
@@ -33,14 +53,21 @@ export default async function handler(req, res) {
                 return res.status(500).json({ error: 'Failed to fetch dogs' });
             }
 
-            return res.status(200).json({ dogs, count: dogs.length });
+            // Tag each dog with breeder info if it belongs to a sub-breeder
+            const enrichedDogs = (dogs || []).map(dog => ({
+                ...dog,
+                is_shared: dog.user_id !== userId,
+                breeder: dog.user_id !== userId ? breederMap[dog.user_id] || null : null
+            }));
+
+            return res.status(200).json({ dogs: enrichedDogs, count: enrichedDogs.length });
         } catch (err) {
             console.error('GET dogs error:', err);
             return res.status(500).json({ error: 'Internal server error' });
         }
     }
 
-    // ── POST: Create dog ────────────────────────────────────
+    // ── POST: Create dog ────────────────────────────────────────────
     if (req.method === 'POST') {
         try {
             const {
