@@ -11,7 +11,7 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Us â BreedIQ</title>
+    <title>Contact Us &mdash; BreedIQ</title>
     <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
@@ -74,7 +74,7 @@
                         {/* Logo */}
                         <div className="text-center mb-8">
                             <a href="/" className="inline-flex items-center gap-2">
-                                <span className="text-3xl">ð¾</span>
+                                <span className="text-3xl">&#x1F43E;</span>
                                 <span className="text-2xl font-bold gradient-text">BreedIQ</span>
                             </a>
                         </div>
@@ -96,22 +96,28 @@
                                 </div>
                             )}
 
-                            <form onSubmit={handleSubmit} className="space-y-4">
+                            <form onSubmit={handleSubmit} method="post" className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">Name</label>
+                                    <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">Name</label>
                                     <input
+                                        id="name"
+                                        name="name"
                                         type="text"
+                                        autoComplete="name"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition"
-                                        placeholder="Your name"
+                                            placeholder="Your name"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                                    <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">Email</label>
                                     <input
+                                        id="email"
+                                        name="email"
                                         type="email"
+                                        autoComplete="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition"
@@ -120,8 +126,10 @@
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">Message</label>
+                                    <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-1">Message</label>
                                     <textarea
+                                        id="message"
+                                                name="message"
                                         value={message}
                                         onChange={(e) => setMessage(e.target.value)}
                                         className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition resize-none"
