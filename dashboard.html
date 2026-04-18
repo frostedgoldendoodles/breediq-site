@@ -31,8 +31,11 @@
             const [litters, setLitters] = useState([]);
             const [loading, setLoading] = useState(true);
             const [error, setError] = useState(null);
+            const fetchingRef = useRef(false);
 
             const fetchData = useCallback(async () => {
+                if (fetchingRef.current) return; // prevent duplicate inflight requests
+                fetchingRef.current = true;
                 try {
                     const [dogsRes, littersRes] = await Promise.all([
                         fetch('/api/dogs', { credentials: 'include' }),
@@ -48,6 +51,8 @@
                     console.error('Data fetch error:', err);
                     setError(err.message);
                     setLoading(false);
+                } finally {
+                    fetchingRef.current = false;
                 }
             }, []);
 
@@ -181,18 +186,35 @@
         // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         // ALERT ITEM
         // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-        const AlertItem = ({ item, urgencyColor }) => (
-            <div className={`flex items-start gap-4 p-4 rounded-lg border ${urgencyColor}`}>
-                <div className="flex-shrink-0 mt-1">
-                    <div className={`w-3 h-3 rounded-full ${urgencyColor.includes('red') ? 'bg-red-500' : urgencyColor.includes('orange') ? 'bg-orange-500' : urgencyColor.includes('yellow') ? 'bg-yellow-500' : 'bg-blue-500'}`}></div>
+        const AlertItem = ({ item, urgencyColor }) => {
+            const dayLabel = item.daysUntil !== null
+                ? item.daysUntil < 0 ? `${Math.abs(item.daysUntil)} days overdue` : item.daysUntil === 0 ? 'Today' : `${item.daysUntil} days`
+                : '';
+            return (
+                <div className={`flex items-start gap-4 p-4 rounded-lg border ${urgencyColor}`}>
+                    <div className="flex-shrink-0 mt-1">
+                        <div className={`w-3 h-3 rounded-full ${urgencyColor.includes('red') ? 'bg-red-500' : urgencyColor.includes('orange') ? 'bg-orange-500' : urgencyColor.includes('yellow') ? 'bg-yellow-500' : urgencyColor.includes('amber') ? 'bg-amber-500' : 'bg-blue-500'}`}></div>
+                    </div>
+                    <div className="flex-grow">
+                        <p className="font-semibold text-slate-100">{item.dog}</p>
+                        <p className="text-sm text-slate-400">{item.event}</p>
+                        <p className="text-xs text-slate-500 mt-1">{item.date} {dayLabel ? `\u2022 ${dayLabel}` : ''}</p>
+                    </div>
+                    {item.actions && item.actions.length > 0 && (
+                        <div className="flex-shrink-0 flex gap-2">
+                            {item.actions.map((action, i) => (
+                                <button key={i} onClick={action.onClick} disabled={action.loading}
+                                    className={`text-xs px-3 py-1.5 rounded font-medium transition ${action.primary
+                                        ? 'bg-emerald-600 text-white hover:bg-emerald-500'
+                                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'} disabled:opacity-50`}>
+                                    {action.loading ? '\u23F3' : action.label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
-                <div className="flex-grow">
-                    <p className="font-semibold text-slate-100">{item.dog}</p>
-                    <p className="text-sm text-slate-400">{item.event}</p>
-                    <p className="text-xs text-slate-500 mt-1">{item.date} {item.daysUntil !== null ? `\u2022 ${item.daysUntil} days` : ''}</p>
-                </div>
-            </div>
-        );
+            );
+        };
 
         // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         // QUICK UPDATE BAR â Manual Actions + AI Chat
@@ -825,8 +847,7 @@
                     <div className="flex-grow">
                         <p className="font-semibold text-slate-100">{dog.name}<BreederBadge item={dog} /></p>
                         <p className="text-sm text-slate-400">
-                            {dog.guardian?.family_name ? `Guardian: ${dog.guardian.family_name}` : ''}
-                            {dog.weight_lbs ? ` \u2022 ${dog.weight_lbs} lbs` : ''}
+                            {[dog.guardian?.family_name ? `Guardian: ${dog.guardian.family_name}` : null, dog.weight_lbs ? `${dog.weight_lbs} lbs` : null].filter(Boolean).join(' \u2022 ') || '\u2014'}
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -920,40 +941,132 @@
         // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         // ALERTS VIEW â Now uses live data
         // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-        const AlertsView = ({ dogs, litters }) => {
-            const actionItems = [];
+        const AlertsView = ({ dogs, litters, refetch }) => {
+            const [updating, setUpdating] = useState({});
+
+            const handleUpdate = async (type, id, body, label) => {
+                const key = `${type}-${id}`;
+                setUpdating(prev => ({ ...prev, [key]: true }));
+                try {
+                    const res = await fetch(`/api/${type}/${id}`, {
+                        method: 'PUT', credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+                    if (!res.ok) throw new Error('Update failed');
+                    refetch();
+                } catch (err) {
+                    alert('Failed to update: ' + err.message);
+                } finally {
+                    setUpdating(prev => ({ ...prev, [key]: false }));
+                }
+            };
+
+            const isUpdating = (type, id) => updating[`${type}-${id}`] || false;
+
+            // Needs Update: past-due items that need breeder action
+            const needsUpdate = [];
             litters.forEach(l => {
+                const damName = l.dam?.name || 'Unknown';
                 if (l.due_date && ['confirmed','bred'].includes(l.status)) {
                     const d = daysUntil(l.due_date);
-                    if (d !== null && d <= 60) {
-                        actionItems.push({ dog: l.dam?.name || 'Unknown', event: 'Due to give birth', date: formatShortDate(l.due_date), daysUntil: d, urgency: d <= 7 ? 'Critical' : d <= 14 ? 'High' : 'Medium' });
+                    if (d !== null && d < 0) {
+                        const overdue = Math.abs(d);
+                        needsUpdate.push({
+                            dog: damName,
+                            event: overdue > 14
+                                ? `Was due ${formatShortDate(l.due_date)} \u2014 still marked as pregnant`
+                                : `${overdue} days past due date \u2014 did she whelp?`,
+                            date: formatShortDate(l.due_date),
+                            daysUntil: d,
+                            urgency: 'needsUpdate',
+                            actions: [
+                                { label: '\uD83D\uDC3E Mark as Born', primary: true, loading: isUpdating('litters', l.id),
+                                  onClick: () => handleUpdate('litters', l.id, { status: 'born', whelp_date: l.due_date }, damName) },
+                                { label: '\u274C Not Pregnant', loading: isUpdating('litters', l.id),
+                                  onClick: () => { if (confirm(`Remove ${damName}'s litter record? This will mark it as lost/reabsorbed.`)) handleUpdate('litters', l.id, { status: 'lost' }, damName); } }
+                            ]
+                        });
                     }
                 }
                 if (l.go_home_date && ['born','nursing'].includes(l.status)) {
                     const d = daysUntil(l.go_home_date);
-                    if (d !== null && d <= 30) {
-                        actionItems.push({ dog: l.dam?.name || 'Unknown', event: 'Pups go home', date: formatShortDate(l.go_home_date), daysUntil: d, urgency: d <= 7 ? 'High' : 'Medium' });
+                    if (d !== null && d < 0) {
+                        const overdue = Math.abs(d);
+                        needsUpdate.push({
+                            dog: damName,
+                            event: overdue > 14
+                                ? `Pups were due home ${formatShortDate(l.go_home_date)} \u2014 still marked as nursing`
+                                : `Pups were due home ${overdue} days ago \u2014 have they gone?`,
+                            date: formatShortDate(l.go_home_date),
+                            daysUntil: d,
+                            urgency: 'needsUpdate',
+                            actions: [
+                                { label: '\u2705 Pups Went Home', primary: true, loading: isUpdating('litters', l.id),
+                                  onClick: () => handleUpdate('litters', l.id, { status: 'placed' }, damName) },
+                                { label: '\uD83D\uDCC5 Update Date', loading: isUpdating('litters', l.id),
+                                  onClick: () => {
+                                      const newDate = prompt(`Enter new go-home date for ${damName}'s pups (YYYY-MM-DD):`, new Date(Date.now() + 7*86400000).toISOString().split('T')[0]);
+                                      if (newDate && /^\d{4}-\d{2}-\d{2}$/.test(newDate)) handleUpdate('litters', l.id, { go_home_date: newDate }, damName);
+                                  }}
+                            ]
+                        });
+                    }
+                }
+            });
+            needsUpdate.sort((a, b) => a.daysUntil - b.daysUntil);
+
+            // Upcoming: future alerts only
+            const upcoming = [];
+            litters.forEach(l => {
+                if (l.due_date && ['confirmed','bred'].includes(l.status)) {
+                    const d = daysUntil(l.due_date);
+                    if (d !== null && d >= 0 && d <= 60) {
+                        upcoming.push({ dog: l.dam?.name || 'Unknown', event: 'Due to give birth', date: formatShortDate(l.due_date), daysUntil: d, urgency: d <= 7 ? 'Critical' : d <= 14 ? 'High' : 'Medium' });
+                    }
+                }
+                if (l.go_home_date && ['born','nursing'].includes(l.status)) {
+                    const d = daysUntil(l.go_home_date);
+                    if (d !== null && d >= 0 && d <= 30) {
+                        upcoming.push({ dog: l.dam?.name || 'Unknown', event: 'Pups go home', date: formatShortDate(l.go_home_date), daysUntil: d, urgency: d <= 7 ? 'High' : 'Medium' });
                     }
                 }
             });
             dogs.forEach(d => {
                 if (d.heat_status === 'in_heat') {
-                    actionItems.push({ dog: d.name, event: 'Currently in heat', date: 'Now', daysUntil: 0, urgency: 'Critical' });
+                    upcoming.push({ dog: d.name, event: 'Currently in heat', date: 'Now', daysUntil: 0, urgency: 'Critical' });
                 }
             });
-            actionItems.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
+            upcoming.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
 
             const grouped = { Critical: [], High: [], Medium: [], Low: [] };
-            actionItems.forEach(i => { if (grouped[i.urgency]) grouped[i.urgency].push(i); });
+            upcoming.forEach(i => { if (grouped[i.urgency]) grouped[i.urgency].push(i); });
 
             const urgencyColors = { Critical: 'bg-red-950 border-red-700', High: 'bg-orange-950 border-orange-700', Medium: 'bg-yellow-950 border-yellow-700', Low: 'bg-blue-950 border-blue-700' };
+            const needsUpdateColor = 'bg-amber-950 border-amber-600';
+
+            const hasAnything = needsUpdate.length > 0 || upcoming.length > 0;
 
             return (
                 <div className="space-y-8">
-                    {actionItems.length === 0 && (
+                    {!hasAnything && (
                         <div className="text-center py-12 bg-slate-900 border border-slate-800 rounded-lg">
                             <p className="text-4xl mb-3">&#9989;</p>
-                            <p className="text-slate-300 font-semibold">All clear! No upcoming alerts.</p>
+                            <p className="text-slate-300 font-semibold">All clear! No alerts or overdue items.</p>
+                        </div>
+                    )}
+                    {needsUpdate.length > 0 && (
+                        <div>
+                            <div className="flex items-center gap-2 mb-4">
+                                <span className="text-xl">\u26A0\uFE0F</span>
+                                <h2 className="text-xl font-bold text-amber-400">Needs Update ({needsUpdate.length})</h2>
+                            </div>
+                            <p className="text-sm text-slate-400 mb-3">These records are past their dates. Update them to keep your dashboard accurate.</p>
+                            <div className="space-y-3">
+                                {needsUpdate.map((item, idx) => (
+                                    <AlertItem key={`nu-${idx}`} item={item} urgencyColor={needsUpdateColor} />
+                                ))}
+                            </div>
                         </div>
                     )}
                     {Object.entries(grouped).map(([level, items]) => (
@@ -1143,13 +1256,21 @@
             const [authState, setAuthState] = useState('loading');
             const [user, setUser] = useState(null);
             const { dogs, litters, loading: dataLoading, error: dataError, refetch } = useBreedData();
+            const authFetchedRef = useRef(false);
 
             useEffect(() => {
+                if (authFetchedRef.current) return;
+                authFetchedRef.current = true;
                 fetch('/api/auth/me', { credentials: 'include' })
                     .then(res => { if (!res.ok) throw new Error('Not authenticated'); return res.json(); })
                     .then(data => { setUser(data.user); setAuthState('authenticated'); })
                     .catch(() => { setAuthState('unauthenticated'); window.location.href = '/login'; });
-            }, []);
+            }, [])
+
+            useEffect(() => {
+                const titles = { dashboard: 'Dashboard', dams: 'Dams', alerts: 'Alerts', calendar: 'Calendar', guardians: 'Guardians', analytics: 'Analytics', settings: 'Settings' };
+                document.title = `${titles[currentView] || 'Dashboard'} \u2014 BreedIQ`;
+            }, [currentView]);
 
             const handleSignOut = async () => {
                 await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
