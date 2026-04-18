@@ -23,9 +23,9 @@
     <script type="text/babel">
         const { useState, useEffect, useRef, useCallback } = React;
 
-        // ═══════════════════════════════════════════════════════
-        // SHARED DATA CONTEXT — live data from API
-        // ═══════════════════════════════════════════════════════
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // SHARED DATA CONTEXT â live data from API
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         const useBreedData = () => {
             const [dogs, setDogs] = useState([]);
             const [litters, setLitters] = useState([]);
@@ -56,9 +56,9 @@
             return { dogs, litters, loading, error, refetch: fetchData };
         };
 
-        // ═══════════════════════════════════════════════════════
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         // HELPER FUNCTIONS
-        // ═══════════════════════════════════════════════════════
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         const formatShortDate = (iso) => {
             if (!iso) return '';
             const d = new Date(iso + 'T12:00:00');
@@ -96,9 +96,9 @@
             return 'bg-emerald-900 text-emerald-200';
         };
 
-        // ═══════════════════════════════════════════════════════
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         // ICON COMPONENTS
-        // ═══════════════════════════════════════════════════════
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         const IconHeart = () => (
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
@@ -161,9 +161,9 @@
             </svg>
         );
 
-        // ═══════════════════════════════════════════════════════
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         // STAT CARD
-        // ═══════════════════════════════════════════════════════
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         const StatCard = ({ icon: Icon, label, value, color }) => (
             <div className="bg-slate-900 rounded-lg p-6 border border-slate-800">
                 <div className="flex items-center justify-between">
@@ -178,9 +178,9 @@
             </div>
         );
 
-        // ═══════════════════════════════════════════════════════
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         // ALERT ITEM
-        // ═══════════════════════════════════════════════════════
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         const AlertItem = ({ item, urgencyColor }) => (
             <div className={`flex items-start gap-4 p-4 rounded-lg border ${urgencyColor}`}>
                 <div className="flex-shrink-0 mt-1">
@@ -194,9 +194,9 @@
             </div>
         );
 
-        // ═══════════════════════════════════════════════════════
-        // QUICK UPDATE BAR — Manual Actions + AI Chat
-        // ═══════════════════════════════════════════════════════
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // QUICK UPDATE BAR â Manual Actions + AI Chat
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         const QuickUpdateBar = ({ dogs, litters, refetch }) => {
             const [activePanel, setActivePanel] = useState(null); // 'dogStatus' | 'litterMilestone' | 'heatCycle' | 'ai'
             const [saving, setSaving] = useState(false);
@@ -237,7 +237,7 @@
                 setHeatDogId(''); setHeatDate('');
             };
 
-            // ── Dog Status Update ──
+            // ââ Dog Status Update ââ
             const handleDogStatusUpdate = async () => {
                 if (!selectedDogId || !newDogStatus) return;
                 setSaving(true);
@@ -262,7 +262,7 @@
                 } finally { setSaving(false); }
             };
 
-            // ── Litter Milestone Update ──
+            // ââ Litter Milestone Update ââ
             const handleLitterMilestoneUpdate = async () => {
                 if (!selectedLitterId || !newLitterStatus) return;
                 setSaving(true);
@@ -291,7 +291,7 @@
                 } finally { setSaving(false); }
             };
 
-            // ── Heat Cycle Update ──
+            // ââ Heat Cycle Update ââ
             const handleHeatCycleUpdate = async () => {
                 if (!heatDogId || !heatDate) return;
                 setSaving(true);
@@ -310,7 +310,7 @@
                 } finally { setSaving(false); }
             };
 
-            // ── AI Chat ──
+            // ââ AI Chat ââ
             const handleAiSend = async () => {
                 if (!aiInput.trim()) return;
                 const userMsg = aiInput.trim();
@@ -433,7 +433,7 @@
                             </div>
                         </div>
 
-                        {/* ── Expandable Panels ── */}
+                        {/* ââ Expandable Panels ââ */}
 
                         {/* Dog Status Panel */}
                         {activePanel === 'dogStatus' && (
@@ -607,9 +607,9 @@
             );
         };
 
-        // ═══════════════════════════════════════════════════════
-        // DASHBOARD VIEW — Now uses live data
-        // ═══════════════════════════════════════════════════════
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // DASHBOARD VIEW â Now uses live data
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         const DashboardView = ({ dogs, litters, refetch }) => {
             // Compute stats from live data
             const activeDams = dogs.filter(d => d.sex === 'female' && !['deceased','sold'].includes(d.status)).length;
@@ -716,7 +716,7 @@
                                         <div key={litter.id} className="bg-slate-900 rounded-lg p-6 border border-slate-800">
                                             <div className="flex justify-between items-start mb-3">
                                                 <div>
-                                                    <p className="font-semibold text-slate-100">{litter.dam?.name || 'Unknown'}</p>
+                                                    <p className="font-semibold text-slate-100">{litter.dam?.name || 'Unknown'}<BreederBadge item={litter} /></p>
                                                     <p className="text-sm text-slate-400">
                                                         Bred: {formatShortDate(litter.breed_date)} &bull; Due: {formatShortDate(litter.due_date)}
                                                         {litter.sire?.name ? ` \u2022 Sire: ${litter.sire.name}` : ''}
@@ -746,7 +746,7 @@
                                     <div key={litter.id} className="bg-slate-900 rounded-lg p-6 border border-slate-800">
                                         <div className="flex justify-between items-start mb-3">
                                             <div>
-                                                <p className="font-semibold text-slate-100">{litter.dam?.name || 'Unknown'}</p>
+                                                <p className="font-semibold text-slate-100">{litter.dam?.name || 'Unknown'}<BreederBadge item={litter} /></p>
                                                 <p className="text-sm text-slate-400">Born: {formatShortDate(litter.whelp_date)}</p>
                                             </div>
                                             <span className="text-xs bg-blue-900 text-blue-200 px-2 py-1 rounded">{litter.status}</span>
@@ -791,8 +791,8 @@
                                 <p className="text-slate-400 text-sm mt-1">Guardian Dogs</p>
                             </div>
                             <div className="bg-slate-900 rounded-lg p-4 border border-slate-800 text-center">
-                                <p className="text-3xl font-bold text-amber-400">{dogs.filter(d => d.status === 'retired').length}</p>
-                                <p className="text-slate-400 text-sm mt-1">Retired</p>
+                                <p className="text-3xl font-bold text-violet-400">{dogs.filter(d => d.is_shared).length}</p>
+                                <p className="text-slate-400 text-sm mt-1">Sub-breeder Dogs</p>
                             </div>
                         </div>
                     </div>
@@ -800,9 +800,22 @@
             );
         };
 
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // SUB-BREEDER BADGE
+        // ═══════════════════════════════════════════════════════
+        const BreederBadge = ({ item }) => {
+            if (!item.is_shared || !item.breeder) return null;
+            const label = item.breeder.kennel_name || item.breeder.full_name || 'Sub-breeder';
+            return (
+                <span className="text-xs px-2 py-0.5 rounded bg-violet-900 text-violet-200 font-medium ml-2">
+                    {label}
+                </span>
+            );
+        };
+
         // ═══════════════════════════════════════════════════════
         // DOG ROW
-        // ═══════════════════════════════════════════════════════
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         const DogRow = ({ dog, expanded, onToggle }) => (
             <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
                 <button
@@ -810,7 +823,7 @@
                     className="w-full p-4 flex items-center justify-between hover:bg-slate-800 transition text-left"
                 >
                     <div className="flex-grow">
-                        <p className="font-semibold text-slate-100">{dog.name}</p>
+                        <p className="font-semibold text-slate-100">{dog.name}<BreederBadge item={dog} /></p>
                         <p className="text-sm text-slate-400">
                             {dog.guardian?.family_name ? `Guardian: ${dog.guardian.family_name}` : ''}
                             {dog.weight_lbs ? ` \u2022 ${dog.weight_lbs} lbs` : ''}
@@ -844,9 +857,9 @@
             </div>
         );
 
-        // ═══════════════════════════════════════════════════════
-        // DAMS VIEW — Now uses live data
-        // ═══════════════════════════════════════════════════════
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // DAMS VIEW â Now uses live data
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         const DamsView = ({ dogs }) => {
             const [searchTerm, setSearchTerm] = useState('');
             const [filterStatus, setFilterStatus] = useState('All');
@@ -904,9 +917,9 @@
             );
         };
 
-        // ═══════════════════════════════════════════════════════
-        // ALERTS VIEW — Now uses live data
-        // ═══════════════════════════════════════════════════════
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // ALERTS VIEW â Now uses live data
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         const AlertsView = ({ dogs, litters }) => {
             const actionItems = [];
             litters.forEach(l => {
@@ -959,9 +972,9 @@
             );
         };
 
-        // ═══════════════════════════════════════════════════════
-        // CALENDAR VIEW (unchanged — already uses live API)
-        // ═══════════════════════════════════════════════════════
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // CALENDAR VIEW (unchanged â already uses live API)
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         const CalendarView = ({ user }) => {
             const [events, setEvents] = useState([]);
             const [loading, setLoading] = useState(true);
@@ -1121,9 +1134,9 @@
             );
         };
 
-        // ═══════════════════════════════════════════════════════
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         // MAIN APP
-        // ═══════════════════════════════════════════════════════
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         function BreedIQDashboard() {
             const [sidebarOpen, setSidebarOpen] = useState(true);
             const [currentView, setCurrentView] = useState('dashboard');
