@@ -11,7 +11,7 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up â BreedIQ</title>
+    <title>Sign Up &mdash; BreedIQ</title>
     <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
@@ -94,22 +94,28 @@
                                 </div>
                             )}
 
-                            <form onSubmit={handleSubmit} className="space-y-4">
+                            <form onSubmit={handleSubmit} method="post" className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">Full name</label>
+                                    <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">Full name</label>
                                     <input
+                                        id="name"
+                                        name="name"
                                         type="text"
+                                        autoComplete="name"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition"
                                         placeholder="Joe Smith"
                                         required
-                                    />
+                                                                />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                                    <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">Email</label>
                                     <input
+                                        id="email"
+                                        name="email"
                                         type="email"
+                                        autoComplete="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition"
@@ -118,9 +124,12 @@
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">Password</label>
+                                    <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">Password</label>
                                     <input
+                                        id="password"
+                                        name="password"
                                         type="password"
+                                                autoComplete="new-password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition"
@@ -130,9 +139,12 @@
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">Confirm password</label>
+                                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-1">Confirm password</label>
                                     <input
+                                        id="confirmPassword"
+                                        name="confirmPassword"
                                         type="password"
+                                        autoComplete="new-password"
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition"
@@ -157,7 +169,7 @@
                         </div>
 
                         <p className="text-center text-gray-500 text-xs mt-6">
-                            By creating an account, you agree to our Terms of Service and Privacy Policy.
+                            By creating an account, you agree to our <a href="/terms" target="_blank" rel="noopener" className="text-blue-400 hover:text-blue-300 underline">Terms of Service</a> and <a href="/privacy" target="_blank" rel="noopener" className="text-blue-400 hover:text-blue-300 underline">Privacy Policy</a>.
                         </p>
                     </div>
                 </div>
