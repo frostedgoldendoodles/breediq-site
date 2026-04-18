@@ -2372,10 +2372,10 @@
                                                     <p className="text-slate-100 font-semibold truncate">{ev.title}</p>
                                                     <p className="text-xs text-slate-500">{formatDate(ev.date)} &middot; {ev.label}</p>
                                                 </div>
-                                                <button disabled={!isPro} onClick={() => isPro && alert('Google Calendar push \u2014 coming in Phase 2')}
+                                                <button disabled={!isPro} onClick={() => isPro && alert('Add to Google Calendar \u2014 coming in Phase 2')}
                                                     className={`text-xs px-2 py-1 rounded transition flex-shrink-0 ${isPro ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-800/50 text-slate-600 cursor-not-allowed'}`}
-                                                    title={isPro ? 'Push to Google Calendar' : 'Pro feature'}>
-                                                    {isPro ? '\uD83D\uDCE4 Push' : '\uD83D\uDD12 Pro'}
+                                                    title={isPro ? 'Add to Google Calendar' : 'Pro feature'}>
+                                                    {isPro ? '\uD83D\uDCC5 Add' : '\uD83D\uDD12 Pro'}
                                                 </button>
                                             </div>
                                         ))}
