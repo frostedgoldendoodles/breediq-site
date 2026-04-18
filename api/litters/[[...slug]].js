@@ -48,7 +48,7 @@ function pushEvent(list, { id, type, date, title, dogName, dogId, litterId }) {
 }
 
 // ââ Calendar handler (GET /api/litters/calendar) ââââââââââ
-async function handleCalendar(req, res, supabase, userId) {
+async function handleCalendar(req, res, supabase, userId, allUserIds) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -61,7 +61,7 @@ async function handleCalendar(req, res, supabase, userId) {
         const { data: dogs, error: dogsErr } = await supabase
             .from('dogs')
             .select('id, name, call_name, last_heat_date, avg_heat_cycle_days, vet_last_visit, status')
-            .eq('user_id', userId);
+            .in('user_id', allUserIds);
 
         if (dogsErr) {
             console.error('Calendar dogs error:', dogsErr);
@@ -71,7 +71,7 @@ async function handleCalendar(req, res, supabase, userId) {
         const { data: litters, error: littersErr } = await supabase
             .from('litters')
             .select('id, dam_id, breed_date, ultrasound_date, xray_date, due_date, whelp_date, go_home_date, status')
-            .eq('user_id', userId);
+            .in('user_id', allUserIds);
 
         if (littersErr) {
             console.error('Calendar litters error:', littersErr);
@@ -206,7 +206,7 @@ export default async function handler(req, res) {
 
     // ââ Calendar route: /api/litters/calendar âââââââââââââââ
     if (id === 'calendar') {
-        return handleCalendar(req, res, supabase, userId);
+        return handleCalendar(req, res, supabase, userId, allUserIds);
     }
 
     // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
