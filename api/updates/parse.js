@@ -1,4 +1,4 @@
-// BreedIQ Quick Update â AI Natural Language Parser
+// BreedIQ Quick Update Ã¢ÂÂ AI Natural Language Parser
 // POST: Parse natural language update requests into structured actions
 // Uses Anthropic Claude API to understand intent and map to dog/litter updates
 import { requireAuth, getServiceClient } from '../../lib/supabase.js';
@@ -20,16 +20,26 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Fetch user's dogs and litters for context
+        // Check for sub-breeder relationships (program owner sees all)
+        const { data: relationships } = await supabase
+            .from('breeder_relationships')
+            .select('breeder_id')
+            .eq('owner_id', userId)
+            .eq('status', 'active');
+
+        const breederIds = (relationships || []).map(r => r.breeder_id);
+        const allUserIds = [userId, ...breederIds];
+
+        // Fetch dogs and litters for user + sub-breeders
         const [dogsResult, littersResult] = await Promise.all([
             supabase.from('dogs').select('id, name, call_name, status, heat_status, last_heat_date, sex')
-                .eq('user_id', userId).order('name'),
+                .in('user_id', allUserIds).order('name'),
             supabase.from('litters').select(`
                 id, status, breed_date, due_date, whelp_date, go_home_date,
                 puppy_count, males_count, females_count,
                 dam:dogs!litters_dam_id_fkey(id, name),
                 sire:dogs!litters_sire_id_fkey(id, name)
-            `).eq('user_id', userId).not('status', 'eq', 'archived').order('breed_date', { ascending: false })
+            `).in('user_id', allUserIds).not('status', 'eq', 'archived').order('breed_date', { ascending: false })
         ]);
 
         const dogs = dogsResult.data || [];
@@ -68,7 +78,7 @@ IMPORTANT RULES:
 - Match dog names case-insensitively and handle nicknames
 - If the user's message is ambiguous (which dog? which litter? what date?), ask a follow-up question
 
-RESPONSE FORMAT â respond with valid JSON only, one of:
+RESPONSE FORMAT Ã¢ÂÂ respond with valid JSON only, one of:
 
 1. If you need more info:
 {"type":"followup","question":"Your clarifying question here"}
