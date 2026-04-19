@@ -210,4 +210,63 @@ ALTER TABLE public.guardians ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.files ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.breeding_iq_scores ENABLE ROW LEVEL SECURITY;
 
--- Pr
+-- Profiles: users can read/update their own profile
+CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+
+-- Dogs: users can CRUD their own dogs
+CREATE POLICY "Users can view own dogs" ON public.dogs FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own dogs" ON public.dogs FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own dogs" ON public.dogs FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own dogs" ON public.dogs FOR DELETE USING (auth.uid() = user_id);
+
+-- Litters: users can CRUD their own litters
+CREATE POLICY "Users can view own litters" ON public.litters FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own litters" ON public.litters FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own litters" ON public.litters FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own litters" ON public.litters FOR DELETE USING (auth.uid() = user_id);
+
+-- Guardians: users can CRUD their own guardians
+CREATE POLICY "Users can view own guardians" ON public.guardians FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own guardians" ON public.guardians FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own guardians" ON public.guardians FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own guardians" ON public.guardians FOR DELETE USING (auth.uid() = user_id);
+
+-- Files: users can manage their own files
+CREATE POLICY "Users can view own files" ON public.files FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own files" ON public.files FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own files" ON public.files FOR UPDATE USING (auth.uid() = user_id);
+
+-- Breeding IQ: users can view their own scores
+CREATE POLICY "Users can view own scores" ON public.breeding_iq_scores FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own scores" ON public.breeding_iq_scores FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- ============================================================
+-- 8. STORAGE BUCKET
+-- Run this separately or via the Supabase dashboard
+-- ============================================================
+-- INSERT INTO storage.buckets (id, name, public) VALUES ('uploads', 'uploads', false);
+
+-- Storage policy: users can upload to their own folder
+-- CREATE POLICY "Users can upload own files" ON storage.objects FOR INSERT WITH CHECK (
+--     bucket_id = 'uploads' AND auth.uid()::text = (storage.foldername(name))[1]
+-- );
+-- CREATE POLICY "Users can view own files" ON storage.objects FOR SELECT USING (
+--     bucket_id = 'uploads' AND auth.uid()::text = (storage.foldername(name))[1]
+-- );
+
+-- ============================================================
+-- 9. UPDATED_AT TRIGGER
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+CREATE TRIGGER update_dogs_updated_at BEFORE UPDATE ON public.dogs FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+CREATE TRIGGER update_litters_updated_at BEFORE UPDATE ON public.litters FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+CREATE TRIGGER update_guardians_updated_at BEFORE UPDATE ON public.guardians FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();

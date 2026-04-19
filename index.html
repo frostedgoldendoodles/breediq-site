@@ -142,7 +142,7 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        /* ââ Animated Demo Component ââ */
+        /* ── Animated Demo Component ── */
         function AnimatedDemo() {
             const [active, setActive] = useState(0);
             const [fading, setFading] = useState(false);
@@ -187,7 +187,7 @@
                     </div>
                     <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'10px',marginBottom:'10px'}}>
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}}>
-                            <div style={{fontSize:'11px',fontWeight:600,color:'#e2e8f0'}}>Gigi <span style={{color:'#64748b',fontWeight:400}}>Ã Cooper</span></div>
+                            <div style={{fontSize:'11px',fontWeight:600,color:'#e2e8f0'}}>Gigi <span style={{color:'#64748b',fontWeight:400}}>× Cooper</span></div>
                             <div style={{fontSize:'8px',padding:'2px 8px',borderRadius:'10px',fontWeight:600,background:'rgba(168,85,247,0.15)',color:'#c084fc'}}>Pregnant</div>
                         </div>
                         <div style={{height:'5px',background:'#334155',borderRadius:'3px',overflow:'hidden',marginBottom:'4px'}}>
@@ -267,7 +267,7 @@
                         </div>
                         <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'12px',marginBottom:'10px'}}>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
-                                <div><span style={{fontSize:'12px',fontWeight:700,color:'#e2e8f0'}}>Gigi</span><span style={{fontSize:'11px',color:'#64748b'}}> Ã Cooper</span></div>
+                                <div><span style={{fontSize:'12px',fontWeight:700,color:'#e2e8f0'}}>Gigi</span><span style={{fontSize:'11px',color:'#64748b'}}> × Cooper</span></div>
                                 <div style={{fontSize:'9px',padding:'2px 8px',borderRadius:'10px',background:'rgba(168,85,247,0.15)',color:'#c084fc',fontWeight:600}}>Day 17 / 61</div>
                             </div>
                             <div style={{position:'relative',paddingLeft:'16px'}}>
@@ -312,7 +312,7 @@
                             <div style={{width:'32px',height:'32px',borderRadius:'8px',background:'linear-gradient(135deg,#2563eb,#10b981)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'white',flexShrink:0}}>{g.avatar}</div>
                             <div style={{flex:1,minWidth:0}}>
                                 <div style={{fontSize:'11px',fontWeight:600,color:'#e2e8f0'}}>{g.name}</div>
-                                <div style={{fontSize:'9px',color:'#64748b'}}>{g.loc} â¢ {g.dog}</div>
+                                <div style={{fontSize:'9px',color:'#64748b'}}>{g.loc} • {g.dog}</div>
                             </div>
                             <div style={{fontSize:'8px',padding:'2px 8px',borderRadius:'10px',fontWeight:600,background:g.sc+'20',color:g.sc,flexShrink:0}}>{g.status}</div>
                         </div>
@@ -330,7 +330,7 @@
             const renderScreen = [ScreenOverview, ScreenCalendar, ScreenLitters, ScreenCobreeders];
             const ActiveScreen = renderScreen[active];
 
-            /* ââ Mobile Phone Demo (below lg) ââ */
+            /* ── Mobile Phone Demo (below lg) ── */
             const MobileDemo = () => (
                 <div className="flex lg:hidden justify-center relative mt-2">
                     {/* Phone frame */}

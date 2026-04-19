@@ -1,11 +1,11 @@
-// BreedIQ Litters API â Combined catch-all handler
+// BreedIQ Litters API — Combined catch-all handler
 // Handles /api/litters (list, create), /api/litters/:id (get, update, delete),
 // and /api/litters/calendar (derived event feed).
 import { requireAuth, getServiceClient } from '../../lib/supabase.js';
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════════════
 // CALENDAR HELPERS
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════════════
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const EVENT_META = {
@@ -47,7 +47,7 @@ function pushEvent(list, { id, type, date, title, dogName, dogId, litterId }) {
     });
 }
 
-// ââ Calendar handler (GET /api/litters/calendar) ââââââââââ
+// ── Calendar handler (GET /api/litters/calendar) ──────────
 async function handleCalendar(req, res, supabase, userId, allUserIds) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -148,7 +148,7 @@ async function handleCalendar(req, res, supabase, userId, allUserIds) {
                     id: `${type}-${litterId}`,
                     type,
                     date: dateStr,
-                    title: `${damName} â ${EVENT_META[type].label}`,
+                    title: `${damName} — ${EVENT_META[type].label}`,
                     dogName: damName,
                     dogId: litter.dam_id,
                     litterId
@@ -172,9 +172,9 @@ async function handleCalendar(req, res, supabase, userId, allUserIds) {
     }
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════════════
 // MAIN HANDLER
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════════════
 export default async function handler(req, res) {
     const auth = await requireAuth(req, res);
     if (!auth) return;
@@ -204,16 +204,16 @@ export default async function handler(req, res) {
     const slug = req.query.slug;
     const id = slug && slug.length > 0 ? slug[0] : null;
 
-    // ââ Calendar route: /api/litters/calendar âââââââââââââââ
+    // ── Calendar route: /api/litters/calendar ───────────────
     if (id === 'calendar') {
         return handleCalendar(req, res, supabase, userId, allUserIds);
     }
 
-    // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+    // ═══════════════════════════════════════════════════════════
     // SINGLE LITTER OPERATIONS (when ID is provided)
-    // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+    // ═══════════════════════════════════════════════════════════
     if (id) {
-        // ââ GET: Single litter ââââââââââââââââââââââââââââââââââ
+        // ── GET: Single litter ──────────────────────────────────
         if (req.method === 'GET') {
             try {
                 const { data: litter, error } = await supabase
@@ -247,7 +247,7 @@ export default async function handler(req, res) {
             }
         }
 
-        // ââ PUT: Update litter ââââââââââââââââââââââââââââââââââ
+        // ── PUT: Update litter ──────────────────────────────────
         if (req.method === 'PUT') {
             try {
                 const { data: existing } = await supabase
@@ -328,7 +328,7 @@ export default async function handler(req, res) {
             }
         }
 
-        // ââ DELETE: Archive litter âââââââââââââââââââââââââââââââ
+        // ── DELETE: Archive litter ───────────────────────────────
         if (req.method === 'DELETE') {
             try {
                 const { error } = await supabase
@@ -351,11 +351,11 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-    // COLLECTION OPERATIONS (no ID â /api/litters)
-    // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+    // ═══════════════════════════════════════════════════════════
+    // COLLECTION OPERATIONS (no ID — /api/litters)
+    // ═══════════════════════════════════════════════════════════
 
-    // ââ GET: List litters âââââââââââââââââââââââââââââââââââ
+    // ── GET: List litters ───────────────────────────────────
     if (req.method === 'GET') {
         try {
             const { status } = req.query;
@@ -413,7 +413,7 @@ export default async function handler(req, res) {
         }
     }
 
-    // ââ POST: Create litter âââââââââââââââââââââââââââââââââ
+    // ── POST: Create litter ─────────────────────────────────
     if (req.method === 'POST') {
         try {
             const {

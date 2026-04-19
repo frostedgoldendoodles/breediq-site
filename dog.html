@@ -27,7 +27,7 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef } = React;
 
-        // Supabase client (for storage uploads only â API uses cookies)
+        // Supabase client (for storage uploads only — API uses cookies)
         // Configured in config.js if present, otherwise disabled
         let supabaseClient = null;
         try {
@@ -62,9 +62,9 @@
             nursing:  'bg-blue-900 text-blue-200'
         };
 
-        // âââââââââ Helpers âââââââââ
+        // ───────── Helpers ─────────
         const fmtDate = (iso) => {
-            if (!iso) return 'â';
+            if (!iso) return '—';
             const d = new Date(iso);
             if (isNaN(d.getTime())) return iso;
             return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
@@ -85,7 +85,7 @@
 
         const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
 
-        // âââââââââ Schedule stats âââââââââ
+        // ───────── Schedule stats ─────────
         const computeScheduleStats = (dog, litters) => {
             const stats = [];
             const today = new Date();
@@ -135,7 +135,7 @@
                         const days = daysBetween(whelp, today);
                         const goHome = new Date(whelp.getTime() + 56 * 86400000); // 8 weeks
                         const daysToGo = daysBetween(today, goHome);
-                        stats.push({ label: 'Whelped', value: fmtDate(whelp), sub: `${days} days ago Â· ${litter.puppy_count || '?'} pups` });
+                        stats.push({ label: 'Whelped', value: fmtDate(whelp), sub: `${days} days ago · ${litter.puppy_count || '?'} pups` });
                         stats.push({
                             label: 'Go-home (8wk)',
                             value: fmtDate(goHome),
@@ -160,7 +160,7 @@
             return stats;
         };
 
-        // âââââââââ Editable field âââââââââ
+        // ───────── Editable field ─────────
         const EditField = ({ label, value, field, onSave, type = 'text', options = null, format = null, readOnly = false }) => {
             const [editing, setEditing] = useState(false);
             const [val, setVal] = useState(value || '');
@@ -201,7 +201,7 @@
             };
 
             const displayValue = () => {
-                if (value === null || value === undefined || value === '') return <span className="text-slate-600 italic">â click to add â</span>;
+                if (value === null || value === undefined || value === '') return <span className="text-slate-600 italic">— click to add —</span>;
                 if (format) return format(value);
                 if (type === 'date') return fmtDate(value);
                 return String(value);
@@ -237,7 +237,7 @@
                             onKeyDown={(e) => { if (e.key === 'Escape') cancel(); }}
                             className="w-full mt-1 px-2 py-1 bg-slate-900 border border-emerald-600 rounded text-slate-100 focus:outline-none"
                         >
-                            <option value="">â</option>
+                            <option value="">—</option>
                             {options.map(o => <option key={o} value={o}>{o}</option>)}
                         </select>
                     ) : type === 'textarea' ? (
@@ -269,7 +269,7 @@
             );
         };
 
-        // âââââââââ Section wrapper âââââââââ
+        // ───────── Section wrapper ─────────
         const Section = ({ title, children, cols = 2 }) => (
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
                 <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wide mb-3">{title}</h2>
@@ -279,7 +279,7 @@
             </div>
         );
 
-        // âââââââââ Photo section âââââââââ
+        // ───────── Photo section ─────────
         const PhotoSection = ({ dog, onSave }) => {
             const [uploading, setUploading] = useState(false);
             const [urlInput, setUrlInput] = useState('');
@@ -343,7 +343,7 @@
                             disabled={uploading}
                             className="w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded text-white text-sm font-semibold"
                         >
-                            {uploading ? 'Uploading...' : 'ð· Upload Photo'}
+                            {uploading ? 'Uploading...' : '📷 Upload Photo'}
                         </button>
                         {showUrlInput ? (
                             <div className="space-y-2">
@@ -364,7 +364,7 @@
                                 onClick={() => setShowUrlInput(true)}
                                 className="w-full px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 text-sm"
                             >
-                                ð Paste URL Instead
+                                🔗 Paste URL Instead
                             </button>
                         )}
                         {dog.photo_url && (
@@ -380,7 +380,7 @@
             );
         };
 
-        // âââââââââ Schedule stats widget âââââââââ
+        // ───────── Schedule stats widget ─────────
         const ScheduleStats = ({ dog, litters }) => {
             const stats = useMemo(() => computeScheduleStats(dog, litters), [dog, litters]);
             if (stats.length === 0) return null;
@@ -402,7 +402,7 @@
             );
         };
 
-        // âââââââââ Litter history âââââââââ
+        // ───────── Litter history ─────────
         const LitterHistory = ({ litters }) => {
             if (!litters || litters.length === 0) return null;
             return (
@@ -426,7 +426,7 @@
             );
         };
 
-        // âââââââââ Main page âââââââââ
+        // ───────── Main page ─────────
         function DogProfile() {
             const [dog, setDog] = useState(null);
             const [litters, setLitters] = useState([]);
@@ -468,7 +468,7 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Save failed');
                 setDog(data.dog);
-                setToast(`â Saved ${field}`);
+                setToast(`✓ Saved ${field}`);
                 setTimeout(() => setToast(null), 2000);
             };
 
@@ -485,7 +485,7 @@
                     <div className="min-h-screen flex items-center justify-center">
                         <div className="text-center">
                             <p className="text-slate-400 mb-4">{error || 'Dog not found'}</p>
-                            <a href="/dogs" className="text-emerald-400 hover:text-emerald-300">â Back to dogs</a>
+                            <a href="/dogs" className="text-emerald-400 hover:text-emerald-300">← Back to dogs</a>
                         </div>
                     </div>
                 );
@@ -506,7 +506,7 @@
                                     <a href="/dogs" className="text-slate-400 hover:text-slate-100">Dogs</a>
                                 </nav>
                             </div>
-                            <a href="/dogs" className="text-sm text-slate-400 hover:text-slate-100">â All dogs</a>
+                            <a href="/dogs" className="text-sm text-slate-400 hover:text-slate-100">← All dogs</a>
                         </div>
                     </header>
 
@@ -524,7 +524,7 @@
                                 <h1 className="text-4xl font-bold">{dog.name}</h1>
                                 {dog.sex && (
                                     <span className={`text-2xl ${dog.sex === 'female' ? 'text-pink-400' : 'text-blue-400'}`}>
-                                        {dog.sex === 'female' ? 'â' : 'â'}
+                                        {dog.sex === 'female' ? '♀' : '♂'}
                                     </span>
                                 )}
                                 {dog.status && (
@@ -543,12 +543,12 @@
                             )}
                             <p className="text-slate-400 text-sm mt-1">
                                 {dog.role && <span className="capitalize">{dog.role}</span>}
-                                {dog.breed && <span> Â· {dog.breed}</span>}
-                                {age && <span> Â· {age}</span>}
+                                {dog.breed && <span> · {dog.breed}</span>}
+                                {age && <span> · {age}</span>}
                             </p>
                         </div>
 
-                        <p className="text-xs text-slate-500 mb-4">ð¡ Click any field below to edit it inline</p>
+                        <p className="text-xs text-slate-500 mb-4">💡 Click any field below to edit it inline</p>
 
                         {/* Layout: photo/stats on left, details on right */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

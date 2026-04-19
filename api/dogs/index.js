@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     const supabase = getServiceClient();
     const userId = auth.user.id;
 
-    // ── GET: List dogs ──────────────────────────────────────────────
+    // ── GET: List dogs ──────────────────────────────────────
     if (req.method === 'GET') {
         try {
             const { status, role, sex, search } = req.query;
@@ -67,7 +67,7 @@ export default async function handler(req, res) {
         }
     }
 
-    // ── POST: Create dog ────────────────────────────────────────────
+    // ── POST: Create dog ────────────────────────────────────
     if (req.method === 'POST') {
         try {
             const {
