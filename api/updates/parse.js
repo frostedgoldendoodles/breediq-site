@@ -1,4 +1,4 @@
-// BreedIQ Quick Update Ã¢ÂÂ AI Natural Language Parser
+// BreedIQ Quick Update — AI Natural Language Parser
 // POST: Parse natural language update requests into structured actions
 // Uses Anthropic Claude API to understand intent and map to dog/litter updates
 import { requireAuth, getServiceClient } from '../../lib/supabase.js';
@@ -78,7 +78,7 @@ IMPORTANT RULES:
 - Match dog names case-insensitively and handle nicknames
 - If the user's message is ambiguous (which dog? which litter? what date?), ask a follow-up question
 
-RESPONSE FORMAT Ã¢ÂÂ respond with valid JSON only, one of:
+RESPONSE FORMAT — respond with valid JSON only, one of:
 
 1. If you need more info:
 {"type":"followup","question":"Your clarifying question here"}

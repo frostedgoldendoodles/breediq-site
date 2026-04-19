@@ -1,4 +1,4 @@
-// BreedIQ Auth â Update Password (Supabase)
+// BreedIQ Auth — Update Password (Supabase)
 // Called from the reset-password page after user clicks the email link
 import { getAnonClient } from '../../lib/supabase.js';
 

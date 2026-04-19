@@ -1,5 +1,5 @@
 // BreedIQ Litters CRUD API
-// GET: List litters with dam/sire details  
+// GET: List litters with dam/sire details
 // POST: Create a new litter
 import { requireAuth, getServiceClient } from '../../lib/supabase.js';
 
@@ -10,9 +10,12 @@ export default async function handler(req, res) {
     const supabase = getServiceClient();
     const userId = auth.user.id;
 
+    // ── GET: List litters ───────────────────────────────────
     if (req.method === 'GET') {
         try {
             const { status } = req.query;
+
+            // Check if user is a program owner with sub-breeders
             const { data: relationships } = await supabase
                 .from('breeder_relationships')
                 .select('breeder_id, profiles!breeder_relationships_breeder_id_fkey(email, kennel_name, full_name)')
@@ -32,11 +35,16 @@ export default async function handler(req, res) {
 
             let query = supabase
                 .from('litters')
-                .select('*, dam:dogs!litters_dam_id_fkey(id, name, call_name, photo_url, color), sire:dogs!litters_sire_id_fkey(id, name, call_name, photo_url, color)')
+                .select(`
+                    *,
+                    dam:dogs!litters_dam_id_fkey(id, name, call_name, photo_url, color),
+                    sire:dogs!litters_sire_id_fkey(id, name, call_name, photo_url, color)
+                `)
                 .in('user_id', allUserIds)
                 .order('breed_date', { ascending: false });
 
             if (status) query = query.eq('status', status);
+
             const { data: litters, error } = await query;
 
             if (error) {
@@ -44,6 +52,7 @@ export default async function handler(req, res) {
                 return res.status(500).json({ error: 'Failed to fetch litters' });
             }
 
+            // Add computed gestation info for active pregnancies
             const enriched = (litters || []).map(l => {
                 if (l.breed_date && !l.whelp_date && ['confirmed'].includes(l.status)) {
                     const breedDate = new Date(l.breed_date);
@@ -51,12 +60,25 @@ export default async function handler(req, res) {
                     const gestationDay = Math.floor((today - breedDate) / (24 * 60 * 60 * 1000));
                     const dueDate = l.due_date || new Date(breedDate.getTime() + 61 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
                     const daysRemaining = Math.max(0, 61 - gestationDay);
-                    return { ...l, computed_gestation_day: gestationDay, computed_due_date: dueDate, days_remaining: daysRemaining, gestation_progress: Math.min(Math.round((gestationDay / 61) * 100), 100) };
+
+                    return {
+                        ...l,
+                        computed_gestation_day: gestationDay,
+                        computed_due_date: dueDate,
+                        days_remaining: daysRemaining,
+                        gestation_progress: Math.min(Math.round((gestationDay / 61) * 100), 100)
+                    };
                 }
                 return l;
             });
 
-            const taggedLitters = enriched.map(l => ({ ...l, is_shared: l.user_id !== userId, breeder: l.user_id !== userId ? breederMap[l.user_id] || null : null }));
+            // Tag litters with breeder info
+            const taggedLitters = enriched.map(l => ({
+                ...l,
+                is_shared: l.user_id !== userId,
+                breeder: l.user_id !== userId ? breederMap[l.user_id] || null : null
+            }));
+
             return res.status(200).json({ litters: taggedLitters, count: taggedLitters.length });
         } catch (err) {
             console.error('GET litters error:', err);
@@ -64,9 +86,17 @@ export default async function handler(req, res) {
         }
     }
 
+    // ── POST: Create litter ─────────────────────────────────
     if (req.method === 'POST') {
         try {
-            const { dam_id, sire_id, breed_date, due_date, whelp_date, status, puppy_count, males_count, females_count, ultrasound_date, xray_date, go_home_date, price_per_puppy, notes } = req.body;
+            const {
+                dam_id, sire_id, breed_date, due_date, whelp_date,
+                status, puppy_count, males_count, females_count,
+                ultrasound_date, xray_date, go_home_date,
+                price_per_puppy, notes
+            } = req.body;
+
+            // Auto-calculate due date if breed_date given (61-day gestation)
             let computedDueDate = due_date;
             if (breed_date && !due_date) {
                 const bd = new Date(breed_date);
@@ -74,15 +104,44 @@ export default async function handler(req, res) {
                 computedDueDate = bd.toISOString().split('T')[0];
             }
 
-            const { data: litter, error } = await supabase.from('litters').insert({ user_id: userId, dam_id: dam_id || null, sire_id: sire_id || null, breed_date: breed_date || null, due_date: computedDueDate || null, whelp_date: whelp_date || null, status: status || 'planned', puppy_count: puppy_count || null, males_count: males_count || null, females_count: females_count || null, ultrasound_date: ultrasound_date || null, xray_date: xray_date || null, go_home_date: go_home_date || null, price_per_puppy: price_per_puppy || null, notes: notes || null }).select('*, dam:dogs!litters_dam_id_fkey(id, name, call_name), sire:dogs!litters_sire_id_fkey(id, name, call_name)').single();
+            const { data: litter, error } = await supabase
+                .from('litters')
+                .insert({
+                    user_id: userId,
+                    dam_id: dam_id || null,
+                    sire_id: sire_id || null,
+                    breed_date: breed_date || null,
+                    due_date: computedDueDate || null,
+                    whelp_date: whelp_date || null,
+                    status: status || 'planned',
+                    puppy_count: puppy_count || null,
+                    males_count: males_count || null,
+                    females_count: females_count || null,
+                    ultrasound_date: ultrasound_date || null,
+                    xray_date: xray_date || null,
+                    go_home_date: go_home_date || null,
+                    price_per_puppy: price_per_puppy || null,
+                    notes: notes || null
+                })
+                .select(`
+                    *,
+                    dam:dogs!litters_dam_id_fkey(id, name, call_name),
+                    sire:dogs!litters_sire_id_fkey(id, name, call_name)
+                `)
+                .single();
 
             if (error) {
                 console.error('Create litter error:', error);
                 return res.status(500).json({ error: 'Failed to create litter', details: error.message });
             }
 
+            // Update dam's heat_status to 'bred' if breed_date is set
             if (dam_id && breed_date) {
-                await supabase.from('dogs').update({ heat_status: 'bred', last_heat_date: breed_date, updated_at: new Date().toISOString() }).eq('id', dam_id).eq('user_id', userId);
+                await supabase
+                    .from('dogs')
+                    .update({ heat_status: 'bred', last_heat_date: breed_date, updated_at: new Date().toISOString() })
+                    .eq('id', dam_id)
+                    .eq('user_id', userId);
             }
 
             return res.status(201).json({ success: true, litter });

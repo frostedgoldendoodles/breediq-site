@@ -1,4 +1,4 @@
-// BreedIQ Auth â Password Reset Request (Supabase)
+// BreedIQ Auth — Password Reset Request (Supabase)
 // Sends a password reset email via Supabase Auth
 import { getAnonClient } from '../../lib/supabase.js';
 
@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
         if (error) {
             console.error('Password reset error:', error);
-            // Don't reveal whether the email exists â always return success
+            // Don't reveal whether the email exists — always return success
             return res.status(200).json({ success: true, message: 'If an account exists with that email, a reset link has been sent.' });
         }
 

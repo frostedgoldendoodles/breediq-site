@@ -123,7 +123,7 @@
                             <p className="font-semibold text-slate-100 truncate">{dog.name}</p>
                             {dog.sex && (
                                 <span className={`text-xs font-semibold ${dog.sex === 'female' ? 'text-pink-400' : 'text-blue-400'}`}>
-                                    {dog.sex === 'female' ? 'â' : 'â'}
+                                    {dog.sex === 'female' ? '♀' : '♂'}
                                 </span>
                             )}
                         </div>
@@ -131,7 +131,7 @@
                             <p className="text-xs text-slate-500 truncate">"{dog.call_name}"</p>
                         )}
                         <div className="mt-2 text-xs text-slate-400 space-y-0.5">
-                            {dog.role && <p className="capitalize">{dog.role}{age ? ` Â· ${age}` : ''}</p>}
+                            {dog.role && <p className="capitalize">{dog.role}{age ? ` · ${age}` : ''}</p>}
                             {dog.guardian?.family_name && <p className="truncate">Guardian: {dog.guardian.family_name}</p>}
                             {nextHeat && <p className="text-emerald-400">{nextHeat}</p>}
                         </div>
@@ -191,7 +191,7 @@
                     <div className="bg-slate-900 rounded-xl border border-slate-800 p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-xl font-bold">Add Dog</h2>
-                            <button onClick={onClose} className="text-slate-400 hover:text-slate-100">â</button>
+                            <button onClick={onClose} className="text-slate-400 hover:text-slate-100">✕</button>
                         </div>
                         <form onSubmit={submit} className="space-y-3">
                             {field('name', 'Name *')}
@@ -311,7 +311,7 @@
                     <div className="min-h-screen flex items-center justify-center">
                         <div className="text-center">
                             <p className="text-slate-400 mb-4">You need to sign in.</p>
-                            <a href="/login" className="text-emerald-400 hover:text-emerald-300">Go to login â</a>
+                            <a href="/login" className="text-emerald-400 hover:text-emerald-300">Go to login →</a>
                         </div>
                     </div>
                 );

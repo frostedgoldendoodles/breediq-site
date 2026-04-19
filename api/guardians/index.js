@@ -10,35 +10,57 @@ export default async function handler(req, res) {
     const supabase = getServiceClient();
     const userId = auth.user.id;
 
-    // GET: List guardians
+    // ── GET: List guardians ─────────────────────────────────
     if (req.method === 'GET') {
         try {
+            // Get all guardians for this user
             const { data: guardians, error } = await supabase
-                .from('guardians').select('*').eq('user_id', userId)
+                .from('guardians')
+                .select('*')
+                .eq('user_id', userId)
                 .order('family_name', { ascending: true });
+
             if (error) {
                 console.error('List guardians error:', error);
                 return res.status(500).json({ error: 'Failed to fetch guardians' });
             }
+
+            // Get all dogs that have a guardian_id (for this user + sub-breeders)
             const { data: relationships } = await supabase
-                .from('breeder_relationships').select('breeder_id')
-                .eq('owner_id', userId).eq('status', 'active');
+                .from('breeder_relationships')
+                .select('breeder_id')
+                .eq('owner_id', userId)
+                .eq('status', 'active');
+
             const breederIds = (relationships || []).map(r => r.breeder_id);
             const allUserIds = [userId, ...breederIds];
+
             const { data: guardianDogs, error: dogsError } = await supabase
                 .from('dogs')
                 .select('id, name, call_name, status, sex, color, photo_url, guardian_id, heat_status, user_id')
-                .in('user_id', allUserIds).not('guardian_id', 'is', null);
-            if (dogsError) console.error('Fetch guardian dogs error:', dogsError);
+                .in('user_id', allUserIds)
+                .not('guardian_id', 'is', null);
+
+            if (dogsError) {
+                console.error('Fetch guardian dogs error:', dogsError);
+            }
+
+            // Group dogs by guardian_id
             const dogsByGuardian = {};
             (guardianDogs || []).forEach(dog => {
-                if (!dogsByGuardian[dog.guardian_id]) dogsByGuardian[dog.guardian_id] = [];
+                if (!dogsByGuardian[dog.guardian_id]) {
+                    dogsByGuardian[dog.guardian_id] = [];
+                }
                 dogsByGuardian[dog.guardian_id].push(dog);
             });
+
+            // Attach dogs to each guardian
             const enriched = (guardians || []).map(g => ({
-                ...g, dogs: dogsByGuardian[g.id] || [],
+                ...g,
+                dogs: dogsByGuardian[g.id] || [],
                 dog_count: (dogsByGuardian[g.id] || []).length
             }));
+
             return res.status(200).json({ guardians: enriched, count: enriched.length });
         } catch (err) {
             console.error('GET guardians error:', err);
@@ -46,24 +68,43 @@ export default async function handler(req, res) {
         }
     }
 
-    // POST: Create guardian
+    // ── POST: Create guardian ────────────────────────────────
     if (req.method === 'POST') {
         try {
-            const { family_name, contact_name, email, phone, address, city, state, zip, checkin_frequency_days, status, notes } = req.body;
-            if (!family_name) return res.status(400).json({ error: 'Family name is required' });
+            const {
+                family_name, contact_name, email, phone,
+                address, city, state, zip,
+                checkin_frequency_days, status, notes
+            } = req.body;
+
+            if (!family_name) {
+                return res.status(400).json({ error: 'Family name is required' });
+            }
+
             const { data: guardian, error } = await supabase
-                .from('guardians').insert({
-                    user_id: userId, family_name,
-                    contact_name: contact_name || null, email: email || null,
-                    phone: phone || null, address: address || null,
-                    city: city || null, state: state || null, zip: zip || null,
+                .from('guardians')
+                .insert({
+                    user_id: userId,
+                    family_name,
+                    contact_name: contact_name || null,
+                    email: email || null,
+                    phone: phone || null,
+                    address: address || null,
+                    city: city || null,
+                    state: state || null,
+                    zip: zip || null,
                     checkin_frequency_days: checkin_frequency_days || 30,
-                    status: status || 'active', notes: notes || null
-                }).select().single();
+                    status: status || 'active',
+                    notes: notes || null
+                })
+                .select()
+                .single();
+
             if (error) {
                 console.error('Create guardian error:', error);
                 return res.status(500).json({ error: 'Failed to create guardian', details: error.message });
             }
+
             return res.status(201).json({ success: true, guardian });
         } catch (err) {
             console.error('POST guardian error:', err);
