@@ -26,9 +26,9 @@
     <script type="text/babel">
         const { useState, useEffect, useRef, useCallback } = React;
 
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-        // SHARED DATA CONTEXT â live data from API
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+        // SHARED DATA CONTEXT Ã¢ÂÂ live data from API
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
         const useBreedData = () => {
             const [dogs, setDogs] = useState([]);
             const [litters, setLitters] = useState([]);
@@ -64,9 +64,9 @@
             return { dogs, litters, loading, error, refetch: fetchData };
         };
 
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
         // HELPER FUNCTIONS
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
         const formatShortDate = (iso) => {
             if (!iso) return '';
             const d = new Date(iso + 'T12:00:00');
@@ -104,9 +104,9 @@
             return 'bg-emerald-900 text-emerald-200';
         };
 
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
         // ICON COMPONENTS
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
         const IconHeart = () => (
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
@@ -169,9 +169,9 @@
             </svg>
         );
 
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
         // STAT CARD
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
         const StatCard = ({ icon: Icon, label, value, color, onClick, onExpand, expanded, dogs }) => (
             <div className="relative">
                 <div
@@ -222,9 +222,9 @@
                 )}
             </div>
         );
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
         // ALERT ITEM
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
         const AlertItem = ({ item, urgencyColor }) => {
             const dayLabel = item.daysUntil !== null
                 ? item.daysUntil < 0 ? `${Math.abs(item.daysUntil)} days overdue` : item.daysUntil === 0 ? 'Today' : `${item.daysUntil} days`
@@ -255,9 +255,9 @@
             );
         };
 
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-        // QUICK UPDATE BAR â Manual Actions + AI Chat
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+        // QUICK UPDATE BAR Ã¢ÂÂ Manual Actions + AI Chat
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
         const QuickUpdateBar = ({ dogs, litters, refetch }) => {
             const [activePanel, setActivePanel] = useState(null); // 'dogStatus' | 'litterMilestone' | 'heatCycle' | 'ai'
             const [saving, setSaving] = useState(false);
@@ -298,7 +298,7 @@
                 setHeatDogId(''); setHeatDate('');
             };
 
-            // ââ Dog Status Update ââ
+            // Ã¢ÂÂÃ¢ÂÂ Dog Status Update Ã¢ÂÂÃ¢ÂÂ
             const handleDogStatusUpdate = async () => {
                 if (!selectedDogId || !newDogStatus) return;
                 setSaving(true);
@@ -323,7 +323,7 @@
                 } finally { setSaving(false); }
             };
 
-            // ââ Litter Milestone Update ââ
+            // Ã¢ÂÂÃ¢ÂÂ Litter Milestone Update Ã¢ÂÂÃ¢ÂÂ
             const handleLitterMilestoneUpdate = async () => {
                 if (!selectedLitterId || !newLitterStatus) return;
                 setSaving(true);
@@ -352,7 +352,7 @@
                 } finally { setSaving(false); }
             };
 
-            // ââ Heat Cycle Update ââ
+            // Ã¢ÂÂÃ¢ÂÂ Heat Cycle Update Ã¢ÂÂÃ¢ÂÂ
             const handleHeatCycleUpdate = async () => {
                 if (!heatDogId || !heatDate) return;
                 setSaving(true);
@@ -371,7 +371,7 @@
                 } finally { setSaving(false); }
             };
 
-            // ââ AI Chat ââ
+            // Ã¢ÂÂÃ¢ÂÂ AI Chat Ã¢ÂÂÃ¢ÂÂ
             const handleAiSend = async () => {
                 if (!aiInput.trim()) return;
                 const userMsg = aiInput.trim();
@@ -494,7 +494,7 @@
                             </div>
                         </div>
 
-                        {/* ââ Expandable Panels ââ */}
+                        {/* Ã¢ÂÂÃ¢ÂÂ Expandable Panels Ã¢ÂÂÃ¢ÂÂ */}
 
                         {/* Dog Status Panel */}
                         {activePanel === 'dogStatus' && (
@@ -668,9 +668,9 @@
             );
         };
 
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-        // DASHBOARD VIEW â Now uses live data
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+        // DASHBOARD VIEW Ã¢ÂÂ Now uses live data
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
         const DashboardView = ({ dogs, litters, refetch, onNavigate }) => {
             const [expandedCard, setExpandedCard] = useState(null);
             const toggleExpand = (card) => setExpandedCard(prev => prev === card ? null : card);
@@ -876,9 +876,9 @@
             );
         };
 
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
         // SUB-BREEDER BADGE
-        // ═══════════════════════════════════════════════════════
+        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         const BreederBadge = ({ item }) => {
             if (!item.is_shared || !item.breeder) return null;
             const label = item.breeder.kennel_name || item.breeder.full_name || 'Sub-breeder';
@@ -889,9 +889,9 @@
             );
         };
 
-        // ═══════════════════════════════════════════════════════
-        // DOG ROW
         // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // DOG ROW
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
         const DogRow = ({ dog, expanded, onToggle }) => (
             <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
                 <button
@@ -932,9 +932,433 @@
             </div>
         );
 
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-        // DAMS VIEW â Now uses live data
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+        // ═══════════════════════════════════════════════════════
+        // GUARDIANS VIEW
+        // ═══════════════════════════════════════════════════════
+        const GuardiansView = ({ dogs, refetch }) => {
+            const [guardians, setGuardians] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [filterStatus, setFilterStatus] = useState('All');
+            const [expandedId, setExpandedId] = useState(null);
+            const [showModal, setShowModal] = useState(false);
+            const [editingGuardian, setEditingGuardian] = useState(null);
+            const [saving, setSaving] = useState(false);
+            const [showAssignModal, setShowAssignModal] = useState(false);
+            const [assignGuardianId, setAssignGuardianId] = useState(null);
+
+            const emptyForm = { family_name: '', contact_name: '', email: '', phone: '', address: '', city: '', state: '', zip: '', checkin_frequency_days: 30, status: 'active', notes: '' };
+            const [form, setForm] = useState(emptyForm);
+
+            const fetchGuardians = useCallback(async () => {
+                try {
+                    const res = await fetch('/api/guardians', { credentials: 'include' });
+                    if (!res.ok) throw new Error('Failed to fetch guardians');
+                    const data = await res.json();
+                    setGuardians(data.guardians || []);
+                } catch (err) {
+                    console.error('Guardians fetch error:', err);
+                } finally {
+                    setLoading(false);
+                }
+            }, []);
+
+            useEffect(() => { fetchGuardians(); }, [fetchGuardians]);
+
+            const filtered = guardians.filter(g => {
+                const term = searchTerm.toLowerCase();
+                const matchesSearch = g.family_name.toLowerCase().includes(term) ||
+                    (g.contact_name || '').toLowerCase().includes(term) ||
+                    (g.email || '').toLowerCase().includes(term);
+                const matchesStatus = filterStatus === 'All' || g.status === filterStatus.toLowerCase();
+                return matchesSearch && matchesStatus;
+            });
+
+            const openAdd = () => { setForm(emptyForm); setEditingGuardian(null); setShowModal(true); };
+            const openEdit = (g) => {
+                setForm({
+                    family_name: g.family_name || '', contact_name: g.contact_name || '',
+                    email: g.email || '', phone: g.phone || '',
+                    address: g.address || '', city: g.city || '', state: g.state || '', zip: g.zip || '',
+                    checkin_frequency_days: g.checkin_frequency_days || 30,
+                    status: g.status || 'active', notes: g.notes || ''
+                });
+                setEditingGuardian(g);
+                setShowModal(true);
+            };
+
+            const handleSave = async () => {
+                if (!form.family_name.trim()) { alert('Family name is required'); return; }
+                setSaving(true);
+                try {
+                    const url = editingGuardian ? `/api/guardians/${editingGuardian.id}` : '/api/guardians';
+                    const method = editingGuardian ? 'PUT' : 'POST';
+                    const res = await fetch(url, {
+                        method, credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(form)
+                    });
+                    if (!res.ok) throw new Error('Save failed');
+                    setShowModal(false);
+                    fetchGuardians();
+                } catch (err) {
+                    alert('Failed to save: ' + err.message);
+                } finally { setSaving(false); }
+            };
+
+            const handleDelete = async (g) => {
+                if (!confirm(`Remove guardian "${g.family_name}"? Their dogs will be unlinked.`)) return;
+                try {
+                    const res = await fetch(`/api/guardians/${g.id}`, { method: 'DELETE', credentials: 'include' });
+                    if (!res.ok) throw new Error('Delete failed');
+                    fetchGuardians();
+                    refetch();
+                } catch (err) { alert('Failed to delete: ' + err.message); }
+            };
+
+            const openAssign = (gId) => { setAssignGuardianId(gId); setShowAssignModal(true); };
+
+            const handleAssignDog = async (dogId) => {
+                try {
+                    const res = await fetch(`/api/guardians/${assignGuardianId}`, {
+                        method: 'PATCH', credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ assign_dog_ids: [dogId] })
+                    });
+                    if (!res.ok) throw new Error('Assign failed');
+                    setShowAssignModal(false);
+                    fetchGuardians();
+                    refetch();
+                } catch (err) { alert('Failed to assign dog: ' + err.message); }
+            };
+
+            const handleUnassignDog = async (guardianId, dogId) => {
+                try {
+                    const res = await fetch(`/api/guardians/${guardianId}`, {
+                        method: 'PATCH', credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ unassign_dog_ids: [dogId] })
+                    });
+                    if (!res.ok) throw new Error('Unassign failed');
+                    fetchGuardians();
+                    refetch();
+                } catch (err) { alert('Failed to unassign dog: ' + err.message); }
+            };
+
+            // Dogs available for assignment (not already guardian-assigned)
+            const availableDogs = dogs.filter(d => !d.guardian_id && d.status !== 'retired');
+
+            if (loading) return (
+                <div className="text-center py-20">
+                    <div className="text-4xl mb-4">&#128101;</div>
+                    <p className="text-slate-400">Loading guardians...</p>
+                </div>
+            );
+
+            return (
+                <div className="space-y-6">
+                    {/* Header with Add button */}
+                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                        <div className="flex gap-3 flex-grow w-full sm:w-auto">
+                            <div className="relative flex-grow">
+                                <input type="text" placeholder="Search guardians..."
+                                    value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500" />
+                                <div className="absolute left-3 top-2.5 text-slate-500"><IconSearch /></div>
+                            </div>
+                            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
+                                className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500">
+                                <option>All</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="pending">Pending</option>
+                            </select>
+                        </div>
+                        <button onClick={openAdd}
+                            className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-600 transition whitespace-nowrap">
+                            + Add Guardian
+                        </button>
+                    </div>
+
+                    {/* Summary */}
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 text-center">
+                            <p className="text-2xl font-bold text-emerald-400">{guardians.length}</p>
+                            <p className="text-xs text-slate-500 mt-1">Total Guardians</p>
+                        </div>
+                        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 text-center">
+                            <p className="text-2xl font-bold text-teal-400">{guardians.reduce((s, g) => s + (g.dog_count || 0), 0)}</p>
+                            <p className="text-xs text-slate-500 mt-1">Dogs Placed</p>
+                        </div>
+                        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 text-center">
+                            <p className="text-2xl font-bold text-blue-400">{guardians.filter(g => g.status === 'active').length}</p>
+                            <p className="text-xs text-slate-500 mt-1">Active</p>
+                        </div>
+                    </div>
+
+                    {/* Guardian Cards */}
+                    <div className="space-y-3">
+                        {filtered.length > 0 ? filtered.map(g => {
+                            const isExpanded = expandedId === g.id;
+                            const statusColors = { active: 'bg-emerald-900 text-emerald-300', inactive: 'bg-slate-700 text-slate-400', pending: 'bg-yellow-900 text-yellow-300' };
+                            return (
+                                <div key={g.id} className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden hover:border-slate-700 transition">
+                                    {/* Card Header */}
+                                    <div className="p-4 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : g.id)}>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center font-bold text-white text-sm">
+                                                    {(g.family_name || '?')[0].toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-semibold text-slate-100">{g.family_name}</h3>
+                                                    {g.contact_name && <p className="text-sm text-slate-400">{g.contact_name}</p>}
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                {g.dog_count > 0 && (
+                                                    <span className="text-xs px-2 py-1 bg-slate-800 rounded-full text-slate-300">
+                                                        &#128054; {g.dog_count} dog{g.dog_count !== 1 ? 's' : ''}
+                                                    </span>
+                                                )}
+                                                <span className={`text-xs px-2 py-1 rounded-full ${statusColors[g.status] || statusColors.active}`}>
+                                                    {g.status}
+                                                </span>
+                                                <svg className={`w-4 h-4 text-slate-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+                                        </div>                        {/* Quick contact row */}
+                                        <div className="flex flex-wrap gap-4 mt-2 text-sm text-slate-500">
+                                            {g.phone && <span>&#128222; {g.phone}</span>}
+                                            {g.email && <span>&#9993;&#65039; {g.email}</span>}
+                                            {g.city && g.state && <span>&#128205; {g.city}, {g.state}</span>}
+                                        </div>
+                                    </div>
+
+                                    {/* Expanded Details */}
+                                    {isExpanded && (
+                                        <div className="border-t border-slate-800 p-4 space-y-4">
+                                            {/* Full Address */}
+                                            {(g.address || g.city) && (
+                                                <div>
+                                                    <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Address</p>
+                                                    <p className="text-sm text-slate-300">
+                                                        {g.address && <>{g.address}<br /></>}
+                                                        {[g.city, g.state].filter(Boolean).join(', ')} {g.zip || ''}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {/* Notes */}
+                                            {g.notes && (
+                                                <div>
+                                                    <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Notes</p>
+                                                    <p className="text-sm text-slate-300 whitespace-pre-wrap">{g.notes}</p>
+                                                </div>
+                                            )}
+
+                                            {/* Check-in Info */}
+                                            <div>
+                                                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Check-in Schedule</p>
+                                                <p className="text-sm text-slate-300">
+                                                    Every {g.checkin_frequency_days || 30} days
+                                                    {g.last_checkin && <> &mdash; Last: {new Date(g.last_checkin).toLocaleDateString()}</>}
+                                                </p>
+                                            </div>
+
+                                            {/* Linked Dogs */}
+                                            <div>
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <p className="text-xs text-slate-500 uppercase tracking-wider">Dogs ({(g.dogs || []).length})</p>
+                                                    <button onClick={(e) => { e.stopPropagation(); openAssign(g.id); }}
+                                                        className="text-xs text-emerald-400 hover:text-emerald-300">+ Assign Dog</button>
+                                                </div>
+                                                {(g.dogs || []).length > 0 ? (
+                                                    <div className="space-y-2">
+                                                        {g.dogs.map(d => (
+                                                            <div key={d.id} className="flex items-center justify-between bg-slate-800 rounded-lg px-3 py-2">
+                                                                <div className="flex items-center gap-3">
+                                                                    {d.photo_url ? (
+                                                                        <img src={d.photo_url} alt={d.name} className="w-8 h-8 rounded-full object-cover" />
+                                                                    ) : (
+                                                                        <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs">&#128054;</div>
+                                                                    )}
+                                                                    <div>
+                                                                        <a href={`/dogs?id=${d.id}`} className="text-sm font-medium text-emerald-400 hover:text-emerald-300">
+                                                                            {d.call_name || d.name}
+                                                                        </a>
+                                                                        <p className="text-xs text-slate-500">{d.color} &bull; {d.sex}</p>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">{d.status}</span>
+                                                                    <button onClick={(e) => { e.stopPropagation(); if(confirm(`Unassign ${d.call_name || d.name} from ${g.family_name}?`)) handleUnassignDog(g.id, d.id); }}
+                                                                        className="text-slate-600 hover:text-red-400 transition" title="Unassign">
+                                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-sm text-slate-600 italic">No dogs assigned yet</p>
+                                                )}
+                                            </div>
+
+                                            {/* Action Buttons */}
+                                            <div className="flex gap-2 pt-2 border-t border-slate-800">
+                                                <button onClick={(e) => { e.stopPropagation(); openEdit(g); }}
+                                                    className="px-3 py-1.5 text-xs bg-slate-800 text-slate-300 rounded hover:bg-slate-700 transition">
+                                                    &#9998; Edit
+                                                </button>
+                                                <button onClick={(e) => { e.stopPropagation(); handleDelete(g); }}
+                                                    className="px-3 py-1.5 text-xs bg-slate-800 text-red-400 rounded hover:bg-red-900/30 transition">
+                                                    &#128465; Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        }) : (
+                            <div className="text-center py-12">
+                                <div className="text-4xl mb-3">&#128101;</div>
+                                <p className="text-slate-400">{guardians.length === 0 ? 'No guardians yet. Add your first guardian family!' : 'No guardians match your search.'}</p>
+                                {guardians.length === 0 && (
+                                    <button onClick={openAdd} className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition">
+                                        + Add Guardian
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Add/Edit Modal */}
+                    {showModal && (
+                        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
+                            <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                                <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+                                    <h2 className="text-lg font-bold text-slate-100">{editingGuardian ? 'Edit Guardian' : 'Add Guardian'}</h2>
+                                    <button onClick={() => setShowModal(false)} className="text-slate-500 hover:text-slate-300"><IconX /></button>
+                                </div>
+                                <div className="p-6 space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="col-span-2 sm:col-span-1">
+                                            <label className="block text-xs text-slate-500 mb-1">Family Name *</label>
+                                            <input type="text" value={form.family_name} onChange={(e) => setForm({...form, family_name: e.target.value})}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" placeholder="Smith" />
+                                        </div>
+                                        <div className="col-span-2 sm:col-span-1">
+                                            <label className="block text-xs text-slate-500 mb-1">Contact Name</label>
+                                            <input type="text" value={form.contact_name} onChange={(e) => setForm({...form, contact_name: e.target.value})}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" placeholder="John Smith" />
+                                        </div>
+                                    </div>                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs text-slate-500 mb-1">Email</label>
+                                            <input type="email" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" placeholder="john@email.com" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-slate-500 mb-1">Phone</label>
+                                            <input type="tel" value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" placeholder="(555) 123-4567" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-slate-500 mb-1">Address</label>
+                                        <input type="text" value={form.address} onChange={(e) => setForm({...form, address: e.target.value})}
+                                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" placeholder="123 Main St" />
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-xs text-slate-500 mb-1">City</label>
+                                            <input type="text" value={form.city} onChange={(e) => setForm({...form, city: e.target.value})}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-slate-500 mb-1">State</label>
+                                            <input type="text" value={form.state} onChange={(e) => setForm({...form, state: e.target.value})}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-slate-500 mb-1">Zip</label>
+                                            <input type="text" value={form.zip} onChange={(e) => setForm({...form, zip: e.target.value})}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs text-slate-500 mb-1">Status</label>
+                                            <select value={form.status} onChange={(e) => setForm({...form, status: e.target.value})}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500">
+                                                <option value="active">Active</option>
+                                                <option value="inactive">Inactive</option>
+                                                <option value="pending">Pending</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-slate-500 mb-1">Check-in (days)</label>
+                                            <input type="number" value={form.checkin_frequency_days} onChange={(e) => setForm({...form, checkin_frequency_days: parseInt(e.target.value) || 30})}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-slate-500 mb-1">Notes</label>
+                                        <textarea value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} rows={3}
+                                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500 resize-none"
+                                            placeholder="Any notes about this guardian family..." />
+                                    </div>
+                                </div>
+                                <div className="p-6 border-t border-slate-800 flex justify-end gap-3">
+                                    <button onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-400 hover:text-slate-200 transition">Cancel</button>
+                                    <button onClick={handleSave} disabled={saving}
+                                        className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-600 transition disabled:opacity-50">
+                                        {saving ? 'Saving...' : editingGuardian ? 'Update Guardian' : 'Add Guardian'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Assign Dog Modal */}
+                    {showAssignModal && (
+                        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowAssignModal(false)}>
+                            <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-md max-h-[70vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                                <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+                                    <h2 className="text-lg font-bold text-slate-100">Assign Dog to Guardian</h2>
+                                    <button onClick={() => setShowAssignModal(false)} className="text-slate-500 hover:text-slate-300"><IconX /></button>
+                                </div>
+                                <div className="p-4">
+                                    {availableDogs.length > 0 ? availableDogs.map(d => (
+                                        <button key={d.id} onClick={() => handleAssignDog(d.id)}
+                                            className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition text-left">
+                                            {d.photo_url ? (
+                                                <img src={d.photo_url} alt={d.name} className="w-10 h-10 rounded-full object-cover" />
+                                            ) : (
+                                                <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">&#128054;</div>
+                                            )}
+                                            <div>
+                                                <p className="text-sm font-medium text-slate-100">{d.call_name || d.name}</p>
+                                                <p className="text-xs text-slate-500">{d.color} &bull; {d.sex} &bull; {d.status}</p>
+                                            </div>
+                                        </button>
+                                    )) : (
+                                        <p className="text-center py-8 text-slate-500">All dogs are already assigned to guardians</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // ═══════════════════════════════════════════════════════
+        // DAMS VIEW Ã¢ÂÂ Now uses live data
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
         const DamsView = ({ dogs, initialFilter }) => {
             const [searchTerm, setSearchTerm] = useState('');
             const [filterStatus, setFilterStatus] = useState(initialFilter || 'All');
@@ -992,9 +1416,9 @@
             );
         };
 
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-        // ALERTS VIEW â Now uses live data
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+        // ALERTS VIEW Ã¢ÂÂ Now uses live data
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
         const AlertsView = ({ dogs, litters, refetch }) => {
             const [updating, setUpdating] = useState({});
 
@@ -1139,9 +1563,9 @@
             );
         };
 
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-        // CALENDAR VIEW (unchanged â already uses live API)
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+        // CALENDAR VIEW (unchanged Ã¢ÂÂ already uses live API)
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
         const CalendarView = ({ user }) => {
             const [events, setEvents] = useState([]);
             const [loading, setLoading] = useState(true);
@@ -1301,9 +1725,9 @@
             );
         };
 
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
         // MAIN APP
-        // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
         function BreedIQDashboard() {
             const [sidebarOpen, setSidebarOpen] = useState(true);
             const [currentView, setCurrentView] = useState('dashboard');
@@ -1436,7 +1860,8 @@
                                 {currentView === 'dams' && <DamsView dogs={dogs} initialFilter={damFilter} />}
                                 {currentView === 'alerts' && <AlertsView dogs={dogs} litters={litters} />}
                                 {currentView === 'calendar' && <CalendarView user={user} />}
-                                {(currentView === 'guardians' || currentView === 'analytics' || currentView === 'settings') && (
+                                {currentView === 'guardians' && <GuardiansView dogs={dogs} refetch={refetch} />}
+                                {(currentView === 'analytics' || currentView === 'settings') && (
                                     <div className="text-center py-20">
                                         <p className="text-slate-400 text-lg">Coming soon: {navItems.find(i => i.id === currentView)?.label}</p>
                                     </div>
