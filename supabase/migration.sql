@@ -15,11 +15,17 @@ CREATE TABLE public.profiles (
     plan TEXT DEFAULT 'starter' CHECK (plan IN ('starter', 'pro', 'kennel')),
     stripe_customer_id TEXT,
     onboarding_completed BOOLEAN DEFAULT FALSE,
+    calendar_feed_token TEXT UNIQUE,
     notification_prefs JSONB NOT NULL DEFAULT
         '{"heat_reminders": true, "whelp_reminders": true, "guardian_checkins": true, "weekly_summary": true, "product_updates": true}'::jsonb,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Fast lookup for the public ICS subscription feed (see /api/calendar/feed/[token].ics)
+CREATE INDEX IF NOT EXISTS profiles_calendar_feed_token_idx
+    ON public.profiles (calendar_feed_token)
+    WHERE calendar_feed_token IS NOT NULL;
 
 -- Auto-create profile on user signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
