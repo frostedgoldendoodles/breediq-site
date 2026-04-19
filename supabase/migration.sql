@@ -15,6 +15,8 @@ CREATE TABLE public.profiles (
     plan TEXT DEFAULT 'starter' CHECK (plan IN ('starter', 'pro', 'kennel')),
     stripe_customer_id TEXT,
     onboarding_completed BOOLEAN DEFAULT FALSE,
+    notification_prefs JSONB NOT NULL DEFAULT
+        '{"heat_reminders": true, "whelp_reminders": true, "guardian_checkins": true, "weekly_summary": true, "product_updates": true}'::jsonb,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

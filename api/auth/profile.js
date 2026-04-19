@@ -3,7 +3,7 @@
 import { requireAuth, getServiceClient } from '../../lib/supabase.js';
 
 // Fields users are allowed to update
-const ALLOWED_FIELDS = ['full_name', 'kennel_name', 'phone', 'timezone', 'onboarding_completed'];
+const ALLOWED_FIELDS = ['full_name', 'kennel_name', 'phone', 'timezone', 'onboarding_completed', 'notification_prefs'];
 
 export default async function handler(req, res) {
     if (req.method !== 'PUT') return res.status(405).json({ error: 'Method not allowed' });
