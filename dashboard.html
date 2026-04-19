@@ -169,20 +169,56 @@
         // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         // STAT CARD
         // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-        const StatCard = ({ icon: Icon, label, value, color }) => (
-            <div className="bg-slate-900 rounded-lg p-6 border border-slate-800">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-slate-400 text-sm font-medium">{label}</p>
-                        <p className={`text-3xl font-bold mt-2 ${color}`}>{value}</p>
-                    </div>
-                    <div className={`text-3xl opacity-20 ${color}`}>
-                        <Icon />
+        const StatCard = ({ icon: Icon, label, value, color, onClick, onExpand, expanded, dogs }) => (
+            <div className="relative">
+                <div
+                    onClick={onClick}
+                    className="bg-slate-900 rounded-lg p-4 md:p-6 border border-slate-800 cursor-pointer hover:border-slate-600 hover:bg-slate-800/50 transition-all active:scale-[0.98]"
+                >
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-slate-400 text-sm font-medium">{label}</p>
+                            <p className={`text-3xl font-bold mt-2 ${color}`}>{value}</p>
+                        </div>
+                        <div className="flex flex-col items-center gap-1">
+                            <div className={`text-3xl opacity-20 ${color}`}>
+                                <Icon />
+                            </div>
+                            {value > 0 && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onExpand && onExpand(); }}
+                                    className={`text-slate-500 hover:text-slate-300 transition-transform ${expanded ? 'rotate-180' : ''}`}
+                                    title={expanded ? 'Collapse' : 'Quick peek'}
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
+                {expanded && dogs && dogs.length > 0 && (
+                    <div className="mt-2 bg-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-lg">
+                        {dogs.slice(0, 8).map((d, i) => (
+                            <div key={d.id || i} className={`px-4 py-2.5 flex items-center justify-between text-sm ${i > 0 ? 'border-t border-slate-800' : ''}`}>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-slate-100 font-medium">{d.name}</span>
+                                    {d.breeder_name && <span className="text-xs text-slate-500">({d.breeder_name})</span>}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {d.guardian?.family_name && <span className="text-xs text-slate-500">Guardian: {d.guardian.family_name}</span>}
+                                    <span className={`text-xs px-2 py-0.5 rounded-full ${heatStatusColor(heatStatusLabel(d.heat_status))}`}>{heatStatusLabel(d.heat_status)}</span>
+                                </div>
+                            </div>
+                        ))}
+                        {dogs.length > 8 && (
+                            <div className="px-4 py-2 border-t border-slate-800 text-center">
+                                <button onClick={onClick} className="text-xs text-emerald-400 hover:text-emerald-300">View all {dogs.length} &rarr;</button>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         );
-
         // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         // ALERT ITEM
         // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
@@ -632,13 +668,19 @@
         // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         // DASHBOARD VIEW â Now uses live data
         // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-        const DashboardView = ({ dogs, litters, refetch }) => {
+        const DashboardView = ({ dogs, litters, refetch, onNavigate }) => {
+            const [expandedCard, setExpandedCard] = useState(null);
+            const toggleExpand = (card) => setExpandedCard(prev => prev === card ? null : card);
             // Compute stats from live data
-            const activeDams = dogs.filter(d => d.sex === 'female' && !['deceased','sold'].includes(d.status)).length;
-            const pregnantCount = dogs.filter(d => d.heat_status === 'pregnant').length
+            const activeDamsList = dogs.filter(d => d.sex === 'female' && !['deceased','sold'].includes(d.status));
+            const activeDams = activeDamsList.length;
+            const pregnantList = dogs.filter(d => d.heat_status === 'pregnant');
+            const pregnantCount = pregnantList.length
                 + litters.filter(l => l.status === 'confirmed' && !dogs.find(d => d.id === l.dam_id && d.heat_status === 'pregnant')).length;
-            const nursingCount = dogs.filter(d => d.heat_status === 'nursing').length;
-            const inHeatCount = dogs.filter(d => d.heat_status === 'in_heat').length;
+            const nursingList = dogs.filter(d => d.heat_status === 'nursing');
+            const nursingCount = nursingList.length;
+            const inHeatList = dogs.filter(d => d.heat_status === 'in_heat');
+            const inHeatCount = inHeatList.length;
 
             // Build action items from live data
             const actionItems = [];
@@ -703,27 +745,20 @@
                     <QuickUpdateBar dogs={dogs} litters={litters} refetch={refetch} />
 
                     {/* Stats Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <StatCard icon={IconHeart} label="Active Dams" value={activeDams} color="text-emerald-400" />
-                        <StatCard icon={IconFire} label="Pregnant" value={pregnantCount} color="text-amber-400" />
-                        <StatCard icon={IconBaby} label="Nursing" value={nursingCount} color="text-blue-400" />
-                        <StatCard icon={IconCalendar} label="In Heat" value={inHeatCount} color="text-red-400" />
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                        <StatCard icon={IconHeart} label="Active Dams" value={activeDams} color="text-emerald-400"
+                            onClick={() => onNavigate && onNavigate('dams', 'All')}
+                            onExpand={() => toggleExpand('dams')} expanded={expandedCard === 'dams'} dogs={activeDamsList} />
+                        <StatCard icon={IconFire} label="Pregnant" value={pregnantCount} color="text-amber-400"
+                            onClick={() => onNavigate && onNavigate('dams', 'Pregnant')}
+                            onExpand={() => toggleExpand('pregnant')} expanded={expandedCard === 'pregnant'} dogs={pregnantList} />
+                        <StatCard icon={IconBaby} label="Nursing" value={nursingCount} color="text-blue-400"
+                            onClick={() => onNavigate && onNavigate('dams', 'Nursing')}
+                            onExpand={() => toggleExpand('nursing')} expanded={expandedCard === 'nursing'} dogs={nursingList} />
+                        <StatCard icon={IconCalendar} label="In Heat" value={inHeatCount} color="text-red-400"
+                            onClick={() => onNavigate && onNavigate('dams', 'In Heat')}
+                            onExpand={() => toggleExpand('inheat')} expanded={expandedCard === 'inheat'} dogs={inHeatList} />
                     </div>
-
-                    {/* Action Items */}
-                    {actionItems.length > 0 && (
-                        <div>
-                            <h2 className="text-2xl font-bold text-slate-100 mb-4">Action Items</h2>
-                            <div className="space-y-3">
-                                {actionItems.map((item, idx) => {
-                                    let urgencyColor = '';
-                                    if (item.urgency === 'Critical') urgencyColor = 'bg-red-950 border-red-700';
-                                    else if (item.urgency === 'High') urgencyColor = 'bg-orange-950 border-orange-700';
-                                    else if (item.urgency === 'Medium') urgencyColor = 'bg-yellow-950 border-yellow-700';
-                                    else urgencyColor = 'bg-blue-950 border-blue-700';
-                                    return <AlertItem key={idx} item={item} urgencyColor={urgencyColor} />;
-                                })}
-                            </div>
                         </div>
                     )}
 
@@ -881,9 +916,9 @@
         // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         // DAMS VIEW â Now uses live data
         // âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-        const DamsView = ({ dogs }) => {
+        const DamsView = ({ dogs, initialFilter }) => {
             const [searchTerm, setSearchTerm] = useState('');
-            const [filterStatus, setFilterStatus] = useState('All');
+            const [filterStatus, setFilterStatus] = useState(initialFilter || 'All');
             const [expandedDog, setExpandedDog] = useState(null);
 
             const filteredDogs = dogs.filter(dog => {
@@ -1253,6 +1288,7 @@
         function BreedIQDashboard() {
             const [sidebarOpen, setSidebarOpen] = useState(true);
             const [currentView, setCurrentView] = useState('dashboard');
+            const [damFilter, setDamFilter] = useState(null);
             const [authState, setAuthState] = useState('loading');
             const [user, setUser] = useState(null);
             const { dogs, litters, loading: dataLoading, error: dataError, refetch } = useBreedData();
@@ -1271,6 +1307,18 @@
                 const titles = { dashboard: 'Dashboard', dams: 'Dams', alerts: 'Alerts', calendar: 'Calendar', guardians: 'Guardians', analytics: 'Analytics', settings: 'Settings' };
                 document.title = `${titles[currentView] || 'Dashboard'} \u2014 BreedIQ`;
             }, [currentView]);
+
+            // Navigate from stat cards to Dams with a pre-set filter
+            const handleNavigate = (v, filter) => {
+                if (filter) setDamFilter(filter);
+                setCurrentView(v);
+            };
+
+            // Clear damFilter when user manually switches away from dams
+            const handleViewChange = (viewId) => {
+                if (viewId !== 'dams') setDamFilter(null);
+                setCurrentView(viewId);
+            };
 
             const handleSignOut = async () => {
                 await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
@@ -1309,7 +1357,7 @@
                         </div>
                         <nav className="flex-grow p-4 space-y-2">
                             {navItems.map(item => (
-                                <button key={item.id} onClick={() => setCurrentView(item.id)}
+                                <button key={item.id} onClick={() => handleViewChange(item.id)}
                                     className={`w-full text-left px-4 py-3 rounded-lg transition ${currentView === item.id ? 'bg-emerald-900 text-emerald-100' : 'text-slate-400 hover:bg-slate-800'}`}>
                                     <span className="mr-3" dangerouslySetInnerHTML={{__html: item.icon}}></span>
                                     {item.label}
@@ -1365,8 +1413,8 @@
                                         Failed to load data: {dataError}. Showing cached view.
                                     </div>
                                 )}
-                                {currentView === 'dashboard' && <DashboardView dogs={dogs} litters={litters} refetch={refetch} />}
-                                {currentView === 'dams' && <DamsView dogs={dogs} />}
+                                {currentView === 'dashboard' && <DashboardView dogs={dogs} litters={litters} refetch={refetch} onNavigate={handleNavigate} />}
+                                {currentView === 'dams' && <DamsView dogs={dogs} initialFilter={damFilter} />}
                                 {currentView === 'alerts' && <AlertsView dogs={dogs} litters={litters} />}
                                 {currentView === 'calendar' && <CalendarView user={user} />}
                                 {(currentView === 'guardians' || currentView === 'analytics' || currentView === 'settings') && (
