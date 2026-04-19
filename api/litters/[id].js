@@ -59,17 +59,29 @@ export default async function handler(req, res) {
                 .single();
 
             if (!existing) {
-                // Distinguish "doesn't exist" from "exists but owned by another breeder
-                // you have visibility into (sub-breeder/program-owner relationship)"
-                const { data: anyLitter } = await supabase
-                    .from('litters')
-                    .select('id')
-                    .eq('id', id)
-                    .maybeSingle();
-                if (anyLitter) {
-                    return res.status(403).json({
-                        error: 'You can view this litter but not edit it. Ask the owning breeder to update their own records.'
-                    });
+                // Distinguish "doesn't exist" from "exists but is owned by a sub-breeder
+                // in your program" (the dashboard list endpoint surfaces those, but this
+                // PUT path correctly does not allow cross-account writes). Only return 403
+                // when the litter actually belongs to one of the user's sub-breeders \u2014
+                // never reveal the existence of unrelated rows.
+                const { data: relationships } = await supabase
+                    .from('breeder_relationships')
+                    .select('breeder_id')
+                    .eq('owner_id', userId)
+                    .eq('status', 'active');
+                const subBreederIds = (relationships || []).map(r => r.breeder_id);
+                if (subBreederIds.length > 0) {
+                    const { data: sharedLitter } = await supabase
+                        .from('litters')
+                        .select('id')
+                        .eq('id', id)
+                        .in('user_id', subBreederIds)
+                        .maybeSingle();
+                    if (sharedLitter) {
+                        return res.status(403).json({
+                            error: 'This litter belongs to a breeder in your program. Only they can edit it from their own login.'
+                        });
+                    }
                 }
                 return res.status(404).json({ error: 'Litter not found' });
             }
