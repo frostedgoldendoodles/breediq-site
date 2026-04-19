@@ -11,7 +11,10 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Get Started â BreedIQ</title>
+    <meta name="description" content="Set up your BreedIQ breeding program. Import your dogs, configure your kennel, and get started in minutes.">
+    <title>Get Started &mdash; BreedIQ</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%230F766E'>&#x1F43E;</text></svg>">
+    <link rel="canonical" href="https://breediq.ai/onboarding">
     <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
@@ -384,7 +387,7 @@
 
                                 <div className="w-full max-w-xs bg-slate-800 rounded-full h-2 overflow-hidden">
                                     <div
-                                     className="progress-bar bg-gradient-to-r from-blue-500 to-green-500 h-full"
+                                        className="progress-bar bg-gradient-to-r from-blue-500 to-green-500 h-full"
                                     ></div>
                                 </div>
                             </div>
@@ -465,8 +468,8 @@
                                             setTextInput('');
                                         }}
                                         className="flex-1 py-3 rounded-lg font-semibold text-gray-300 border border-slate-700 hover:bg-slate-800 transition"
-                                                    >
-                                    Start Over
+                                    >
+                                        Start Over
                                     </button>
                                     <button
                                         onClick={() => setStep(4)}
@@ -515,7 +518,7 @@
                                     <div className="space-y-2 text-sm text-gray-300">
                                         <div className="flex justify-between">
                                             <span>Dogs added:</span>
-                                   <span className="font-semibold text-green-400">{summary ? summary.total_dogs : dogCards.length}</span>
+                                            <span className="font-semibold text-green-400">{summary ? summary.total_dogs : dogCards.length}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span>Active pregnancies tracked:</span>
