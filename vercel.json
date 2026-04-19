@@ -9,7 +9,8 @@
     { "source": "/contact", "destination": "/contact.html" },
     { "source": "/dogs", "destination": "/dogs.html" },
     { "source": "/dog", "destination": "/dog.html" },
-    { "source": "/reset-password", "destination": "/reset-password.html" }
+    { "source": "/reset-password", "destination": "/reset-password.html" },
+    { "source": "/api/calendar/feed/:token.ics", "destination": "/api/calendar/feed/:token" }
   ],
   "functions": {
     "api/**/*.js": {
