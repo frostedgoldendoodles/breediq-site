@@ -59,6 +59,18 @@ export default async function handler(req, res) {
                 .single();
 
             if (!existing) {
+                // Distinguish "doesn't exist" from "exists but owned by another breeder
+                // you have visibility into (sub-breeder/program-owner relationship)"
+                const { data: anyLitter } = await supabase
+                    .from('litters')
+                    .select('id')
+                    .eq('id', id)
+                    .maybeSingle();
+                if (anyLitter) {
+                    return res.status(403).json({
+                        error: 'You can view this litter but not edit it. Ask the owning breeder to update their own records.'
+                    });
+                }
                 return res.status(404).json({ error: 'Litter not found' });
             }
 

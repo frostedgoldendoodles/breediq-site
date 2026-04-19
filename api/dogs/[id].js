@@ -55,6 +55,16 @@ export default async function handler(req, res) {
                 .single();
 
             if (!existing) {
+                const { data: anyDog } = await supabase
+                    .from('dogs')
+                    .select('id')
+                    .eq('id', id)
+                    .maybeSingle();
+                if (anyDog) {
+                    return res.status(403).json({
+                        error: 'You can view this dog but not edit it. Ask the owning breeder to update their own records.'
+                    });
+                }
                 return res.status(404).json({ error: 'Dog not found' });
             }
 
