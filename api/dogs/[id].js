@@ -55,6 +55,27 @@ export default async function handler(req, res) {
                 .single();
 
             if (!existing) {
+                // Only reveal "exists but not yours" if the dog is owned by one of
+                // your sub-breeders \u2014 never disclose unrelated rows.
+                const { data: relationships } = await supabase
+                    .from('breeder_relationships')
+                    .select('breeder_id')
+                    .eq('owner_id', userId)
+                    .eq('status', 'active');
+                const subBreederIds = (relationships || []).map(r => r.breeder_id);
+                if (subBreederIds.length > 0) {
+                    const { data: sharedDog } = await supabase
+                        .from('dogs')
+                        .select('id')
+                        .eq('id', id)
+                        .in('user_id', subBreederIds)
+                        .maybeSingle();
+                    if (sharedDog) {
+                        return res.status(403).json({
+                            error: 'This dog belongs to a breeder in your program. Only they can edit it from their own login.'
+                        });
+                    }
+                }
                 return res.status(404).json({ error: 'Dog not found' });
             }
 

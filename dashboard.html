@@ -105,6 +105,75 @@
         };
 
         // ═══════════════════════════════════════════════════════
+        // TOAST — global, surfaces real API errors with copyable detail
+        // ═══════════════════════════════════════════════════════
+        // Fired from anywhere via: window.dispatchEvent(new CustomEvent('breediq-toast', { detail: { kind, title, body } }))
+        // Or via the `showToast(kind, title, body)` helper below.
+        const showToast = (kind, title, body) => {
+            window.dispatchEvent(new CustomEvent('breediq-toast', { detail: { kind, title, body } }));
+        };
+
+        // Parse a fetch Response into a readable error message that surfaces
+        // the API's own `error` and `details` fields. Always returns a string.
+        const parseApiError = async (res, fallback) => {
+            const status = res.status;
+            let bodyText = '';
+            try {
+                const ct = res.headers.get('content-type') || '';
+                if (ct.includes('application/json')) {
+                    const data = await res.json();
+                    bodyText = [data?.error, data?.details].filter(Boolean).join(' \u2014 ');
+                } else {
+                    bodyText = (await res.text()).trim().slice(0, 240);
+                }
+            } catch (e) { /* ignore parse errors, fall back below */ }
+            const summary = bodyText || fallback || 'Update failed';
+            return `${summary} (HTTP ${status})`;
+        };
+
+        const ToastHost = () => {
+            const [toasts, setToasts] = useState([]);
+
+            useEffect(() => {
+                const handler = (e) => {
+                    const t = { id: Date.now() + Math.random(), kind: 'info', title: '', body: '', ...(e.detail || {}) };
+                    setToasts(prev => [...prev, t]);
+                    const ttl = t.kind === 'error' ? 9000 : 4000;
+                    setTimeout(() => setToasts(prev => prev.filter(x => x.id !== t.id)), ttl);
+                };
+                window.addEventListener('breediq-toast', handler);
+                return () => window.removeEventListener('breediq-toast', handler);
+            }, []);
+
+            if (!toasts.length) return null;
+            return (
+                <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 max-w-sm w-[calc(100vw-2rem)] sm:w-auto pointer-events-none">
+                    {toasts.map(t => {
+                        const palette = t.kind === 'error'
+                            ? 'bg-red-950 border-red-700 text-red-100'
+                            : t.kind === 'success'
+                                ? 'bg-emerald-950 border-emerald-700 text-emerald-100'
+                                : 'bg-slate-900 border-slate-700 text-slate-100';
+                        return (
+                            <div key={t.id} className={`pointer-events-auto border rounded-lg shadow-lg px-4 py-3 ${palette}`}>
+                                <div className="flex items-start gap-3">
+                                    <div className="flex-grow min-w-0">
+                                        {t.title && <p className="font-semibold text-sm">{t.title}</p>}
+                                        {t.body && <p className="text-xs mt-1 break-words whitespace-pre-wrap opacity-90">{t.body}</p>}
+                                    </div>
+                                    <button
+                                        onClick={() => setToasts(prev => prev.filter(x => x.id !== t.id))}
+                                        className="flex-shrink-0 text-current opacity-60 hover:opacity-100 leading-none"
+                                        aria-label="Dismiss">&times;</button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        };
+
+        // ═══════════════════════════════════════════════════════
         // ICON COMPONENTS
         // ═══════════════════════════════════════════════════════
         const IconHeart = () => (
@@ -315,12 +384,16 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(body)
                     });
-                    if (!res.ok) throw new Error('Update failed');
+                    if (!res.ok) {
+                        const detail = await parseApiError(res, 'Could not update dog');
+                        throw new Error(detail);
+                    }
                     const dog = dogs.find(d => d.id === selectedDogId);
                     showSuccess(`Updated ${dog?.name || 'dog'} successfully!`);
                     resetForms(); setActivePanel(null); refetch();
                 } catch (err) {
-                    alert('Failed to update: ' + err.message);
+                    const dog = dogs.find(d => d.id === selectedDogId);
+                    showToast('error', `Couldn't update ${dog?.name || 'dog'}`, err.message || 'Unknown error');
                 } finally { setSaving(false); }
             };
 
@@ -344,12 +417,16 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(body)
                     });
-                    if (!res.ok) throw new Error('Update failed');
+                    if (!res.ok) {
+                        const detail = await parseApiError(res, 'Could not update litter');
+                        throw new Error(detail);
+                    }
                     const litter = litters.find(l => l.id === selectedLitterId);
                     showSuccess(`Updated ${litter?.dam?.name || 'litter'}'s litter successfully!`);
                     resetForms(); setActivePanel(null); refetch();
                 } catch (err) {
-                    alert('Failed to update: ' + err.message);
+                    const litter = litters.find(l => l.id === selectedLitterId);
+                    showToast('error', `Couldn't update ${litter?.dam?.name || 'litter'}'s litter`, err.message || 'Unknown error');
                 } finally { setSaving(false); }
             };
 
@@ -363,12 +440,16 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ heat_status: 'in_heat', last_heat_date: heatDate })
                     });
-                    if (!res.ok) throw new Error('Update failed');
+                    if (!res.ok) {
+                        const detail = await parseApiError(res, 'Could not record heat');
+                        throw new Error(detail);
+                    }
                     const dog = dogs.find(d => d.id === heatDogId);
                     showSuccess(`Recorded heat for ${dog?.name || 'dog'}!`);
                     resetForms(); setActivePanel(null); refetch();
                 } catch (err) {
-                    alert('Failed to update: ' + err.message);
+                    const dog = dogs.find(d => d.id === heatDogId);
+                    showToast('error', `Couldn't record heat for ${dog?.name || 'dog'}`, err.message || 'Unknown error');
                 } finally { setSaving(false); }
             };
 
@@ -416,14 +497,17 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(action.changes)
                         });
-                        if (!res.ok) throw new Error(`Failed to update ${action.endpoint}`);
+                        if (!res.ok) {
+                            const detail = await parseApiError(res, `Could not update ${action.endpoint}`);
+                            throw new Error(detail);
+                        }
                     }
                     showSuccess('All updates applied!');
                     setAiPreview(null);
                     setAiMessages(prev => [...prev, { role: 'assistant', text: 'Done! Updates have been saved.' }]);
                     refetch();
                 } catch (err) {
-                    alert('Failed to apply updates: ' + err.message);
+                    showToast('error', 'Could not apply updates', err.message || 'Unknown error');
                 } finally { setSaving(false); }
             };
 
@@ -1432,10 +1516,14 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(body)
                     });
-                    if (!res.ok) throw new Error('Update failed');
+                    if (!res.ok) {
+                        const detail = await parseApiError(res, `Could not update ${label || type}`);
+                        throw new Error(detail);
+                    }
+                    showToast('success', `Updated ${label || type}`, '');
                     refetch();
                 } catch (err) {
-                    alert('Failed to update: ' + err.message);
+                    showToast('error', `Couldn't update ${label || type}`, err.message || 'Unknown error');
                 } finally {
                     setUpdating(prev => ({ ...prev, [key]: false }));
                 }
@@ -1444,27 +1532,34 @@
             const isUpdating = (type, id) => updating[`${type}-${id}`] || false;
 
             // ── Needs Update: past-due items that need breeder action ──
+            // Skip shared records: an owner viewing a sub-breeder's litter cannot
+            // edit it (the API will 403). Surface those separately as informational.
             const needsUpdate = [];
+            const sharedNeedsUpdate = [];
             litters.forEach(l => {
                 const damName = l.dam?.name || 'Unknown';
+                const sink = l.is_shared ? sharedNeedsUpdate : needsUpdate;
                 // Past due date but still marked pregnant
                 if (l.due_date && ['confirmed','bred'].includes(l.status)) {
                     const d = daysUntil(l.due_date);
                     if (d !== null && d < 0) {
                         const overdue = Math.abs(d);
-                        needsUpdate.push({
+                        sink.push({
                             dog: damName,
+                            isShared: !!l.is_shared,
+                            breeder: l.breeder,
                             event: overdue > 14
                                 ? `Was due ${formatShortDate(l.due_date)} \u2014 still marked as pregnant`
                                 : `${overdue} days past due date \u2014 did she whelp?`,
                             date: formatShortDate(l.due_date),
                             daysUntil: d,
                             urgency: 'needsUpdate',
-                            actions: [
+                            actions: l.is_shared ? [] : [
                                 { label: '\uD83D\uDC3E Mark as Born', primary: true, loading: isUpdating('litters', l.id),
                                   onClick: () => handleUpdate('litters', l.id, { status: 'born', whelp_date: l.due_date }, damName) },
+                                // 'archived' is the schema-valid way to remove a litter (CHECK constraint on litters.status).
                                 { label: '\u274C Not Pregnant', loading: isUpdating('litters', l.id),
-                                  onClick: () => { if (confirm(`Remove ${damName}'s litter record? This will mark it as lost/reabsorbed.`)) handleUpdate('litters', l.id, { status: 'lost' }, damName); } }
+                                  onClick: () => { if (confirm(`Remove ${damName}'s litter record? This will archive it as lost/reabsorbed.`)) handleUpdate('litters', l.id, { status: 'archived' }, damName); } }
                             ]
                         });
                     }
@@ -1474,15 +1569,17 @@
                     const d = daysUntil(l.go_home_date);
                     if (d !== null && d < 0) {
                         const overdue = Math.abs(d);
-                        needsUpdate.push({
+                        sink.push({
                             dog: damName,
+                            isShared: !!l.is_shared,
+                            breeder: l.breeder,
                             event: overdue > 14
                                 ? `Pups were due home ${formatShortDate(l.go_home_date)} \u2014 still marked as nursing`
                                 : `Pups were due home ${overdue} days ago \u2014 have they gone?`,
                             date: formatShortDate(l.go_home_date),
                             daysUntil: d,
                             urgency: 'needsUpdate',
-                            actions: [
+                            actions: l.is_shared ? [] : [
                                 { label: '\u2705 Pups Went Home', primary: true, loading: isUpdating('litters', l.id),
                                   onClick: () => handleUpdate('litters', l.id, { status: 'placed' }, damName) },
                                 { label: '\uD83D\uDCC5 Update Date', loading: isUpdating('litters', l.id),
@@ -1496,6 +1593,7 @@
                 }
             });
             needsUpdate.sort((a, b) => a.daysUntil - b.daysUntil); // most overdue first
+            sharedNeedsUpdate.sort((a, b) => a.daysUntil - b.daysUntil);
 
             // ── Upcoming: future alerts only ──
             const upcoming = [];
@@ -1526,7 +1624,7 @@
             const urgencyColors = { Critical: 'bg-red-950 border-red-700', High: 'bg-orange-950 border-orange-700', Medium: 'bg-yellow-950 border-yellow-700', Low: 'bg-blue-950 border-blue-700' };
             const needsUpdateColor = 'bg-amber-950 border-amber-600';
 
-            const hasAnything = needsUpdate.length > 0 || upcoming.length > 0;
+            const hasAnything = needsUpdate.length > 0 || sharedNeedsUpdate.length > 0 || upcoming.length > 0;
 
             return (
                 <div className="space-y-8">
@@ -1546,6 +1644,29 @@
                             <div className="space-y-3">
                                 {needsUpdate.map((item, idx) => (
                                     <AlertItem key={`nu-${idx}`} item={item} urgencyColor={needsUpdateColor} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {sharedNeedsUpdate.length > 0 && (
+                        <div>
+                            <div className="flex items-center gap-2 mb-4">
+                                <span className="text-xl">&#128101;</span>
+                                <h2 className="text-xl font-bold text-violet-300">Sub-breeder Records Needing Update ({sharedNeedsUpdate.length})</h2>
+                            </div>
+                            <p className="text-sm text-slate-400 mb-3">
+                                These belong to breeders in your program. They need to update them from their own login &mdash; you can view but not edit.
+                            </p>
+                            <div className="space-y-3">
+                                {sharedNeedsUpdate.map((item, idx) => (
+                                    <AlertItem
+                                        key={`snu-${idx}`}
+                                        item={{
+                                            ...item,
+                                            event: `${item.event}${item.breeder?.kennel_name || item.breeder?.full_name ? ` \u2014 ${item.breeder.kennel_name || item.breeder.full_name}` : ''}`
+                                        }}
+                                        urgencyColor="bg-violet-950 border-violet-700"
+                                    />
                                 ))}
                             </div>
                         </div>
@@ -2428,6 +2549,9 @@
                     {sidebarOpen && (
                         <div className="fixed inset-0 bg-black/50 md:hidden z-30" onClick={() => setSidebarOpen(false)}></div>
                     )}
+
+                    {/* Global toast host \u2014 success/error notifications fire via window event */}
+                    <ToastHost />
                 </div>
             );
         }
