@@ -11,7 +11,10 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sign in to your BreedIQ breeding program dashboard. Manage dogs, track heat cycles, and monitor litters.">
     <title>Sign In &mdash; BreedIQ</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%230F766E'>&#x1F43E;</text></svg>">
+    <link rel="canonical" href="https://breediq.ai/login">
     <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
@@ -20,7 +23,7 @@
         body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; }
         .gradient-button { background: linear-gradient(135deg, #3b82f6 0%, #22c55e 100%); transition: all 0.3s ease; }
         .gradient-button:hover { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(34, 197, 94, 0.2); }
-        .gradient-text { background: linear-gradient(135deg, #3b82f6, #22c55e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .gradient-text { background: linear-gradient(135deg, #2563eb 0%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     </style>
 </head>
 <body>
@@ -33,6 +36,10 @@
             const [password, setPassword] = useState('');
             const [error, setError] = useState(null);
             const [loading, setLoading] = useState(false);
+            const [showReset, setShowReset] = useState(false);
+            const [resetEmail, setResetEmail] = useState('');
+            const [resetLoading, setResetLoading] = useState(false);
+            const [resetMessage, setResetMessage] = useState(null);
 
             const handleSubmit = async (e) => {
                 e.preventDefault();
@@ -47,11 +54,30 @@
                     });
                     const data = await resp.json();
                     if (!resp.ok) throw new Error(data.error || 'Login failed');
-                    // Redirect to dashboard
                     window.location.href = '/dashboard';
                 } catch (err) {
                     setError(err.message);
                     setLoading(false);
+                }
+            };
+
+            const handleReset = async (e) => {
+                e.preventDefault();
+                setResetLoading(true);
+                setResetMessage(null);
+                try {
+                    const resp = await fetch('/api/auth/reset-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: resetEmail })
+                    });
+                    const data = await resp.json();
+                    if (!resp.ok) throw new Error(data.error || 'Failed to send reset email');
+                    setResetMessage({ type: 'success', text: 'Check your email for a password reset link.' });
+                } catch (err) {
+                    setResetMessage({ type: 'error', text: err.message });
+                } finally {
+                    setResetLoading(false);
                 }
             };
 
@@ -96,10 +122,13 @@
                                         className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition"
                                         placeholder="you@example.com"
                                         required
-                                          />
+                                    />
                                 </div>
                                 <div>
-                                    <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">Password</label>
+                                    <div className="flex justify-between items-center mb-1">
+                                        <label htmlFor="password" className="block text-sm font-medium text-gray-300">Password</label>
+                                        <button type="button" onClick={() => { setShowReset(true); setResetEmail(email); }} className="text-xs text-blue-400 hover:text-blue-300 transition">Forgot password?</button>
+                                    </div>
                                     <input
                                         id="password"
                                         name="password"
@@ -127,6 +156,44 @@
                             </p>
                         </div>
                     </div>
+                    {/* Forgot Password Modal */}
+                    {showReset && (
+                        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4" onClick={() => setShowReset(false)}>
+                            <div className="bg-slate-900 border border-slate-700 rounded-2xl p-8 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                                <h2 className="text-xl font-bold text-gray-100 mb-2">Reset your password</h2>
+                                <p className="text-gray-400 text-sm mb-6">Enter your email and we'll send you a reset link.</p>
+
+                                {resetMessage && (
+                                    <div className={`rounded-lg p-3 mb-4 ${resetMessage.type === 'success' ? 'bg-emerald-900/20 border border-emerald-700/50' : 'bg-red-900/20 border border-red-700/50'}`}>
+                                        <p className={`text-sm ${resetMessage.type === 'success' ? 'text-emerald-300' : 'text-red-300'}`}>{resetMessage.text}</p>
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleReset} className="space-y-4">
+                                    <div>
+                                        <label htmlFor="reset-email" className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                                        <input
+                                            id="reset-email"
+                                            type="email"
+                                            value={resetEmail}
+                                            onChange={(e) => setResetEmail(e.target.value)}
+                                            className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition"
+                                            placeholder="you@example.com"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <button type="button" onClick={() => setShowReset(false)} className="flex-1 py-3 rounded-lg font-semibold text-gray-300 bg-slate-800 border border-slate-700 hover:bg-slate-700 transition">
+                                            Cancel
+                                        </button>
+                                        <button type="submit" disabled={resetLoading} className="flex-1 py-3 rounded-lg font-semibold text-white gradient-button disabled:opacity-50">
+                                            {resetLoading ? 'Sending...' : 'Send Reset Link'}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         }
