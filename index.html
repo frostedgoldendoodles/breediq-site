@@ -16,7 +16,8 @@
     <meta name="author" content="BreedIQ">
 
     <title>BreedIQ &mdash; AI-Powered Breeding Program Management</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z'/><path d='M8 14s1.5 2 4 2 4-2 4-2'/><line x1='9' y1='9' x2='9.01' y2='9'/><line x1='15' y1='9' x2='15.01' y2='9'/></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%230F766E'>&#x1F43E;</text></svg>">
+    <link rel="canonical" href="https://breediq.ai/">
 
     <!-- Tailwind CSS from CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -186,7 +187,7 @@
                     </div>
                     <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'10px',marginBottom:'10px'}}>
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}}>
-                            <div style={{fontSize:'11px',fontWeight:600,color:'#e2e8f0'}}>Gigi <span style={{color:'#64748b',fontWeight:400}}>× Cooper</span></div>
+                            <div style={{fontSize:'11px',fontWeight:600,color:'#e2e8f0'}}>Gigi <span style={{color:'#64748b',fontWeight:400}}>Ã Cooper</span></div>
                             <div style={{fontSize:'8px',padding:'2px 8px',borderRadius:'10px',fontWeight:600,background:'rgba(168,85,247,0.15)',color:'#c084fc'}}>Pregnant</div>
                         </div>
                         <div style={{height:'5px',background:'#334155',borderRadius:'3px',overflow:'hidden',marginBottom:'4px'}}>
@@ -266,7 +267,7 @@
                         </div>
                         <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'12px',marginBottom:'10px'}}>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
-                                <div><span style={{fontSize:'12px',fontWeight:700,color:'#e2e8f0'}}>Gigi</span><span style={{fontSize:'11px',color:'#64748b'}}> × Cooper</span></div>
+                                <div><span style={{fontSize:'12px',fontWeight:700,color:'#e2e8f0'}}>Gigi</span><span style={{fontSize:'11px',color:'#64748b'}}> Ã Cooper</span></div>
                                 <div style={{fontSize:'9px',padding:'2px 8px',borderRadius:'10px',background:'rgba(168,85,247,0.15)',color:'#c084fc',fontWeight:600}}>Day 17 / 61</div>
                             </div>
                             <div style={{position:'relative',paddingLeft:'16px'}}>
@@ -311,7 +312,7 @@
                             <div style={{width:'32px',height:'32px',borderRadius:'8px',background:'linear-gradient(135deg,#2563eb,#10b981)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'white',flexShrink:0}}>{g.avatar}</div>
                             <div style={{flex:1,minWidth:0}}>
                                 <div style={{fontSize:'11px',fontWeight:600,color:'#e2e8f0'}}>{g.name}</div>
-                                <div style={{fontSize:'9px',color:'#64748b'}}>{g.loc} • {g.dog}</div>
+                                <div style={{fontSize:'9px',color:'#64748b'}}>{g.loc} â¢ {g.dog}</div>
                             </div>
                             <div style={{fontSize:'8px',padding:'2px 8px',borderRadius:'10px',fontWeight:600,background:g.sc+'20',color:g.sc,flexShrink:0}}>{g.status}</div>
                         </div>
@@ -329,7 +330,7 @@
             const renderScreen = [ScreenOverview, ScreenCalendar, ScreenLitters, ScreenCobreeders];
             const ActiveScreen = renderScreen[active];
 
-            /* ── Mobile Phone Demo (below lg) ── */
+            /* ââ Mobile Phone Demo (below lg) ââ */
             const MobileDemo = () => (
                 <div className="flex lg:hidden justify-center relative mt-2">
                     {/* Phone frame */}
