@@ -4,7 +4,7 @@
 import { requireAuth, getServiceClient } from '../../lib/supabase.js';
 
 // Fields users are allowed to update via PUT
-const ALLOWED_FIELDS = ['full_name', 'kennel_name', 'phone', 'timezone', 'onboarding_completed'];
+const ALLOWED_FIELDS = ['full_name', 'kennel_name', 'phone', 'timezone', 'onboarding_completed', 'notification_prefs'];
 
 export default async function handler(req, res) {
     if (req.method !== 'GET' && req.method !== 'PUT') {
@@ -55,6 +55,7 @@ export default async function handler(req, res) {
                     timezone: profile.timezone,
                     plan: profile.plan,
                     onboarding_completed: profile.onboarding_completed,
+                    notification_prefs: profile.notification_prefs,
                     updated_at: profile.updated_at
                 }
             });
@@ -97,7 +98,9 @@ export default async function handler(req, res) {
                 phone: profile.phone,
                 timezone: profile.timezone,
                 plan: profile.plan,
+                stripe_customer_id: profile.stripe_customer_id,
                 onboarding_completed: profile.onboarding_completed,
+                notification_prefs: profile.notification_prefs,
                 created_at: profile.created_at
             },
             stats: {

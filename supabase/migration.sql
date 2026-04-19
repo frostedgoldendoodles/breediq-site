@@ -16,6 +16,8 @@ CREATE TABLE public.profiles (
     stripe_customer_id TEXT,
     onboarding_completed BOOLEAN DEFAULT FALSE,
     calendar_feed_token TEXT UNIQUE,
+    notification_prefs JSONB NOT NULL DEFAULT
+        '{"heat_reminders": true, "whelp_reminders": true, "guardian_checkins": true, "weekly_summary": true, "product_updates": true}'::jsonb,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
