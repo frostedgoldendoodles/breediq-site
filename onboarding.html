@@ -867,5 +867,21 @@
 
         ReactDOM.createRoot(document.getElementById('root')).render(<BreedIQOnboarding />);
     </script>
+
+    <!-- Ask BreedIQ — floating AI assistant (Phase 2) -->
+    <script src="/ask-breediq.js" defer></script>
+    <script>
+      (function () {
+        function setCtx() {
+          if (!window.AskBreedIQ) return;
+          window.AskBreedIQ.setContext({ page: 'onboarding' });
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', setCtx);
+        } else {
+          setTimeout(setCtx, 0);
+        }
+      })();
+    </script>
 </body>
 </html>

@@ -449,6 +449,23 @@
                     const data = await res.json();
                     setDog(data.dog);
                     setLitters(data.litters || []);
+                    // Inform the Ask BreedIQ assistant what we're looking at
+                    if (window.AskBreedIQ && data.dog) {
+                        window.AskBreedIQ.setContext({
+                            page: 'dog',
+                            entity_id: data.dog.id,
+                            entity_snapshot: {
+                                name: data.dog.name,
+                                call_name: data.dog.call_name,
+                                sex: data.dog.sex,
+                                breed: data.dog.breed,
+                                status: data.dog.status,
+                                role: data.dog.role,
+                                heat_status: data.dog.heat_status,
+                                last_heat_date: data.dog.last_heat_date
+                            }
+                        });
+                    }
                 } catch (err) {
                     setError(err.message);
                 } finally {
@@ -630,5 +647,8 @@
 
         ReactDOM.createRoot(document.getElementById('root')).render(<DogProfile />);
     </script>
+
+    <!-- Ask BreedIQ — floating AI assistant (Phase 2) -->
+    <script src="/ask-breediq.js" defer></script>
 </body>
 </html>
