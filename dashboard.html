@@ -70,7 +70,12 @@
         const formatShortDate = (iso) => {
             if (!iso) return '';
             const d = new Date(iso + 'T12:00:00');
-            return d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
+            // Include year when the date isn't in the current calendar year —
+            // otherwise a DOB like 2021-01-02 renders as "1/2" which looks broken.
+            const opts = d.getFullYear() === new Date().getFullYear()
+                ? { month: 'numeric', day: 'numeric' }
+                : { month: 'numeric', day: 'numeric', year: 'numeric' };
+            return d.toLocaleDateString('en-US', opts);
         };
 
         const daysUntil = (iso) => {

@@ -11,7 +11,7 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Set up your BreedIQ breeding program. Import your dogs, configure your kennel, and get started in minutes.">
+    <meta name="description" content="Set up your BreedIQ breeding program. Paste anything — notes, spreadsheets, texts — and our AI extracts your dogs, litters, and guardians.">
     <title>Get Started &mdash; BreedIQ</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%230F766E'>&#x1F43E;</text></svg>">
     <link rel="canonical" href="https://breediq.ai/onboarding">
@@ -35,90 +35,231 @@
             transition: all 0.3s ease;
         }
 
-        .gradient-button:hover {
+        .gradient-button:hover:not(:disabled) {
             box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(34, 197, 94, 0.2);
         }
 
-        .spinner {
-            animation: spin 3s linear infinite;
+        .gradient-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .paste-box {
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .pulse-glow {
-            animation: pulse-glow 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 1; filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5)); }
-            50% { opacity: 0.7; filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.8)); }
-        }
-
-        .progress-bar {
-            animation: progress-fill 5s ease-in-out forwards;
-        }
-
-        @keyframes progress-fill {
-            0% { width: 0%; }
-            100% { width: 100%; }
-        }
-
-        .drift {
-            animation: drift 8s ease-in-out infinite;
-        }
-
-        @keyframes drift {
-            0%, 100% { transform: translateY(0px) translateX(0px); }
-            25% { transform: translateY(-20px) translateX(10px); }
-            50% { transform: translateY(-30px) translateX(-10px); }
-            75% { transform: translateY(-10px) translateX(15px); }
-        }
-
-        .confetti-dot {
-            position: fixed;
-            pointer-events: none;
+        .paste-box:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
         }
 
         .dragover {
-            background-color: rgba(59, 130, 246, 0.1) !important;
+            background-color: rgba(59, 130, 246, 0.15) !important;
+            border-color: #3b82f6 !important;
         }
 
-        .file-list-item {
-            display: flex;
+        .file-chip {
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            background: rgba(59, 130, 246, 0.05);
-            border: 1px solid rgba(59, 130, 246, 0.2);
+            gap: 6px;
+            padding: 6px 10px;
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.25);
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 13px;
             color: #d1d5db;
         }
 
-        .confidence-dot {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 8px;
+        @keyframes slide-in {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .confidence-high { background-color: #22c55e; }
-        .confidence-medium { background-color: #eab308; }
-        .confidence-low { background-color: #f97316; }
+        .extraction-row {
+            animation: slide-in 0.3s ease-out both;
+        }
+
+        .pulse-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #3b82f6;
+            margin-right: 10px;
+            animation: pulse 1.4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.3); }
+        }
+
+        .group-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            border-radius: 10px;
+        }
+
+        .entity-row {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 12px;
+            align-items: start;
+            padding: 12px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(71, 85, 105, 0.4);
+            border-radius: 8px;
+        }
+
+        .entity-row input,
+        .entity-row select {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(71, 85, 105, 0.6);
+            border-radius: 4px;
+            padding: 4px 8px;
+            color: #f1f5f9;
+            font-size: 13px;
+        }
+
+        .entity-row input:focus,
+        .entity-row select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: 1px solid rgba(71, 85, 105, 0.6);
+            color: #94a3b8;
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.15s ease;
+        }
+
+        .icon-btn:hover {
+            color: #f1f5f9;
+            border-color: rgba(148, 163, 184, 0.8);
+        }
+
+        .icon-btn.danger:hover {
+            color: #ef4444;
+            border-color: #ef4444;
+        }
+
+        .ask-box {
+            background: rgba(234, 179, 8, 0.08);
+            border: 1px solid rgba(234, 179, 8, 0.35);
+            border-radius: 8px;
+            padding: 14px;
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-gray-100">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, useCallback } = React;
+
+        // ────────────────────────────────────────────────────────
+        // Helpers
+        // ────────────────────────────────────────────────────────
+
+        const TOOL_LABELS = {
+            create_dog: 'Dog',
+            create_litter: 'Litter',
+            create_guardian: 'Guardian',
+            link_guardian_to_dog: 'Guardian link',
+            ask_user: 'Question',
+            finish: 'Finish'
+        };
+
+        function formatDog(d) {
+            const bits = [];
+            if (d.breed) bits.push(d.breed);
+            if (d.sex) bits.push(d.sex === 'female' ? 'F' : 'M');
+            if (d.date_of_birth) bits.push(`DOB ${d.date_of_birth}`);
+            if (d.role) bits.push(d.role);
+            return bits.join(' • ') || 'details pending';
+        }
+
+        function formatLitter(l) {
+            const parts = [];
+            if (l.dam_name) parts.push(`dam: ${l.dam_name}`);
+            if (l.sire_name) parts.push(`sire: ${l.sire_name}`);
+            if (l.whelp_date) parts.push(`born ${l.whelp_date}`);
+            else if (l.due_date) parts.push(`due ${l.due_date}`);
+            else if (l.breed_date) parts.push(`bred ${l.breed_date}`);
+            if (l.puppy_count) parts.push(`${l.puppy_count} pups`);
+            return parts.join(' • ') || 'details pending';
+        }
+
+        function formatGuardian(g) {
+            const parts = [];
+            if (g.contact_name) parts.push(g.contact_name);
+            if (g.email) parts.push(g.email);
+            if (g.dog_name_if_known) parts.push(`guards ${g.dog_name_if_known}`);
+            return parts.join(' • ') || 'contact details pending';
+        }
+
+        // Parse NDJSON stream: onEvent called per message
+        async function readNdjson(response, onEvent) {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                let idx;
+                while ((idx = buffer.indexOf('\n')) >= 0) {
+                    const line = buffer.slice(0, idx).trim();
+                    buffer = buffer.slice(idx + 1);
+                    if (!line) continue;
+                    try {
+                        onEvent(JSON.parse(line));
+                    } catch (e) {
+                        console.warn('Failed to parse NDJSON line:', line);
+                    }
+                }
+            }
+            if (buffer.trim()) {
+                try { onEvent(JSON.parse(buffer.trim())); } catch {}
+            }
+        }
+
+        // ────────────────────────────────────────────────────────
+        // Main App
+        // ────────────────────────────────────────────────────────
 
         function BreedIQOnboarding() {
             const [authState, setAuthState] = useState('loading');
+            const [step, setStep] = useState(1);
+            const [pastedText, setPastedText] = useState('');
+            const [files, setFiles] = useState([]); // { file, uploaded: boolean, id: string }
+            const [uploading, setUploading] = useState(false);
+            const [uploadError, setUploadError] = useState(null);
+
+            // Streaming state
+            const [streamEvents, setStreamEvents] = useState([]);
+            const [streamError, setStreamError] = useState(null);
+            const [streamDone, setStreamDone] = useState(false);
+            const [streamThinking, setStreamThinking] = useState(false);
+
+            // Confirm-step state (editable)
+            const [dogs, setDogs] = useState([]);
+            const [litters, setLitters] = useState([]);
+            const [guardians, setGuardians] = useState([]);
+            const [questions, setQuestions] = useState([]);
+            const [confirming, setConfirming] = useState(false);
+            const [confirmError, setConfirmError] = useState(null);
+            const [confirmResult, setConfirmResult] = useState(null);
+
+            const dropzoneRef = useRef(null);
 
             useEffect(() => {
                 fetch('/api/auth/me', { credentials: 'include' })
@@ -133,106 +274,193 @@
                     });
             }, []);
 
-            const [step, setStep] = useState(1);
-            const [files, setFiles] = useState([]);
-            const [textInput, setTextInput] = useState('');
-            const [processingStep, setProcessingStep] = useState(0);
-            const [progressValue, setProgressValue] = useState(0);
-            const [confettiDots, setConfettiDots] = useState([]);
-            const [dogCards, setDogCards] = useState([]);
-            const [summary, setSummary] = useState(null);
-            const [analysisError, setAnalysisError] = useState(null);
-            const dragOverRef = useRef(null);
+            // ── File handling ───────────────────────────────────
+            const handleFiles = useCallback((newFileList) => {
+                const added = Array.from(newFileList).map(f => ({
+                    file: f, uploaded: false, id: null, uploading: false, error: null
+                }));
+                setFiles(prev => [...prev, ...added]);
+            }, []);
 
-            const statusMessages = [
-                'Scanning your documents...',
-                'Extracting dog profiles...',
-                'Mapping heat cycle patterns...',
-                'Building pedigree connections...',
-                'Calculating due dates and projections...',
-                'Organizing guardian family data...',
-                'Almost done...'
-            ];
-
-            const categories = [
-                'Dog Names', 'DOBs', 'Weights', 'Heat Dates',
-                'Breeding Dates', 'Stud Info', 'Litter Counts', 'Embark Links',
-                'Microchips', 'Guardian Families', 'Contract Terms', 'Pedigree'
-            ];
-
-            // Run AI analysis when step 2 is entered
-            const runAnalysis = async () => {
-                setStep(2);
-                setAnalysisError(null);
-                try {
-                    const response = await fetch('/api/analyze', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ notes: textInput })
-                    });
-                    const data = await response.json();
-                    if (!response.ok) {
-                        throw new Error(data.error || 'Analysis failed');
-                    }
-                    setDogCards(data.dogs || []);
-                    setSummary(data.summary || null);
-                    setStep(3);
-                } catch (err) {
-                    console.error('Analysis error:', err);
-                    setAnalysisError(err.message);
-                    setStep(1);
-                }
-            };
-
-            // Animate the processing status messages while on step 2
-            useEffect(() => {
-                if (step === 2) {
-                    const statusInterval = setInterval(() => {
-                        setProcessingStep(prev => (prev + 1) % statusMessages.length);
-                    }, 1500);
-
-                    return () => {
-                        clearInterval(statusInterval);
-                    };
-                }
-            }, [step]);
-
-            // Confetti animation
-            useEffect(() => {
-                if (step === 4) {
-                    const newDots = Array.from({ length: 12 }, (_, i) => ({
-                        id: i,
-                        left: Math.random() * 100,
-                        delay: Math.random() * 0.5,
-                        duration: 3 + Math.random() * 2,
-                        color: ['#3b82f6', '#22c55e', '#06b6d4', '#f59e0b'][Math.floor(Math.random() * 4)]
-                    }));
-                    setConfettiDots(newDots);
-                }
-            }, [step]);
-
-            const handleDragOver = (e) => {
-                e.preventDefault();
-                dragOverRef.current?.classList.add('dragover');
-            };
-
-            const handleDragLeave = () => {
-                dragOverRef.current?.classList.remove('dragover');
-            };
-
+            const handleDragOver = (e) => { e.preventDefault(); dropzoneRef.current?.classList.add('dragover'); };
+            const handleDragLeave = () => { dropzoneRef.current?.classList.remove('dragover'); };
             const handleDrop = (e) => {
                 e.preventDefault();
-                dragOverRef.current?.classList.remove('dragover');
-                const newFiles = Array.from(e.dataTransfer.files).map(file => file.name);
-                setFiles([...files, ...newFiles]);
+                dropzoneRef.current?.classList.remove('dragover');
+                if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files);
             };
+            const removeFile = (idx) => setFiles(prev => prev.filter((_, i) => i !== idx));
 
-            const handleFileInput = (e) => {
-                const newFiles = Array.from(e.target.files).map(file => file.name);
-                setFiles([...files, ...newFiles]);
-            };
+            // Upload a single file to /api/onboarding/upload, return file_id
+            async function uploadFile(fileEntry) {
+                const file = fileEntry.file;
+                const buf = await file.arrayBuffer();
+                // Convert to base64 without stack blowup
+                let binary = '';
+                const bytes = new Uint8Array(buf);
+                const chunk = 0x8000;
+                for (let i = 0; i < bytes.length; i += chunk) {
+                    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+                }
+                const b64 = btoa(binary);
+                const resp = await fetch('/api/onboarding/upload', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        filename: file.name,
+                        contentType: file.type || 'application/octet-stream',
+                        content: b64
+                    })
+                });
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || 'Upload failed');
+                return data.file.id;
+            }
 
-            const canProceedStep1 = files.length > 0 || textInput.trim().length > 0;
+            // ── Kick off processing ─────────────────────────────
+            const canAnalyze = (pastedText.trim().length > 0 || files.length > 0) && !uploading;
+
+            async function runAnalysis() {
+                setUploadError(null);
+                setStreamError(null);
+                setStreamEvents([]);
+                setDogs([]); setLitters([]); setGuardians([]); setQuestions([]);
+                setStreamDone(false);
+                setStreamThinking(false);
+                setStep(2);
+
+                // Upload files if any
+                let fileIds = [];
+                if (files.length > 0) {
+                    setUploading(true);
+                    try {
+                        for (let i = 0; i < files.length; i++) {
+                            if (files[i].id) { fileIds.push(files[i].id); continue; }
+                            const id = await uploadFile(files[i]);
+                            fileIds.push(id);
+                            setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, uploaded: true, id } : f));
+                        }
+                    } catch (err) {
+                        setUploadError(err.message);
+                        setUploading(false);
+                        setStep(1);
+                        return;
+                    }
+                    setUploading(false);
+                }
+
+                // Stream from /api/onboarding/process
+                try {
+                    const resp = await fetch('/api/onboarding/process', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: pastedText, file_ids: fileIds })
+                    });
+                    if (!resp.ok || !resp.body) {
+                        const errText = await resp.text().catch(() => '');
+                        throw new Error(errText || `Processing failed (${resp.status})`);
+                    }
+
+                    await readNdjson(resp, (ev) => {
+                        if (ev.type === 'start') {
+                            setStreamEvents(e => [...e, { ...ev, key: `start-${Date.now()}` }]);
+                        } else if (ev.type === 'thinking_start') {
+                            setStreamThinking(true);
+                        } else if (ev.type === 'tool_call') {
+                            setStreamEvents(e => [...e, { ...ev, key: `tc-${ev.tool_use_id}` }]);
+                            // also populate the confirm-step collections
+                            if (ev.tool_name === 'create_dog') {
+                                setDogs(prev => [...prev, { _key: ev.tool_use_id, ...ev.input }]);
+                            } else if (ev.tool_name === 'create_litter') {
+                                setLitters(prev => [...prev, { _key: ev.tool_use_id, ...ev.input }]);
+                            } else if (ev.tool_name === 'create_guardian') {
+                                setGuardians(prev => [...prev, { _key: ev.tool_use_id, ...ev.input }]);
+                            } else if (ev.tool_name === 'link_guardian_to_dog') {
+                                setGuardians(prev => prev.map(g =>
+                                    (g.family_name || '').toLowerCase() === (ev.input.guardian_name || '').toLowerCase()
+                                        ? { ...g, dog_name_if_known: g.dog_name_if_known || ev.input.dog_name }
+                                        : g
+                                ));
+                            } else if (ev.tool_name === 'ask_user') {
+                                setQuestions(prev => [...prev, { _key: ev.tool_use_id, ...ev.input, answer: '' }]);
+                            }
+                        } else if (ev.type === 'done') {
+                            setStreamDone(true);
+                            setStreamEvents(e => [...e, { ...ev, key: `done-${Date.now()}` }]);
+                        } else if (ev.type === 'error') {
+                            setStreamError(ev.error);
+                        }
+                    });
+                } catch (err) {
+                    console.error(err);
+                    setStreamError(err.message || 'Stream failed');
+                }
+            }
+
+            // Auto-advance to step 3 when stream completes and has results
+            useEffect(() => {
+                if (streamDone && !streamError) {
+                    // Delay so user sees the "done" check
+                    const t = setTimeout(() => setStep(3), 600);
+                    return () => clearTimeout(t);
+                }
+            }, [streamDone, streamError]);
+
+            // ── Confirm ─────────────────────────────────────────
+            async function handleConfirm() {
+                setConfirming(true);
+                setConfirmError(null);
+                try {
+                    // Build tool_calls payload from current (possibly edited) state
+                    const tool_calls = [];
+                    for (const d of dogs) {
+                        const { _key, ...input } = d;
+                        tool_calls.push({ tool_name: 'create_dog', input });
+                    }
+                    for (const l of litters) {
+                        const { _key, ...input } = l;
+                        tool_calls.push({ tool_name: 'create_litter', input });
+                    }
+                    for (const g of guardians) {
+                        const { _key, ...input } = g;
+                        // Fold question answers into notes if provided
+                        tool_calls.push({ tool_name: 'create_guardian', input });
+                    }
+                    // Fold unanswered questions' answers into first dog's notes if any provided
+                    const answered = questions.filter(q => q.answer && q.answer.trim());
+                    const file_ids = files.filter(f => f.id).map(f => f.id);
+
+                    // If user answered any questions, append them as context to the last dog's notes
+                    if (answered.length > 0 && tool_calls.length > 0) {
+                        const noteBlob = answered.map(q => `Q: ${q.question} A: ${q.answer}`).join(' | ');
+                        const firstDog = tool_calls.find(tc => tc.tool_name === 'create_dog');
+                        if (firstDog) {
+                            firstDog.input.notes = [firstDog.input.notes, noteBlob].filter(Boolean).join(' | ');
+                        }
+                    }
+
+                    const resp = await fetch('/api/onboarding/confirm', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ tool_calls, file_ids })
+                    });
+                    const data = await resp.json();
+                    if (!resp.ok) throw new Error(data.error || data.message || 'Save failed');
+                    setConfirmResult(data);
+                    setStep(4);
+                } catch (err) {
+                    setConfirmError(err.message);
+                } finally {
+                    setConfirming(false);
+                }
+            }
+
+            // ────────────────────────────────────────────────────
+            // Render
+            // ────────────────────────────────────────────────────
 
             if (authState === 'loading') {
                 return (
@@ -256,13 +484,11 @@
                                 </div>
                                 <span className="font-bold text-lg text-gray-100">BreedIQ</span>
                             </a>
-                            <div className="text-sm text-gray-400">
-                                Step {step} of 4
-                            </div>
+                            <div className="text-sm text-gray-400">Step {step} of 4</div>
                         </div>
                     </div>
 
-                    {/* Progress Bar */}
+                    {/* Progress bar */}
                     <div className="bg-slate-900 border-b border-slate-800">
                         <div className="max-w-4xl mx-auto px-6 py-3">
                             <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
@@ -274,295 +500,367 @@
                         </div>
                     </div>
 
-                    {/* Content */}
-                    <div className="max-w-4xl mx-auto px-6 py-12">
-                        {/* STEP 1: Upload Records */}
+                    <div className="max-w-4xl mx-auto px-6 py-10">
+                        {/* STEP 1: Paste */}
                         {step === 1 && (
-                            <div className="space-y-8">
+                            <div className="space-y-6">
                                 <div>
-                                    <h1 className="text-4xl font-bold text-gray-100 mb-2">Let's get your breeding program set up</h1>
-                                    <p className="text-lg text-gray-400">Upload your existing records — notes, spreadsheets, screenshots, whatever you've got. Or paste them below.</p>
+                                    <h1 className="text-4xl font-bold text-gray-100 mb-2">Tell us about your program</h1>
+                                    <p className="text-lg text-gray-400">Paste anything — our AI extracts the dogs, litters, and guardians. You review before we save a thing.</p>
                                 </div>
 
-                                {/* Drag & Drop Zone */}
+                                {/* The flagship paste box */}
+                                <textarea
+                                    value={pastedText}
+                                    onChange={(e) => setPastedText(e.target.value)}
+                                    placeholder="Paste anything — Apple Notes, a spreadsheet copy-paste, text messages with your vet, a breeding log, whatever you've got. We'll sort it."
+                                    className="paste-box w-full min-h-[280px] rounded-xl px-5 py-4 text-base text-gray-100 placeholder-gray-500 resize-y"
+                                />
+
+                                {/* Drag-drop / file add */}
                                 <div
-                                    ref={dragOverRef}
+                                    ref={dropzoneRef}
                                     onDragOver={handleDragOver}
                                     onDragLeave={handleDragLeave}
                                     onDrop={handleDrop}
-                                    className="border-2 border-dashed border-slate-600 rounded-lg p-8 text-center cursor-pointer transition hover:border-blue-500 hover:bg-blue-500/5"
+                                    className="border-2 border-dashed border-slate-700 rounded-lg px-5 py-4 transition hover:border-blue-500 hover:bg-blue-500/5"
                                 >
-                                    <div className="flex flex-col items-center justify-center gap-3">
-                                        <svg className="w-12 h-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
-                                        </svg>
-                                        <div>
-                                            <p className="text-gray-300 font-medium">Drag files here or click to upload</p>
-                                            <p className="text-sm text-gray-500 mt-1">Any file type accepted — PDF, Excel, Images, Notes, etc.</p>
+                                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                                        <div className="flex items-center gap-3">
+                                            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                            </svg>
+                                            <div>
+                                                <p className="text-gray-300 text-sm font-medium">Or drop files here (optional)</p>
+                                                <p className="text-xs text-gray-500">Images, PDFs, spreadsheets, notes — we read them all.</p>
+                                            </div>
                                         </div>
-                                        <label className="mt-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm text-gray-300 cursor-pointer transition">
-                                            Choose Files
-                                            <input type="file" multiple onChange={handleFileInput} className="hidden" />
+                                        <label className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm text-gray-300 cursor-pointer transition">
+                                            Choose files
+                                            <input type="file" multiple onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }} className="hidden" />
                                         </label>
                                     </div>
                                 </div>
 
-                                {/* File List */}
                                 {files.length > 0 && (
-                                    <div className="space-y-2">
-                                        <p className="text-sm font-medium text-gray-400">Added files:</p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {files.map((file, idx) => (
-                                                <div key={idx} className="file-list-item">
-                                                    📄 {file}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Text Textarea */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-300">Or paste your breeding notes here:</label>
-                                    <textarea
-                                        value={textInput}
-                                        onChange={(e) => setTextInput(e.target.value)}
-                                        placeholder="Paste your breeding notes here... Apple Notes, text messages, spreadsheet data, anything works."
-                                        className="w-full h-32 bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
-                                    />
-                                </div>
-
-                                {/* Categories */}
-                                <div className="space-y-3">
-                                    <p className="text-sm font-medium text-gray-300">What we'll extract:</p>
                                     <div className="flex flex-wrap gap-2">
-                                        {categories.map((cat, idx) => (
-                                            <span key={idx} className="px-3 py-1 bg-slate-800 border border-slate-700 rounded-full text-sm text-gray-300">
-                                                {cat}
-                                            </span>
+                                        {files.map((f, idx) => (
+                                            <div key={idx} className="file-chip">
+                                                <span>📄 {f.file.name}</span>
+                                                <button
+                                                    onClick={() => removeFile(idx)}
+                                                    className="text-gray-500 hover:text-red-400 ml-1"
+                                                    aria-label="Remove file"
+                                                >×</button>
+                                            </div>
                                         ))}
                                     </div>
-                                </div>
+                                )}
 
-                                {/* Error Message */}
-                                {analysisError && (
-                                    <div className="bg-red-900/20 border border-red-700/50 rounded-lg p-4">
-                                        <p className="text-sm text-red-200">
-                                            <span className="font-semibold">Analysis failed:</span> {analysisError}. Please try again.
-                                        </p>
+                                {(uploadError || streamError) && (
+                                    <div className="bg-red-900/20 border border-red-700/50 rounded-lg p-4 text-sm text-red-200">
+                                        <span className="font-semibold">Something went wrong:</span> {uploadError || streamError}
                                     </div>
                                 )}
 
-                                {/* CTA Button */}
                                 <button
                                     onClick={runAnalysis}
-                                    disabled={!canProceedStep1}
-                                    className={`w-full py-3 rounded-lg font-semibold text-white transition ${
-                                        canProceedStep1
-                                            ? 'gradient-button cursor-pointer'
-                                            : 'bg-slate-800 text-gray-500 cursor-not-allowed opacity-50'
-                                    }`}
+                                    disabled={!canAnalyze}
+                                    className="w-full py-3.5 rounded-lg font-semibold text-white gradient-button"
                                 >
-                                    Analyze My Records
+                                    {uploading ? 'Uploading files...' : 'Extract my program'}
                                 </button>
+
+                                <p className="text-xs text-gray-500 text-center">Nothing gets saved to your account until you review and confirm.</p>
                             </div>
                         )}
 
-                        {/* STEP 2: AI Processing */}
+                        {/* STEP 2: Streaming extractions */}
                         {step === 2 && (
-                            <div className="flex flex-col items-center justify-center py-20 space-y-8">
-                                <div className="relative w-24 h-24">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg blur-lg opacity-50"></div>
-                                    <div className="relative w-24 h-24 bg-slate-900 rounded-lg flex items-center justify-center spinner pulse-glow">
-                                        <span className="text-4xl">ℬ</span>
-                                    </div>
-                                </div>
-
-                                <div className="text-center space-y-2">
-                                    <p className="text-xl text-gray-100 font-medium h-6">
-                                        {statusMessages[processingStep]}
+                            <div className="space-y-6">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-gray-100 mb-2">Reading your records</h1>
+                                    <p className="text-gray-400">
+                                        {streamDone ? 'Done — review your extractions next.' : (streamThinking ? 'Thinking through your records...' : 'Extracting live — each item appears as our AI finds it.')}
                                     </p>
-                                    <p className="text-sm text-gray-500">This usually takes a few seconds...</p>
                                 </div>
 
-                                <div className="w-full max-w-xs bg-slate-800 rounded-full h-2 overflow-hidden">
-                                    <div
-                                        className="progress-bar bg-gradient-to-r from-blue-500 to-green-500 h-full"
-                                    ></div>
+                                <div className="space-y-2">
+                                    {streamEvents.filter(e => e.type === 'tool_call').length === 0 && !streamError && (
+                                        <div className="text-gray-500 text-sm flex items-center">
+                                            <span className="pulse-dot"></span>
+                                            Working...
+                                        </div>
+                                    )}
+
+                                    {streamEvents.filter(e => e.type === 'tool_call').map(ev => {
+                                        if (ev.tool_name === 'finish') {
+                                            return (
+                                                <div key={ev.key} className="extraction-row bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-sm text-green-200">
+                                                    <span className="font-semibold">Done.</span> {ev.input.summary}
+                                                </div>
+                                            );
+                                        }
+                                        let label = '';
+                                        if (ev.tool_name === 'create_dog') {
+                                            label = `Found dog: ${ev.input.name || 'unnamed'} (${formatDog(ev.input)})`;
+                                        } else if (ev.tool_name === 'create_litter') {
+                                            label = `Found litter: ${formatLitter(ev.input)}`;
+                                        } else if (ev.tool_name === 'create_guardian') {
+                                            label = `Found guardian: ${ev.input.family_name} ${ev.input.contact_name ? `(${ev.input.contact_name})` : ''}`;
+                                        } else if (ev.tool_name === 'link_guardian_to_dog') {
+                                            label = `Linked: ${ev.input.guardian_name} → ${ev.input.dog_name}`;
+                                        } else if (ev.tool_name === 'ask_user') {
+                                            return (
+                                                <div key={ev.key} className="extraction-row bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 text-sm">
+                                                    <span className="text-amber-300 font-semibold">Question for you:</span>{' '}
+                                                    <span className="text-amber-100">{ev.input.question}</span>
+                                                    {ev.input.context && <div className="text-amber-200/60 text-xs mt-1">{ev.input.context}</div>}
+                                                </div>
+                                            );
+                                        }
+                                        return (
+                                            <div key={ev.key} className="extraction-row bg-slate-900/60 border border-slate-700 rounded-lg p-3 text-sm text-gray-200 flex items-start gap-2">
+                                                <span className="text-green-400 mt-0.5">✓</span>
+                                                <span>{label}</span>
+                                            </div>
+                                        );
+                                    })}
+
+                                    {streamError && (
+                                        <div className="bg-red-900/20 border border-red-700/50 rounded-lg p-4 text-sm text-red-200">
+                                            <span className="font-semibold">Extraction error:</span> {streamError}
+                                            <button
+                                                onClick={() => setStep(1)}
+                                                className="ml-3 underline text-red-300"
+                                            >Back</button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
 
                         {/* STEP 3: Review & Confirm */}
                         {step === 3 && (
-                            <div className="space-y-8">
+                            <div className="space-y-6">
                                 <div>
-                                    <h1 className="text-4xl font-bold text-gray-100 mb-2">Here's what we found</h1>
+                                    <h1 className="text-3xl font-bold text-gray-100 mb-2">Review before we save</h1>
+                                    <p className="text-gray-400">Edit anything that's wrong. Click × to remove a row. When you're ready, confirm to save to your BreedIQ account.</p>
                                 </div>
 
-                                {/* Summary Stats */}
-                                {summary && (
-                                    <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
-                                        <p className="text-gray-300">
-                                            <span className="font-semibold text-green-400">{summary.total_dogs} dog{summary.total_dogs !== 1 ? 's' : ''}</span> extracted
-                                            {summary.pregnant_count > 0 && (<>, <span className="font-semibold text-blue-400">{summary.pregnant_count} currently pregnant</span></>)}
-                                            {summary.nursing_count > 0 && (<>, <span className="font-semibold text-amber-400">{summary.nursing_count} nursing</span></>)}
-                                            {summary.stud_count > 0 && (<>, <span className="font-semibold text-purple-400">{summary.stud_count} stud{summary.stud_count !== 1 ? 's' : ''}</span></>)}
-                                            {summary.embark_linked_count > 0 && (<>, <span className="font-semibold text-cyan-400">{summary.embark_linked_count} Embark</span> profile{summary.embark_linked_count !== 1 ? 's' : ''} linked</>)}
-                                        </p>
-                                    </div>
-                                )}
-
-                                {/* Dog Cards */}
-                                <div className="space-y-3">
-                                    {dogCards.map((dog, idx) => {
-                                        const dotClass = `confidence-${dog.confidence}`;
-                                        return (
-                                            <div key={idx} className="bg-slate-900 border border-slate-800 rounded-lg p-4 hover:border-slate-700 transition">
-                                                <div className="flex items-start gap-3">
-                                                    <div className={`confidence-dot ${dotClass}`}></div>
-                                                    <div className="flex-1">
-                                                        <h3 className="font-semibold text-gray-100">{dog.name}</h3>
-                                                        <p className="text-sm text-gray-400 mt-1">{dog.info}</p>
-                                                    </div>
-                                                    <span className="text-xs px-2 py-1 bg-slate-800 rounded text-gray-400 whitespace-nowrap">
-                                                        {dog.confidence === 'high' && '✓ High confidence'}
-                                                        {dog.confidence === 'medium' && '⚠ Medium confidence'}
-                                                        {dog.confidence === 'low' && '? Low confidence'}
-                                                    </span>
-                                                </div>
+                                {/* Questions from ask_user */}
+                                {questions.length > 0 && (
+                                    <div className="ask-box space-y-3">
+                                        <div className="text-sm text-amber-200 font-semibold">A few questions we ran into:</div>
+                                        {questions.map((q, idx) => (
+                                            <div key={q._key} className="space-y-1">
+                                                <div className="text-sm text-amber-100">{q.question}</div>
+                                                {q.context && <div className="text-xs text-amber-200/60">{q.context}</div>}
+                                                <input
+                                                    type="text"
+                                                    value={q.answer}
+                                                    onChange={(e) => setQuestions(prev => prev.map((x, i) => i === idx ? { ...x, answer: e.target.value } : x))}
+                                                    placeholder="Your answer (we'll append this as a note)"
+                                                    className="w-full bg-slate-900/60 border border-slate-700 rounded px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-amber-400"
+                                                />
                                             </div>
-                                        );
-                                    })}
-                                </div>
-
-                                {/* Missing Info Alert */}
-                                {summary && summary.missing_info && summary.missing_info.length > 0 && (
-                                    <div className="bg-amber-900/20 border border-amber-700/50 rounded-lg p-4">
-                                        <p className="text-sm text-amber-200">
-                                            <span className="font-semibold">Missing Info:</span> {summary.missing_info.join('. ')}. You can add these later from the dashboard.
-                                        </p>
+                                        ))}
                                     </div>
                                 )}
 
-                                {/* Guardian Families */}
-                                {summary && summary.guardian_families && summary.guardian_families.length > 0 && (
-                                    <div className="space-y-2">
-                                        <p className="text-sm font-medium text-gray-300">Guardian Families:</p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {summary.guardian_families.map((gf, idx) => (
-                                                <span key={idx} className="px-3 py-1 bg-slate-800 border border-slate-700 rounded-full text-sm text-gray-300">
-                                                    {gf.family_name} ({gf.dog_name})
-                                                </span>
-                                            ))}
-                                        </div>
+                                {/* Dogs */}
+                                <EntityGroup
+                                    title="Dogs"
+                                    emoji="🐕"
+                                    items={dogs}
+                                    onRemove={(idx) => setDogs(prev => prev.filter((_, i) => i !== idx))}
+                                    render={(dog, idx) => (
+                                        <DogRow
+                                            dog={dog}
+                                            onChange={(field, val) => setDogs(prev => prev.map((d, i) => i === idx ? { ...d, [field]: val } : d))}
+                                        />
+                                    )}
+                                />
+
+                                {/* Litters */}
+                                <EntityGroup
+                                    title="Litters"
+                                    emoji="🍼"
+                                    items={litters}
+                                    onRemove={(idx) => setLitters(prev => prev.filter((_, i) => i !== idx))}
+                                    render={(litter, idx) => (
+                                        <LitterRow
+                                            litter={litter}
+                                            onChange={(field, val) => setLitters(prev => prev.map((l, i) => i === idx ? { ...l, [field]: val } : l))}
+                                        />
+                                    )}
+                                />
+
+                                {/* Guardians */}
+                                <EntityGroup
+                                    title="Guardian families"
+                                    emoji="🏡"
+                                    items={guardians}
+                                    onRemove={(idx) => setGuardians(prev => prev.filter((_, i) => i !== idx))}
+                                    render={(g, idx) => (
+                                        <GuardianRow
+                                            guardian={g}
+                                            onChange={(field, val) => setGuardians(prev => prev.map((x, i) => i === idx ? { ...x, [field]: val } : x))}
+                                        />
+                                    )}
+                                />
+
+                                {dogs.length === 0 && litters.length === 0 && guardians.length === 0 && (
+                                    <div className="bg-slate-900/60 border border-slate-700 rounded-lg p-6 text-center text-gray-400">
+                                        We didn't pull anything out. Try adding more details and run it again.
                                     </div>
                                 )}
 
-                                {/* Action Buttons */}
-                                <div className="flex gap-4">
+                                {confirmError && (
+                                    <div className="bg-red-900/20 border border-red-700/50 rounded-lg p-4 text-sm text-red-200">
+                                        <span className="font-semibold">Save failed:</span> {confirmError}
+                                    </div>
+                                )}
+
+                                <div className="flex gap-3 pt-2">
                                     <button
-                                        onClick={() => {
-                                            setStep(1);
-                                            setFiles([]);
-                                            setTextInput('');
-                                        }}
-                                        className="flex-1 py-3 rounded-lg font-semibold text-gray-300 border border-slate-700 hover:bg-slate-800 transition"
+                                        onClick={() => setStep(1)}
+                                        disabled={confirming}
+                                        className="flex-1 py-3 rounded-lg font-semibold text-gray-300 border border-slate-700 hover:bg-slate-800 transition disabled:opacity-50"
                                     >
-                                        Start Over
+                                        Back
                                     </button>
                                     <button
-                                        onClick={() => setStep(4)}
+                                        onClick={handleConfirm}
+                                        disabled={confirming || (dogs.length === 0 && litters.length === 0 && guardians.length === 0)}
                                         className="flex-1 py-3 rounded-lg font-semibold text-white gradient-button"
                                     >
-                                        Confirm & Launch Dashboard
+                                        {confirming ? 'Saving...' : 'Confirm & launch'}
                                     </button>
                                 </div>
                             </div>
                         )}
 
                         {/* STEP 4: Success */}
-                        {step === 4 && (
-                            <div className="flex flex-col items-center justify-center py-12 space-y-8">
-                                {/* Checkmark Animation */}
-                                <div className="relative w-20 h-20">
-                                    <svg className="w-20 h-20 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <circle cx="12" cy="12" r="11" strokeWidth="1.5" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
+                        {step === 4 && confirmResult && (
+                            <div className="flex flex-col items-center justify-center py-12 space-y-6 text-center">
+                                <div className="w-20 h-20 rounded-full bg-green-500/20 border border-green-500/40 flex items-center justify-center">
+                                    <svg className="w-12 h-12 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
                                 </div>
-
-                                {/* Confetti */}
-                                {confettiDots.map(dot => (
-                                    <div
-                                        key={dot.id}
-                                        className="confetti-dot w-2 h-2 rounded-full drift"
-                                        style={{
-                                            backgroundColor: dot.color,
-                                            left: `${dot.left}%`,
-                                            top: '100px',
-                                            animation: `drift ${dot.duration}s ease-in-out infinite`,
-                                            animationDelay: `${dot.delay}s`
-                                        }}
-                                    ></div>
-                                ))}
-
-                                {/* Text */}
-                                <div className="text-center space-y-2">
-                                    <h1 className="text-4xl font-bold text-gray-100">Your breeding program is live!</h1>
-                                    <p className="text-gray-400">Everything is ready to go.</p>
+                                <div>
+                                    <h1 className="text-3xl font-bold text-gray-100 mb-2">Your program is live</h1>
+                                    <p className="text-gray-400">{confirmResult.message}</p>
                                 </div>
-
-                                {/* Stats */}
-                                <div className="bg-slate-900 border border-slate-800 rounded-lg p-6 w-full max-w-md">
-                                    <div className="space-y-2 text-sm text-gray-300">
-                                        <div className="flex justify-between">
-                                            <span>Dogs added:</span>
-                                            <span className="font-semibold text-green-400">{summary ? summary.total_dogs : dogCards.length}</span>
+                                <div className="bg-slate-900/70 border border-slate-800 rounded-lg p-5 w-full max-w-md space-y-2 text-sm text-left">
+                                    <div className="flex justify-between"><span>Dogs added</span><span className="font-semibold text-green-400">{confirmResult.summary.dogs_created}</span></div>
+                                    <div className="flex justify-between"><span>Litters added</span><span className="font-semibold text-blue-400">{confirmResult.summary.litters_created}</span></div>
+                                    <div className="flex justify-between"><span>Guardian families</span><span className="font-semibold text-cyan-400">{confirmResult.summary.guardians_created}</span></div>
+                                    {confirmResult.summary.errors?.length > 0 && (
+                                        <div className="pt-2 border-t border-slate-700 text-xs text-amber-300">
+                                            {confirmResult.summary.errors.length} item(s) had issues — check the dashboard.
                                         </div>
-                                        <div className="flex justify-between">
-                                            <span>Active pregnancies tracked:</span>
-                                            <span className="font-semibold text-blue-400">{summary ? summary.pregnant_count : 0}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span>Guardian families linked:</span>
-                                            <span className="font-semibold text-cyan-400">{summary ? summary.guardian_families.length : 0}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span>Embark profiles connected:</span>
-                                            <span className="font-semibold text-amber-400">{summary ? summary.embark_linked_count : 0}</span>
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
-
-                                {/* Action Cards */}
-                                <div className="w-full space-y-3">
-                                    <a
-                                        href="/dashboard"
-                                        className="block w-full py-3 rounded-lg font-semibold text-white gradient-button text-center transition"
-                                    >
-                                        Go to Dashboard
-                                    </a>
-                                    <button
-                                        onClick={() => {
-                                            setStep(1);
-                                            setFiles([]);
-                                            setTextInput('');
-                                        }}
-                                        className="w-full py-3 rounded-lg font-semibold text-gray-300 border border-slate-700 hover:bg-slate-800 transition"
-                                    >
-                                        Upload More Records
-                                    </button>
-                                    <a
-                                        href="#"
-                                        className="block w-full py-3 rounded-lg font-semibold text-gray-300 border border-slate-700 hover:bg-slate-800 transition text-center"
-                                    >
-                                        Connect Embark
-                                    </a>
-                                </div>
+                                <a
+                                    href="/dashboard"
+                                    className="inline-block w-full max-w-xs py-3 rounded-lg font-semibold text-white gradient-button"
+                                >
+                                    Go to dashboard
+                                </a>
                             </div>
                         )}
                     </div>
+                </div>
+            );
+        }
+
+        // ────────────────────────────────────────────────────────
+        // Sub-components
+        // ────────────────────────────────────────────────────────
+
+        function EntityGroup({ title, emoji, items, render, onRemove }) {
+            if (!items || items.length === 0) return null;
+            return (
+                <div className="group-card p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                        <span>{emoji}</span>
+                        <h3 className="text-gray-100 font-semibold">{title} <span className="text-gray-500 font-normal">({items.length})</span></h3>
+                    </div>
+                    <div className="space-y-2">
+                        {items.map((item, idx) => (
+                            <div key={item._key || idx} className="entity-row">
+                                <div className="text-green-400 text-sm pt-1">+</div>
+                                <div>{render(item, idx)}</div>
+                                <button
+                                    onClick={() => onRemove(idx)}
+                                    className="icon-btn danger"
+                                    title="Remove"
+                                >×</button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function DogRow({ dog, onChange }) {
+            return (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <input placeholder="Name" value={dog.name || ''} onChange={e => onChange('name', e.target.value)} />
+                    <select value={dog.sex || ''} onChange={e => onChange('sex', e.target.value || undefined)}>
+                        <option value="">Sex</option>
+                        <option value="female">Female</option>
+                        <option value="male">Male</option>
+                    </select>
+                    <input placeholder="Breed" value={dog.breed || ''} onChange={e => onChange('breed', e.target.value)} />
+                    <input placeholder="DOB (YYYY-MM-DD)" value={dog.date_of_birth || ''} onChange={e => onChange('date_of_birth', e.target.value)} />
+                    <select value={dog.role || ''} onChange={e => onChange('role', e.target.value || undefined)}>
+                        <option value="">Role</option>
+                        <option value="dam">Dam</option>
+                        <option value="stud">Stud</option>
+                        <option value="prospect">Prospect</option>
+                    </select>
+                    <input placeholder="Color" value={dog.color || ''} onChange={e => onChange('color', e.target.value)} />
+                    <input placeholder="Weight (lbs)" type="number" value={dog.weight_lbs || ''} onChange={e => onChange('weight_lbs', e.target.value ? Number(e.target.value) : undefined)} />
+                    <input placeholder="Notes" value={dog.notes || ''} onChange={e => onChange('notes', e.target.value)} />
+                </div>
+            );
+        }
+
+        function LitterRow({ litter, onChange }) {
+            return (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <input placeholder="Dam name" value={litter.dam_name || ''} onChange={e => onChange('dam_name', e.target.value)} />
+                    <input placeholder="Sire name" value={litter.sire_name || ''} onChange={e => onChange('sire_name', e.target.value)} />
+                    <input placeholder="Breed date" value={litter.breed_date || ''} onChange={e => onChange('breed_date', e.target.value)} />
+                    <input placeholder="Due date" value={litter.due_date || ''} onChange={e => onChange('due_date', e.target.value)} />
+                    <input placeholder="Whelp date" value={litter.whelp_date || ''} onChange={e => onChange('whelp_date', e.target.value)} />
+                    <input placeholder="Puppy count" type="number" value={litter.puppy_count || ''} onChange={e => onChange('puppy_count', e.target.value ? Number(e.target.value) : undefined)} />
+                    <select value={litter.status || ''} onChange={e => onChange('status', e.target.value || undefined)}>
+                        <option value="">Status</option>
+                        <option value="planned">Planned</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="born">Born</option>
+                        <option value="available">Available</option>
+                        <option value="placed">Placed</option>
+                        <option value="archived">Archived</option>
+                    </select>
+                    <input placeholder="Notes" value={litter.notes || ''} onChange={e => onChange('notes', e.target.value)} />
+                </div>
+            );
+        }
+
+        function GuardianRow({ guardian, onChange }) {
+            return (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <input placeholder="Family name" value={guardian.family_name || ''} onChange={e => onChange('family_name', e.target.value)} />
+                    <input placeholder="Contact name" value={guardian.contact_name || ''} onChange={e => onChange('contact_name', e.target.value)} />
+                    <input placeholder="Email" value={guardian.email || ''} onChange={e => onChange('email', e.target.value)} />
+                    <input placeholder="Phone" value={guardian.phone || ''} onChange={e => onChange('phone', e.target.value)} />
+                    <input placeholder="Dog they guard" value={guardian.dog_name_if_known || ''} onChange={e => onChange('dog_name_if_known', e.target.value)} />
+                    <input placeholder="Notes" className="md:col-span-3" value={guardian.notes || ''} onChange={e => onChange('notes', e.target.value)} />
                 </div>
             );
         }
