@@ -278,3 +278,36 @@ CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON public.profiles FOR E
 CREATE TRIGGER update_dogs_updated_at BEFORE UPDATE ON public.dogs FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 CREATE TRIGGER update_litters_updated_at BEFORE UPDATE ON public.litters FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 CREATE TRIGGER update_guardians_updated_at BEFORE UPDATE ON public.guardians FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+-- ============================================================
+-- 10. CALENDAR_EVENTS (user-created events, distinct from derived ones)
+--     Added for the AI assistant's create_calendar_event tool.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.calendar_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    event_date DATE NOT NULL,
+    event_type TEXT DEFAULT 'custom' CHECK (event_type IN ('custom', 'vet', 'grooming', 'training', 'travel', 'other')),
+    dog_id UUID REFERENCES public.dogs(id) ON DELETE SET NULL,
+    litter_id UUID REFERENCES public.litters(id) ON DELETE SET NULL,
+    notes TEXT,
+    source TEXT DEFAULT 'manual' CHECK (source IN ('manual', 'ai_assistant')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_calendar_events_user_id ON public.calendar_events(user_id);
+CREATE INDEX IF NOT EXISTS idx_calendar_events_date ON public.calendar_events(event_date);
+CREATE INDEX IF NOT EXISTS idx_calendar_events_dog_id ON public.calendar_events(dog_id) WHERE dog_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_calendar_events_litter_id ON public.calendar_events(litter_id) WHERE litter_id IS NOT NULL;
+
+ALTER TABLE public.calendar_events ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own calendar_events" ON public.calendar_events FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own calendar_events" ON public.calendar_events FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own calendar_events" ON public.calendar_events FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own calendar_events" ON public.calendar_events FOR DELETE USING (auth.uid() = user_id);
+
+CREATE TRIGGER update_calendar_events_updated_at BEFORE UPDATE ON public.calendar_events
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();

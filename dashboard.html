@@ -829,8 +829,9 @@
 
             return (
                 <div className="space-y-8">
-                    {/* Quick Update Bar */}
-                    <QuickUpdateBar dogs={dogs} litters={litters} refetch={refetch} />
+                    {/* Quick Update Bar removed in Phase 2 — replaced by the "Ask BreedIQ"
+                        floating assistant (see /ask-breediq.js). The QuickUpdateBar component
+                        is kept in this file (unused) until we're confident nothing else calls it. */}
 
                     {/* Stats Row — tap to navigate to Dams with filter, chevron for inline preview */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
@@ -2557,6 +2558,27 @@
         }
 
         ReactDOM.createRoot(document.getElementById('root')).render(<BreedIQDashboard />);
+    </script>
+
+    <!-- Ask BreedIQ — floating AI assistant (Phase 2) -->
+    <script src="/ask-breediq.js" defer></script>
+    <script>
+      // Register a coarse page context. When the dashboard view mounts a specific
+      // entity (e.g. a dog drill-down), the relevant component can refine this via
+      // window.AskBreedIQ.setContext(...).
+      (function () {
+        function setCtx() {
+          if (!window.AskBreedIQ) return;
+          const params = new URLSearchParams(location.search);
+          const view = params.get('view') || 'dashboard';
+          window.AskBreedIQ.setContext({ page: 'dashboard', entity_snapshot: { view } });
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', setCtx);
+        } else {
+          setTimeout(setCtx, 0);
+        }
+      })();
     </script>
 </body>
 </html>

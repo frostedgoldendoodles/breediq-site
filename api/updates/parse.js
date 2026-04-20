@@ -1,4 +1,11 @@
 // BreedIQ Quick Update — AI Natural Language Parser
+// -----------------------------------------------------------
+// DEPRECATED as of Phase 2 (2026-04-19). Superseded by
+// /api/assistant/chat.js, which is streaming + tool-use based
+// and handles a broader set of breeder-program actions. Left
+// in place because older dashboard builds may still call it;
+// safe to delete once no traffic is observed.
+// -----------------------------------------------------------
 // POST: Parse natural language update requests into structured actions
 // Uses Anthropic Claude API to understand intent and map to dog/litter updates
 import { requireAuth, getServiceClient } from '../../lib/supabase.js';
