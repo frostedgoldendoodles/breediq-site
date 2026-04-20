@@ -23,14 +23,31 @@ This guide walks you through setting up everything from scratch.
 4. Click **Run** — you should see "Success" for all statements
 5. Verify: Go to **Table Editor** — you should see tables: profiles, dogs, litters, guardians, files, breeding_iq_scores
 
-## Step 3: Create Storage Bucket
+## Step 3: Create Storage Buckets
 
+**Bucket 1 — `uploads` (private, onboarding files):**
 1. In Supabase dashboard, go to **Storage** (left sidebar)
 2. Click **New bucket**
 3. Name it `uploads`
 4. Toggle **Public** to OFF (keep it private)
 5. Set file size limit to `10MB`
 6. Click **Create bucket**
+
+**Bucket 2 — `dog-photos` (private, dog profile photos):**
+1. Open **SQL Editor**
+2. Paste and run `supabase/storage_dog_photos.sql` — this creates the bucket
+   plus the RLS policies so each user can only read, write, and delete
+   inside their own `{user_id}/` folder.
+3. Verify in **Storage** that `dog-photos` appears and is **not** marked
+   Public.
+
+> **How photo privacy works.** The bucket is private. The browser compresses
+> uploads (longest edge ≤1600 px, JPEG q≈0.82, ~300–600 KB target) and POSTs
+> them to `/api/dogs/:id/photo`, which uploads via the service role and
+> stores the storage path (not a URL) on `dogs.photo_url`. The dogs read API
+> mints a short-lived (1 hour) signed URL for the owner on each fetch, so
+> photos are only viewable by the authenticated user and URLs expire on
+> their own.
 
 ## Step 4: Get Your Supabase Keys
 

@@ -3,7 +3,7 @@
 // PUT: Update guardian info
 // PATCH: Assign/unassign dogs to guardian
 // DELETE: Remove guardian (unlinks dogs first)
-import { requireAuth, getServiceClient } from '../../lib/supabase.js';
+import { requireAuth, getServiceClient, attachSignedPhotoUrls } from '../../lib/supabase.js';
 
 export default async function handler(req, res) {
     const auth = await requireAuth(req, res);
@@ -34,6 +34,8 @@ export default async function handler(req, res) {
                 .from('dogs')
                 .select('id, name, call_name, status, sex, color, photo_url, heat_status, date_of_birth, weight_lbs')
                 .eq('guardian_id', id);
+
+            await attachSignedPhotoUrls(supabase, dogs || []);
 
             return res.status(200).json({ guardian: { ...guardian, dogs: dogs || [] } });
         } catch (err) {

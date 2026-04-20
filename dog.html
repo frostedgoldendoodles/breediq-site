@@ -27,17 +27,76 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef } = React;
 
-        // Supabase client (for storage uploads only — API uses cookies)
-        // Configured in config.js if present, otherwise disabled
-        let supabaseClient = null;
-        try {
-            if (window.BREEDIQ_SUPABASE_URL && window.BREEDIQ_SUPABASE_ANON_KEY && window.supabase) {
-                supabaseClient = window.supabase.createClient(
-                    window.BREEDIQ_SUPABASE_URL,
-                    window.BREEDIQ_SUPABASE_ANON_KEY
-                );
+        // Image compression — run in the browser before upload so any file
+        // (even a 15 MB iPhone photo) becomes a ~200–600 KB JPEG that still
+        // looks good at typical display sizes.
+        //
+        //   MAX_DIM   — longest edge cap (px). 1600 comfortably covers retina
+        //               dog profile photos and most social-share use cases.
+        //   QUALITY   — JPEG quality 0–1. 0.82 is the sweet spot where extra
+        //               bytes stop buying visible detail.
+        //   MAX_BYTES — hard ceiling; if we're still over it we step quality
+        //               down and re-encode.
+        const COMPRESS_MAX_DIM = 1600;
+        const COMPRESS_QUALITY = 0.82;
+        const COMPRESS_MAX_BYTES = 600 * 1024; // 600 KB target
+        const COMPRESS_SKIP_UNDER = 200 * 1024; // don't bother re-encoding tiny files
+
+        const loadImage = (file) => new Promise((resolve, reject) => {
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+            img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+            img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+            img.src = url;
+        });
+
+        const canvasToBlob = (canvas, type, quality) =>
+            new Promise((resolve) => canvas.toBlob((b) => resolve(b), type, quality));
+
+        // Read a File/Blob as a base64 string (no `data:...;base64,` prefix).
+        const fileToBase64 = (file) => new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => {
+                const result = r.result || '';
+                const idx = typeof result === 'string' ? result.indexOf(',') : -1;
+                resolve(idx >= 0 ? result.slice(idx + 1) : '');
+            };
+            r.onerror = reject;
+            r.readAsDataURL(file);
+        });
+
+        async function compressImage(file) {
+            if (!file || !file.type || !file.type.startsWith('image/')) return file;
+            // GIFs are often animated; re-encoding would drop frames. Leave alone.
+            if (file.type === 'image/gif') return file;
+            // Small enough already — don't touch it.
+            if (file.size <= COMPRESS_SKIP_UNDER) return file;
+
+            let img;
+            try { img = await loadImage(file); }
+            catch (_) { return file; } // fall back to original on decode failure
+
+            const scale = Math.min(1, COMPRESS_MAX_DIM / Math.max(img.width, img.height));
+            const w = Math.round(img.width * scale);
+            const h = Math.round(img.height * scale);
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+
+            let quality = COMPRESS_QUALITY;
+            let blob = await canvasToBlob(canvas, 'image/jpeg', quality);
+            // Step quality down if still too fat (rare for photos at 1600px).
+            while (blob && blob.size > COMPRESS_MAX_BYTES && quality > 0.5) {
+                quality -= 0.1;
+                blob = await canvasToBlob(canvas, 'image/jpeg', quality);
             }
-        } catch (e) {}
+            if (!blob || blob.size >= file.size) return file;
+            return new File([blob], (file.name || 'photo').replace(/\.[^.]+$/, '') + '.jpg', {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+            });
+        }
 
         const GESTATION_DAYS = 61;
 
@@ -280,41 +339,97 @@
         );
 
         // ───────── Photo section ─────────
-        const PhotoSection = ({ dog, onSave }) => {
+        const PhotoSection = ({ dog, onReplaceDog, onToast }) => {
             const [uploading, setUploading] = useState(false);
+            const [uploadStatus, setUploadStatus] = useState('');
             const [urlInput, setUrlInput] = useState('');
             const [showUrlInput, setShowUrlInput] = useState(false);
             const fileRef = useRef(null);
 
+            const toast = (msg) => {
+                if (!onToast) return;
+                onToast(msg);
+                setTimeout(() => onToast(null), 2000);
+            };
+
+            const saveExternalUrl = async (value) => {
+                // Pasted URL goes through the normal PUT so we persist the
+                // raw string. The API will pass external URLs through the
+                // signed-URL helper unchanged.
+                const r = await fetch(`/api/dogs/${dog.id}`, {
+                    method: 'PUT',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ photo_url: value })
+                });
+                const body = await r.json().catch(() => ({}));
+                if (!r.ok) throw new Error(body.error || 'Save failed');
+                onReplaceDog?.(body.dog);
+            };
+
             const handleUpload = async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
-                if (!supabaseClient) {
-                    alert('Storage not configured. Use "Paste URL" instead, or ask to set up Supabase Storage.');
-                    return;
-                }
                 setUploading(true);
+                setUploadStatus('Compressing…');
                 try {
-                    const ext = file.name.split('.').pop();
-                    const path = `${dog.user_id}/${dog.id}-${Date.now()}.${ext}`;
-                    const { data, error } = await supabaseClient.storage
-                        .from('dog-photos')
-                        .upload(path, file, { upsert: true });
-                    if (error) throw error;
-                    const { data: pub } = supabaseClient.storage.from('dog-photos').getPublicUrl(path);
-                    await onSave('photo_url', pub.publicUrl);
+                    const originalKb = (file.size / 1024).toFixed(0);
+                    const toUpload = await compressImage(file);
+                    const finalKb = (toUpload.size / 1024).toFixed(0);
+                    setUploadStatus(`Uploading ${finalKb} KB (from ${originalKb} KB)…`);
+
+                    const content = await fileToBase64(toUpload);
+                    const r = await fetch(`/api/dogs/${dog.id}/photo`, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            content,
+                            contentType: toUpload.type || 'image/jpeg'
+                        })
+                    });
+                    const body = await r.json().catch(() => ({}));
+                    if (!r.ok) throw new Error(body.error || `Upload failed (${r.status})`);
+
+                    // Server returned the updated dog with a fresh signed URL.
+                    onReplaceDog?.(body.dog);
+                    toast(`✓ Photo saved (${finalKb} KB)`);
                 } catch (err) {
                     alert('Upload failed: ' + err.message);
                 } finally {
                     setUploading(false);
+                    setUploadStatus('');
+                    if (fileRef.current) fileRef.current.value = '';
                 }
             };
 
             const handleUrlSave = async () => {
                 if (!urlInput) return;
-                await onSave('photo_url', urlInput);
+                try {
+                    await saveExternalUrl(urlInput);
+                    toast('✓ Photo saved');
+                } catch (err) {
+                    alert('Save failed: ' + err.message);
+                }
                 setUrlInput('');
                 setShowUrlInput(false);
+            };
+
+            const handleRemove = async () => {
+                try {
+                    const r = await fetch(`/api/dogs/${dog.id}/photo`, {
+                        method: 'DELETE',
+                        credentials: 'same-origin'
+                    });
+                    if (!r.ok) {
+                        const body = await r.json().catch(() => ({}));
+                        throw new Error(body.error || 'Remove failed');
+                    }
+                    onReplaceDog?.({ ...dog, photo_url: null });
+                    toast('✓ Photo removed');
+                } catch (err) {
+                    alert('Remove failed: ' + err.message);
+                }
             };
 
             return (
@@ -343,7 +458,7 @@
                             disabled={uploading}
                             className="w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded text-white text-sm font-semibold"
                         >
-                            {uploading ? 'Uploading...' : '📷 Upload Photo'}
+                            {uploading ? (uploadStatus || 'Uploading…') : '📷 Upload Photo'}
                         </button>
                         {showUrlInput ? (
                             <div className="space-y-2">
@@ -369,7 +484,7 @@
                         )}
                         {dog.photo_url && (
                             <button
-                                onClick={() => onSave('photo_url', null)}
+                                onClick={handleRemove}
                                 className="w-full px-3 py-1 text-slate-500 hover:text-slate-300 text-xs"
                             >
                                 Remove photo
@@ -571,7 +686,7 @@
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             {/* Left column */}
                             <div className="space-y-6">
-                                <PhotoSection dog={dog} onSave={saveField} />
+                                <PhotoSection dog={dog} onReplaceDog={setDog} onToast={setToast} />
                                 <ScheduleStats dog={dog} litters={litters} />
                                 <LitterHistory litters={litters} />
                             </div>

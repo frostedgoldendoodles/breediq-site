@@ -1,7 +1,7 @@
 // BreedIQ Litters CRUD API
 // GET: List litters with dam/sire details
 // POST: Create a new litter
-import { requireAuth, getServiceClient } from '../../lib/supabase.js';
+import { requireAuth, getServiceClient, attachSignedPhotoUrls } from '../../lib/supabase.js';
 
 export default async function handler(req, res) {
     const auth = await requireAuth(req, res);
@@ -78,6 +78,14 @@ export default async function handler(req, res) {
                 is_shared: l.user_id !== userId,
                 breeder: l.user_id !== userId ? breederMap[l.user_id] || null : null
             }));
+
+            // Sign embedded dam/sire photo URLs (the dogs are private-bucket-stored).
+            const embeddedDogs = [];
+            taggedLitters.forEach(l => {
+                if (l.dam) embeddedDogs.push(l.dam);
+                if (l.sire) embeddedDogs.push(l.sire);
+            });
+            await attachSignedPhotoUrls(supabase, embeddedDogs);
 
             return res.status(200).json({ litters: taggedLitters, count: taggedLitters.length });
         } catch (err) {

@@ -1,7 +1,7 @@
 // BreedIQ Guardians CRUD API
 // GET: List guardians with their linked dogs
 // POST: Create a new guardian
-import { requireAuth, getServiceClient } from '../../lib/supabase.js';
+import { requireAuth, getServiceClient, attachSignedPhotoUrls } from '../../lib/supabase.js';
 
 export default async function handler(req, res) {
     const auth = await requireAuth(req, res);
@@ -44,6 +44,9 @@ export default async function handler(req, res) {
             if (dogsError) {
                 console.error('Fetch guardian dogs error:', dogsError);
             }
+
+            // Sign photo URLs on the guardian-linked dogs.
+            await attachSignedPhotoUrls(supabase, guardianDogs || []);
 
             // Group dogs by guardian_id
             const dogsByGuardian = {};

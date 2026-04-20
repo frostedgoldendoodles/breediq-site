@@ -2,7 +2,7 @@
 // GET: Get dog by ID
 // PUT: Update dog
 // DELETE: Soft-delete dog (set status to 'deceased' or hard delete)
-import { requireAuth, getServiceClient } from '../../lib/supabase.js';
+import { requireAuth, getServiceClient, attachSignedPhotoUrl } from '../../lib/supabase.js';
 
 export default async function handler(req, res) {
     const auth = await requireAuth(req, res);
@@ -35,6 +35,8 @@ export default async function handler(req, res) {
                 .eq('user_id', userId)
                 .or(`dam_id.eq.${id},sire_id.eq.${id}`)
                 .order('breed_date', { ascending: false });
+
+            await attachSignedPhotoUrl(supabase, dog);
 
             return res.status(200).json({ dog, litters: litters || [] });
         } catch (err) {
@@ -113,6 +115,8 @@ export default async function handler(req, res) {
                 console.error('Update dog error:', error);
                 return res.status(500).json({ error: 'Failed to update dog', details: error.message });
             }
+
+            await attachSignedPhotoUrl(supabase, dog);
 
             return res.status(200).json({ success: true, dog });
         } catch (err) {

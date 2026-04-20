@@ -1,7 +1,7 @@
 // BreedIQ Dogs CRUD API
 // GET: List all dogs for current user (with optional filters)
 // POST: Create a new dog
-import { requireAuth, getServiceClient } from '../../lib/supabase.js';
+import { requireAuth, getServiceClient, attachSignedPhotoUrls, attachSignedPhotoUrl } from '../../lib/supabase.js';
 
 export default async function handler(req, res) {
     const auth = await requireAuth(req, res);
@@ -60,6 +60,8 @@ export default async function handler(req, res) {
                 breeder: dog.user_id !== userId ? breederMap[dog.user_id] || null : null
             }));
 
+            await attachSignedPhotoUrls(supabase, enrichedDogs);
+
             return res.status(200).json({ dogs: enrichedDogs, count: enrichedDogs.length });
         } catch (err) {
             console.error('GET dogs error:', err);
@@ -104,6 +106,8 @@ export default async function handler(req, res) {
                 console.error('Create dog error:', error);
                 return res.status(500).json({ error: 'Failed to create dog', details: error.message });
             }
+
+            await attachSignedPhotoUrl(supabase, dog);
 
             return res.status(201).json({ success: true, dog });
         } catch (err) {

@@ -2,7 +2,7 @@
 // GET: Get litter with full details
 // PUT: Update litter (status changes, add puppy count, etc.)
 // DELETE: Archive litter
-import { requireAuth, getServiceClient } from '../../lib/supabase.js';
+import { requireAuth, getServiceClient, attachSignedPhotoUrls } from '../../lib/supabase.js';
 
 export default async function handler(req, res) {
     const auth = await requireAuth(req, res);
@@ -40,6 +40,10 @@ export default async function handler(req, res) {
                 litter.days_remaining = Math.max(0, 61 - litter.computed_gestation_day);
                 litter.gestation_progress = Math.min(Math.round((litter.computed_gestation_day / 61) * 100), 100);
             }
+
+            // Sign embedded dam/sire photo URLs.
+            const embeddedDogs = [litter.dam, litter.sire].filter(Boolean);
+            await attachSignedPhotoUrls(supabase, embeddedDogs);
 
             return res.status(200).json({ litter });
         } catch (err) {
