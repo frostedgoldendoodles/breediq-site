@@ -1,0 +1,29 @@
+-- 20260504_dog_pedigree_security_invoker.sql
+-- Switch the dog_pedigree view to SECURITY INVOKER.
+--
+-- Background:
+-- The dog_pedigree view (a recursive CTE walking dogs.sire_id / dam_id up
+-- to 5 generations) was created with the PostgreSQL default of SECURITY
+-- DEFINER. That meant the view ran as its creator and bypassed every RLS
+-- policy on public.dogs. Supabase's security advisor flagged this as an
+-- ERROR-level finding because the view is exposed via PostgREST: any
+-- authenticated caller (or even anon, depending on grants) could query it
+-- and read pedigree edges (subject_id, ancestor_id, position, generation)
+-- across all accounts.
+--
+-- After this change:
+--   * authenticated callers see only edges where they own (or, as a
+--     program owner, can view) both endpoints — RLS policies on dogs
+--     filter the recursive walk
+--   * anon callers see no rows (RLS requires auth.uid())
+--   * the existing /api/dogs/:id/pedigree route is unaffected because it
+--     uses the service-role client, which bypasses RLS regardless and
+--     still does its own user_id check on the subject dog
+--
+-- Verified after:
+--   * advisor's `security_definer_view` ERROR cleared
+--   * view still returns rows for service-role queries (unchanged)
+--
+-- Applied to live Supabase via apply_migration on 2026-05-04.
+
+ALTER VIEW public.dog_pedigree SET (security_invoker = true);
