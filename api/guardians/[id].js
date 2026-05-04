@@ -74,7 +74,7 @@ export default async function handler(req, res) {
                 .from('guardians')
                 .update(updates)
                 .eq('id', id)
-                .eq('user_id', userId)
+                .in('user_id', programUserIds)
                 .select()
                 .single();
 
@@ -100,7 +100,7 @@ export default async function handler(req, res) {
                 .from('guardians')
                 .select('id')
                 .eq('id', id)
-                .eq('user_id', userId)
+                .in('user_id', programUserIds)
                 .single();
 
             if (!guardian) {
@@ -115,7 +115,7 @@ export default async function handler(req, res) {
                     .from('dogs')
                     .update({ guardian_id: id, status: 'guardian', updated_at: new Date().toISOString() })
                     .in('id', assign_dog_ids)
-                    .eq('user_id', userId);
+                    .in('user_id', programUserIds);
 
                 if (assignError) {
                     console.error('Assign dogs error:', assignError);
@@ -160,7 +160,7 @@ export default async function handler(req, res) {
                 .from('guardians')
                 .delete()
                 .eq('id', id)
-                .eq('user_id', userId);
+                .in('user_id', programUserIds);
 
             if (error) {
                 console.error('Delete guardian error:', error);

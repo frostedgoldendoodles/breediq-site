@@ -52,36 +52,17 @@ export default async function handler(req, res) {
     // ── PUT: Update dog ─────────────────────────────────────
     if (req.method === 'PUT') {
         try {
-            // Verify ownership
+            // Authorization: program owners can edit their own dogs AND any
+            // dogs owned by their active sub-breeders. Sub-breeders see
+            // only their own dogs (their programUserIds is just [theirOwnId]).
             const { data: existing } = await supabase
                 .from('dogs')
                 .select('id')
                 .eq('id', id)
-                .eq('user_id', userId)
-                .single();
+                .in('user_id', programUserIds)
+                .maybeSingle();
 
             if (!existing) {
-                // Only reveal "exists but not yours" if the dog is owned by one of
-                // your sub-breeders \u2014 never disclose unrelated rows.
-                const { data: relationships } = await supabase
-                    .from('breeder_relationships')
-                    .select('breeder_id')
-                    .eq('owner_id', userId)
-                    .eq('status', 'active');
-                const subBreederIds = (relationships || []).map(r => r.breeder_id);
-                if (subBreederIds.length > 0) {
-                    const { data: sharedDog } = await supabase
-                        .from('dogs')
-                        .select('id')
-                        .eq('id', id)
-                        .in('user_id', subBreederIds)
-                        .maybeSingle();
-                    if (sharedDog) {
-                        return res.status(403).json({
-                            error: 'This dog belongs to a breeder in your program. Only they can edit it from their own login.'
-                        });
-                    }
-                }
                 return res.status(404).json({ error: 'Dog not found' });
             }
 
@@ -111,7 +92,7 @@ export default async function handler(req, res) {
                 .from('dogs')
                 .update(updates)
                 .eq('id', id)
-                .eq('user_id', userId)
+                .in('user_id', programUserIds)
                 .select()
                 .single();
 
@@ -140,7 +121,7 @@ export default async function handler(req, res) {
                     .from('dogs')
                     .delete()
                     .eq('id', id)
-                    .eq('user_id', userId);
+                    .in('user_id', programUserIds);
 
                 if (error) {
                     return res.status(500).json({ error: 'Failed to delete dog' });
@@ -151,7 +132,7 @@ export default async function handler(req, res) {
                     .from('dogs')
                     .update({ status: 'retired', updated_at: new Date().toISOString() })
                     .eq('id', id)
-                    .eq('user_id', userId);
+                    .in('user_id', programUserIds);
 
                 if (error) {
                     return res.status(500).json({ error: 'Failed to archive dog' });
