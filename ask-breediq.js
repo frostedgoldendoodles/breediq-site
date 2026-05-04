@@ -356,10 +356,13 @@
                 }
                 messagesEl.appendChild(wrap);
 
-                // Render any tool calls / results under the assistant turn
+                // Render any tool calls / results under the assistant turn.
+                // Most tool events render to null (silent); only confirmation
+                // prompts surface visually — guard with a null-check.
                 if (Array.isArray(msg.toolEvents)) {
                     for (const te of msg.toolEvents) {
-                        messagesEl.appendChild(renderToolEvent(te));
+                        const node = renderToolEvent(te);
+                        if (node) messagesEl.appendChild(node);
                     }
                 }
             }
@@ -367,22 +370,16 @@
         messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
+    // Render a tool event in the conversation. Most tool calls/results are
+    // hidden — they are internal plumbing the user does not need to see.
+    // The only tool events that surface visually are destructive confirmations
+    // (delete_dog / delete_litter / delete_guardian), which need explicit
+    // user approval via Confirm/Cancel buttons.
     function renderToolEvent(te) {
-        if (te.kind === 'tool_use') {
-            return h('div', { class: 'askbreediq-tool-chip' }, [
-                h('strong', null, [te.tool_name]),
-                h('span', null, [' ' + formatToolArgs(te.input)])
-            ]);
-        }
-        if (te.kind === 'tool_result') {
-            const cls = te.ok ? 'ok' : (te.requiresConfirmation ? 'confirm' : 'err');
-            const children = [h('strong', null, [te.tool_name]), h('span', null, [te.ok ? ' ✓' : (te.requiresConfirmation ? ' – needs confirmation' : ' ✕')])];
-            if (te.message) {
-                children.push(h('br'));
-                children.push(document.createTextNode(te.message));
-            }
-            if (te.requiresConfirmation) {
-                const actions = h('div', { class: 'askbreediq-confirm-actions' }, [
+        if (te.kind === 'tool_result' && te.requiresConfirmation) {
+            const children = [
+                h('div', { class: 'askbreediq-confirm-msg' }, [te.message || 'This will delete a record. Confirm?']),
+                h('div', { class: 'askbreediq-confirm-actions' }, [
                     h('button', {
                         class: 'askbreediq-confirm-btn danger',
                         onclick: () => confirmDestructive(te)
@@ -391,25 +388,12 @@
                         class: 'askbreediq-confirm-btn cancel',
                         onclick: () => cancelDestructive(te)
                     }, ['Cancel'])
-                ]);
-                children.push(actions);
-            }
-            return h('div', { class: 'askbreediq-tool-chip ' + cls }, children);
+                ])
+            ];
+            return h('div', { class: 'askbreediq-tool-chip confirm' }, children);
         }
-        return h('div');
-    }
-
-    function formatToolArgs(input) {
-        if (!input || typeof input !== 'object') return '';
-        const entries = Object.entries(input).filter(([k, v]) => v !== null && v !== undefined && v !== '');
-        if (entries.length === 0) return '';
-        const short = entries.slice(0, 4).map(([k, v]) => `${k}=${truncateVal(v)}`).join(', ');
-        return '(' + short + (entries.length > 4 ? ', …' : '') + ')';
-    }
-    function truncateVal(v) {
-        if (typeof v === 'string') return v.length > 30 ? (v.slice(0, 30) + '…') : v;
-        if (typeof v === 'boolean' || typeof v === 'number') return String(v);
-        return typeof v === 'object' ? JSON.stringify(v).slice(0, 40) : String(v);
+        // All other tool events render as nothing — they happen silently.
+        return null;
     }
 
     // ── Networking ────────────────────────────────────────
