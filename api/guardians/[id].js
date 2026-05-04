@@ -3,7 +3,7 @@
 // PUT: Update guardian info
 // PATCH: Assign/unassign dogs to guardian
 // DELETE: Remove guardian (unlinks dogs first)
-import { requireAuth, getServiceClient, attachSignedPhotoUrls } from '../../lib/supabase.js';
+import { requireAuth, getServiceClient, getProgramUserIds, attachSignedPhotoUrls } from '../../lib/supabase.js';
 
 export default async function handler(req, res) {
     const auth = await requireAuth(req, res);
@@ -15,6 +15,9 @@ export default async function handler(req, res) {
 
     if (!id) return res.status(400).json({ error: 'Guardian ID is required' });
 
+    // Program-owner scope: caller's own user_id + active sub-breeders.
+    const programUserIds = await getProgramUserIds(supabase, userId);
+
     // ── GET: Single guardian with dogs ───────────────────────
     if (req.method === 'GET') {
         try {
@@ -22,7 +25,7 @@ export default async function handler(req, res) {
                 .from('guardians')
                 .select('*')
                 .eq('id', id)
-                .eq('user_id', userId)
+                .in('user_id', programUserIds)
                 .single();
 
             if (error || !guardian) {
@@ -71,7 +74,7 @@ export default async function handler(req, res) {
                 .from('guardians')
                 .update(updates)
                 .eq('id', id)
-                .eq('user_id', userId)
+                .in('user_id', programUserIds)
                 .select()
                 .single();
 
@@ -97,7 +100,7 @@ export default async function handler(req, res) {
                 .from('guardians')
                 .select('id')
                 .eq('id', id)
-                .eq('user_id', userId)
+                .in('user_id', programUserIds)
                 .single();
 
             if (!guardian) {
@@ -112,7 +115,7 @@ export default async function handler(req, res) {
                     .from('dogs')
                     .update({ guardian_id: id, status: 'guardian', updated_at: new Date().toISOString() })
                     .in('id', assign_dog_ids)
-                    .eq('user_id', userId);
+                    .in('user_id', programUserIds);
 
                 if (assignError) {
                     console.error('Assign dogs error:', assignError);
@@ -157,7 +160,7 @@ export default async function handler(req, res) {
                 .from('guardians')
                 .delete()
                 .eq('id', id)
-                .eq('user_id', userId);
+                .in('user_id', programUserIds);
 
             if (error) {
                 console.error('Delete guardian error:', error);

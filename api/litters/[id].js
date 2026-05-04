@@ -2,7 +2,7 @@
 // GET: Get litter with full details
 // PUT: Update litter (status changes, add puppy count, etc.)
 // DELETE: Archive litter
-import { requireAuth, getServiceClient, attachSignedPhotoUrls } from '../../lib/supabase.js';
+import { requireAuth, getServiceClient, getProgramUserIds, attachSignedPhotoUrls } from '../../lib/supabase.js';
 
 export default async function handler(req, res) {
     const auth = await requireAuth(req, res);
@@ -13,6 +13,9 @@ export default async function handler(req, res) {
     const { id } = req.query;
 
     if (!id) return res.status(400).json({ error: 'Litter ID is required' });
+
+    // Program-owner scope: caller's own user_id + active sub-breeders.
+    const programUserIds = await getProgramUserIds(supabase, userId);
 
     // ── GET: Single litter ──────────────────────────────────
     if (req.method === 'GET') {
@@ -25,7 +28,7 @@ export default async function handler(req, res) {
                     sire:dogs!litters_sire_id_fkey(id, name, call_name, photo_url, color, breed, embark_id)
                 `)
                 .eq('id', id)
-                .eq('user_id', userId)
+                .in('user_id', programUserIds)
                 .single();
 
             if (error || !litter) {
@@ -59,34 +62,10 @@ export default async function handler(req, res) {
                 .from('litters')
                 .select('id, dam_id, status')
                 .eq('id', id)
-                .eq('user_id', userId)
-                .single();
+                .in('user_id', programUserIds)
+                .maybeSingle();
 
             if (!existing) {
-                // Distinguish "doesn't exist" from "exists but is owned by a sub-breeder
-                // in your program" (the dashboard list endpoint surfaces those, but this
-                // PUT path correctly does not allow cross-account writes). Only return 403
-                // when the litter actually belongs to one of the user's sub-breeders \u2014
-                // never reveal the existence of unrelated rows.
-                const { data: relationships } = await supabase
-                    .from('breeder_relationships')
-                    .select('breeder_id')
-                    .eq('owner_id', userId)
-                    .eq('status', 'active');
-                const subBreederIds = (relationships || []).map(r => r.breeder_id);
-                if (subBreederIds.length > 0) {
-                    const { data: sharedLitter } = await supabase
-                        .from('litters')
-                        .select('id')
-                        .eq('id', id)
-                        .in('user_id', subBreederIds)
-                        .maybeSingle();
-                    if (sharedLitter) {
-                        return res.status(403).json({
-                            error: 'This litter belongs to a breeder in your program. Only they can edit it from their own login.'
-                        });
-                    }
-                }
                 return res.status(404).json({ error: 'Litter not found' });
             }
 
@@ -121,7 +100,7 @@ export default async function handler(req, res) {
                 .from('litters')
                 .update(updates)
                 .eq('id', id)
-                .eq('user_id', userId)
+                .in('user_id', programUserIds)
                 .select()
                 .single();
 
@@ -146,7 +125,7 @@ export default async function handler(req, res) {
                             updated_at: new Date().toISOString()
                         })
                         .eq('id', existing.dam_id)
-                        .eq('user_id', userId);
+                        .in('user_id', programUserIds);
                 }
             }
 
@@ -164,7 +143,7 @@ export default async function handler(req, res) {
                 .from('litters')
                 .update({ status: 'archived', updated_at: new Date().toISOString() })
                 .eq('id', id)
-                .eq('user_id', userId);
+                .in('user_id', programUserIds);
 
             if (error) {
                 return res.status(500).json({ error: 'Failed to archive litter' });

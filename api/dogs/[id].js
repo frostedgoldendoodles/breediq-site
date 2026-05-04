@@ -2,7 +2,7 @@
 // GET: Get dog by ID
 // PUT: Update dog
 // DELETE: Soft-delete dog (set status to 'deceased' or hard delete)
-import { requireAuth, getServiceClient, attachSignedPhotoUrl } from '../../lib/supabase.js';
+import { requireAuth, getServiceClient, getProgramUserIds, attachSignedPhotoUrl } from '../../lib/supabase.js';
 
 export default async function handler(req, res) {
     const auth = await requireAuth(req, res);
@@ -14,6 +14,10 @@ export default async function handler(req, res) {
 
     if (!id) return res.status(400).json({ error: 'Dog ID is required' });
 
+    // Program-owner scope: caller's own user_id + active sub-breeders.
+    // Used for read access across the program; writes are still gated below.
+    const programUserIds = await getProgramUserIds(supabase, userId);
+
     // ── GET: Single dog ─────────────────────────────────────
     if (req.method === 'GET') {
         try {
@@ -21,18 +25,18 @@ export default async function handler(req, res) {
                 .from('dogs')
                 .select('*, guardian:guardians(id, family_name, contact_name, email, phone)')
                 .eq('id', id)
-                .eq('user_id', userId)
+                .in('user_id', programUserIds)
                 .single();
 
             if (error || !dog) {
                 return res.status(404).json({ error: 'Dog not found' });
             }
 
-            // Also fetch litters this dog is part of
+            // Also fetch litters this dog is part of (across the same program scope)
             const { data: litters } = await supabase
                 .from('litters')
                 .select('id, breed_date, due_date, whelp_date, status, puppy_count')
-                .eq('user_id', userId)
+                .in('user_id', programUserIds)
                 .or(`dam_id.eq.${id},sire_id.eq.${id}`)
                 .order('breed_date', { ascending: false });
 
@@ -48,36 +52,17 @@ export default async function handler(req, res) {
     // ── PUT: Update dog ─────────────────────────────────────
     if (req.method === 'PUT') {
         try {
-            // Verify ownership
+            // Authorization: program owners can edit their own dogs AND any
+            // dogs owned by their active sub-breeders. Sub-breeders see
+            // only their own dogs (their programUserIds is just [theirOwnId]).
             const { data: existing } = await supabase
                 .from('dogs')
                 .select('id')
                 .eq('id', id)
-                .eq('user_id', userId)
-                .single();
+                .in('user_id', programUserIds)
+                .maybeSingle();
 
             if (!existing) {
-                // Only reveal "exists but not yours" if the dog is owned by one of
-                // your sub-breeders \u2014 never disclose unrelated rows.
-                const { data: relationships } = await supabase
-                    .from('breeder_relationships')
-                    .select('breeder_id')
-                    .eq('owner_id', userId)
-                    .eq('status', 'active');
-                const subBreederIds = (relationships || []).map(r => r.breeder_id);
-                if (subBreederIds.length > 0) {
-                    const { data: sharedDog } = await supabase
-                        .from('dogs')
-                        .select('id')
-                        .eq('id', id)
-                        .in('user_id', subBreederIds)
-                        .maybeSingle();
-                    if (sharedDog) {
-                        return res.status(403).json({
-                            error: 'This dog belongs to a breeder in your program. Only they can edit it from their own login.'
-                        });
-                    }
-                }
                 return res.status(404).json({ error: 'Dog not found' });
             }
 
@@ -107,7 +92,7 @@ export default async function handler(req, res) {
                 .from('dogs')
                 .update(updates)
                 .eq('id', id)
-                .eq('user_id', userId)
+                .in('user_id', programUserIds)
                 .select()
                 .single();
 
@@ -136,7 +121,7 @@ export default async function handler(req, res) {
                     .from('dogs')
                     .delete()
                     .eq('id', id)
-                    .eq('user_id', userId);
+                    .in('user_id', programUserIds);
 
                 if (error) {
                     return res.status(500).json({ error: 'Failed to delete dog' });
@@ -147,7 +132,7 @@ export default async function handler(req, res) {
                     .from('dogs')
                     .update({ status: 'retired', updated_at: new Date().toISOString() })
                     .eq('id', id)
-                    .eq('user_id', userId);
+                    .in('user_id', programUserIds);
 
                 if (error) {
                     return res.status(500).json({ error: 'Failed to archive dog' });
