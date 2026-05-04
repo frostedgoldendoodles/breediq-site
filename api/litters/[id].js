@@ -2,7 +2,7 @@
 // GET: Get litter with full details
 // PUT: Update litter (status changes, add puppy count, etc.)
 // DELETE: Archive litter
-import { requireAuth, getServiceClient, attachSignedPhotoUrls } from '../../lib/supabase.js';
+import { requireAuth, getServiceClient, getProgramUserIds, attachSignedPhotoUrls } from '../../lib/supabase.js';
 
 export default async function handler(req, res) {
     const auth = await requireAuth(req, res);
@@ -13,6 +13,9 @@ export default async function handler(req, res) {
     const { id } = req.query;
 
     if (!id) return res.status(400).json({ error: 'Litter ID is required' });
+
+    // Program-owner scope: caller's own user_id + active sub-breeders.
+    const programUserIds = await getProgramUserIds(supabase, userId);
 
     // ── GET: Single litter ──────────────────────────────────
     if (req.method === 'GET') {
@@ -25,7 +28,7 @@ export default async function handler(req, res) {
                     sire:dogs!litters_sire_id_fkey(id, name, call_name, photo_url, color, breed, embark_id)
                 `)
                 .eq('id', id)
-                .eq('user_id', userId)
+                .in('user_id', programUserIds)
                 .single();
 
             if (error || !litter) {

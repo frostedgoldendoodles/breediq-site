@@ -14,7 +14,7 @@
 //   whelp         — litters.whelp_date
 //   go_home       — litters.go_home_date
 //   vet_due       — flagged when dogs.vet_last_visit is >1 year ago
-import { requireAuth, getServiceClient } from '../../lib/supabase.js';
+import { requireAuth, getServiceClient, getProgramUserIds } from '../../lib/supabase.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -73,6 +73,10 @@ export default async function handler(req, res) {
         const supabase = getServiceClient();
         const userId = auth.user.id;
 
+        // Program-owner scope: caller's own user_id + active sub-breeders, so
+        // the calendar reflects the same combined program view as the dashboard.
+        const programUserIds = await getProgramUserIds(supabase, userId);
+
         const now = Date.now();
         const windowStart = now - 30 * DAY_MS;
         const windowEnd = now + 90 * DAY_MS;
@@ -81,7 +85,7 @@ export default async function handler(req, res) {
         const { data: dogs, error: dogsErr } = await supabase
             .from('dogs')
             .select('id, name, call_name, last_heat_date, avg_heat_cycle_days, vet_last_visit, status')
-            .eq('user_id', userId);
+            .in('user_id', programUserIds);
 
         if (dogsErr) {
             console.error('Calendar dogs error:', dogsErr);
@@ -92,7 +96,7 @@ export default async function handler(req, res) {
         const { data: litters, error: littersErr } = await supabase
             .from('litters')
             .select('id, dam_id, breed_date, ultrasound_date, xray_date, due_date, whelp_date, go_home_date, status')
-            .eq('user_id', userId);
+            .in('user_id', programUserIds);
 
         if (littersErr) {
             console.error('Calendar litters error:', littersErr);

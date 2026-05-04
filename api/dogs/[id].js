@@ -2,7 +2,7 @@
 // GET: Get dog by ID
 // PUT: Update dog
 // DELETE: Soft-delete dog (set status to 'deceased' or hard delete)
-import { requireAuth, getServiceClient, attachSignedPhotoUrl } from '../../lib/supabase.js';
+import { requireAuth, getServiceClient, getProgramUserIds, attachSignedPhotoUrl } from '../../lib/supabase.js';
 
 export default async function handler(req, res) {
     const auth = await requireAuth(req, res);
@@ -14,6 +14,10 @@ export default async function handler(req, res) {
 
     if (!id) return res.status(400).json({ error: 'Dog ID is required' });
 
+    // Program-owner scope: caller's own user_id + active sub-breeders.
+    // Used for read access across the program; writes are still gated below.
+    const programUserIds = await getProgramUserIds(supabase, userId);
+
     // ── GET: Single dog ─────────────────────────────────────
     if (req.method === 'GET') {
         try {
@@ -21,18 +25,18 @@ export default async function handler(req, res) {
                 .from('dogs')
                 .select('*, guardian:guardians(id, family_name, contact_name, email, phone)')
                 .eq('id', id)
-                .eq('user_id', userId)
+                .in('user_id', programUserIds)
                 .single();
 
             if (error || !dog) {
                 return res.status(404).json({ error: 'Dog not found' });
             }
 
-            // Also fetch litters this dog is part of
+            // Also fetch litters this dog is part of (across the same program scope)
             const { data: litters } = await supabase
                 .from('litters')
                 .select('id, breed_date, due_date, whelp_date, status, puppy_count')
-                .eq('user_id', userId)
+                .in('user_id', programUserIds)
                 .or(`dam_id.eq.${id},sire_id.eq.${id}`)
                 .order('breed_date', { ascending: false });
 
