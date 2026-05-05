@@ -2408,7 +2408,15 @@
         // MAIN APP
         // ═══════════════════════════════════════════════════════
         function BreedIQDashboard() {
-            const [sidebarOpen, setSidebarOpen] = useState(true);
+            // Sidebar default: open on desktop (≥768px), collapsed on mobile so the
+            // dashboard is the first thing a user sees when they open the app.
+            // On desktop the sidebar is always visible regardless of this state
+            // (the layout pins it via md:translate-x-0); the state only matters on
+            // mobile where the sidebar is an off-canvas overlay.
+            const [sidebarOpen, setSidebarOpen] = useState(() => {
+                if (typeof window === 'undefined' || !window.matchMedia) return true;
+                return window.matchMedia('(min-width: 768px)').matches;
+            });
             // Respect `?view=settings` (or any nav id) on initial load so /settings deep-links work
             const initialView = (() => {
                 try {
@@ -2446,10 +2454,17 @@
                 setCurrentView(view);
             };
 
-            // Clear damFilter when user manually switches away from dams
+            // Clear damFilter when user manually switches away from dams.
+            // On mobile, also close the sidebar so the user immediately sees
+            // the view they tapped (the sidebar is an overlay, not a permanent
+            // column, on screens narrower than md).
             const handleViewChange = (viewId) => {
                 if (viewId !== 'dams') setDamFilter(null);
                 setCurrentView(viewId);
+                if (typeof window !== 'undefined' && window.matchMedia &&
+                    !window.matchMedia('(min-width: 768px)').matches) {
+                    setSidebarOpen(false);
+                }
             };
 
             const handleSignOut = async () => {
