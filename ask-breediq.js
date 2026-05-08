@@ -217,20 +217,28 @@
           }
           .askbreediq-panel {
             position: fixed; top: 0; right: 0; height: 100dvh;
-            width: min(420px, 100vw);
+            width: min(420px, 100dvw);
+            /* Respect iOS safe-area insets so content (Send button, message
+               text) doesn't slide under the notch or home indicator. */
+            padding-left: env(safe-area-inset-left, 0px);
+            padding-right: env(safe-area-inset-right, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
             background: #0f172a; color: #f1f5f9;
             border-left: 1px solid #1e293b;
             box-shadow: -16px 0 40px rgba(0,0,0,0.4);
-            transform: translateX(100%);
+            /* Push slightly past 100% so no pixel of the panel is visible
+               when closed, even with iOS subpixel rendering quirks. */
+            transform: translateX(110%);
             transition: transform 220ms ease;
             display: flex; flex-direction: column;
+            overflow: hidden;
             z-index: 2147483001;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           }
           .askbreediq-panel[data-open="true"] { transform: translateX(0); }
           .askbreediq-panel[aria-hidden="false"] { pointer-events: auto; }
           @media (max-width: 640px) {
-            .askbreediq-panel { width: 100vw; border-left: none; }
+            .askbreediq-panel { width: 100dvw; border-left: none; }
           }
           .askbreediq-header {
             display: flex; justify-content: space-between; align-items: center;
@@ -296,12 +304,20 @@
           }
           .askbreediq-textarea:focus { border-color: #10b981; }
           .askbreediq-composer-row {
-            display: flex; align-items: center; justify-content: space-between; margin-top: 8px;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 8px; margin-top: 8px; flex-wrap: wrap;
           }
-          .askbreediq-hint { color: #64748b; font-size: 11px; }
+          .askbreediq-hint { color: #64748b; font-size: 11px; min-width: 0; flex: 1 1 auto; }
+          /* The keyboard hint isn't useful on touch screens — give the Send
+             button the full width on narrow viewports so it never clips. */
+          @media (max-width: 640px) {
+            .askbreediq-hint { display: none; }
+            .askbreediq-send-btn { flex: 1 1 100%; padding: 10px 16px; font-size: 14px; }
+          }
           .askbreediq-send-btn {
             padding: 6px 16px; font-size: 13px; font-weight: 600;
             background: #059669; color: #fff; border: none; border-radius: 8px; cursor: pointer;
+            flex: 0 0 auto;
           }
           .askbreediq-send-btn:hover { background: #047857; }
           .askbreediq-send-btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
