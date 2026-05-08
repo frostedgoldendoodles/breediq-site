@@ -1568,7 +1568,9 @@
                             date: formatShortDate(l.due_date),
                             daysUntil: d,
                             urgency: 'needsUpdate',
-                            actions: l.is_shared ? [] : [
+                            // Program owners can now edit sub-breeder records, so the
+                            // same Resolve actions appear regardless of is_shared.
+                            actions: [
                                 { label: '\uD83D\uDC3E Mark as Born', primary: true, loading: isUpdating('litters', l.id),
                                   onClick: () => handleUpdate('litters', l.id, { status: 'born', whelp_date: l.due_date }, damName) },
                                 // 'archived' is the schema-valid way to remove a litter (CHECK constraint on litters.status).
@@ -1593,7 +1595,9 @@
                             date: formatShortDate(l.go_home_date),
                             daysUntil: d,
                             urgency: 'needsUpdate',
-                            actions: l.is_shared ? [] : [
+                            // Program owners can now edit sub-breeder records \u2014 same Resolve
+                            // actions appear regardless of is_shared.
+                            actions: [
                                 { label: '\u2705 Pups Went Home', primary: true, loading: isUpdating('litters', l.id),
                                   onClick: () => handleUpdate('litters', l.id, { status: 'placed' }, damName) },
                                 { label: '\uD83D\uDCC5 Update Date', loading: isUpdating('litters', l.id),
@@ -1610,24 +1614,63 @@
             sharedNeedsUpdate.sort((a, b) => a.daysUntil - b.daysUntil);
 
             // ── Upcoming: future alerts only ──
+            // Each upcoming alert gets the same actions as its overdue counterpart,
+            // so the breeder can mark an event done as soon as it happens (e.g.
+            // mark "born" the day they whelp instead of waiting for it to go overdue).
+            const today = new Date().toISOString().slice(0, 10);
             const upcoming = [];
             litters.forEach(l => {
+                const damName = l.dam?.name || 'Unknown';
                 if (l.due_date && ['confirmed','bred'].includes(l.status)) {
                     const d = daysUntil(l.due_date);
                     if (d !== null && d >= 0 && d <= 60) {
-                        upcoming.push({ dog: l.dam?.name || 'Unknown', event: 'Due to give birth', date: formatShortDate(l.due_date), daysUntil: d, urgency: d <= 7 ? 'Critical' : d <= 14 ? 'High' : 'Medium' });
+                        upcoming.push({
+                            dog: damName,
+                            event: 'Due to give birth',
+                            date: formatShortDate(l.due_date),
+                            daysUntil: d,
+                            urgency: d <= 7 ? 'Critical' : d <= 14 ? 'High' : 'Medium',
+                            actions: [
+                                { label: '🐾 Mark as Born', primary: true, loading: isUpdating('litters', l.id),
+                                  onClick: () => handleUpdate('litters', l.id, { status: 'born', whelp_date: today }, damName) },
+                                { label: '❌ Not Pregnant', loading: isUpdating('litters', l.id),
+                                  onClick: () => { if (confirm(`Remove ${damName}'s litter record? This will archive it as lost/reabsorbed.`)) handleUpdate('litters', l.id, { status: 'archived' }, damName); } }
+                            ]
+                        });
                     }
                 }
                 if (l.go_home_date && ['born','nursing'].includes(l.status)) {
                     const d = daysUntil(l.go_home_date);
                     if (d !== null && d >= 0 && d <= 30) {
-                        upcoming.push({ dog: l.dam?.name || 'Unknown', event: 'Pups go home', date: formatShortDate(l.go_home_date), daysUntil: d, urgency: d <= 7 ? 'High' : 'Medium' });
+                        upcoming.push({
+                            dog: damName,
+                            event: 'Pups go home',
+                            date: formatShortDate(l.go_home_date),
+                            daysUntil: d,
+                            urgency: d <= 7 ? 'High' : 'Medium',
+                            actions: [
+                                { label: '✅ Pups Went Home', primary: true, loading: isUpdating('litters', l.id),
+                                  onClick: () => handleUpdate('litters', l.id, { status: 'placed', go_home_date: today }, damName) }
+                            ]
+                        });
                     }
                 }
             });
             dogs.forEach(d => {
                 if (d.heat_status === 'in_heat') {
-                    upcoming.push({ dog: d.name, event: 'Currently in heat', date: 'Now', daysUntil: 0, urgency: 'Critical' });
+                    upcoming.push({
+                        dog: d.name,
+                        event: 'Currently in heat',
+                        date: 'Now',
+                        daysUntil: 0,
+                        urgency: 'Critical',
+                        actions: [
+                            { label: '🐶 Mark as Bred', primary: true, loading: isUpdating('dogs', d.id),
+                              onClick: () => handleUpdate('dogs', d.id, { heat_status: 'bred' }, d.name) },
+                            { label: '✓ Heat Ended', loading: isUpdating('dogs', d.id),
+                              onClick: () => handleUpdate('dogs', d.id, { heat_status: 'none' }, d.name) }
+                        ]
+                    });
                 }
             });
             upcoming.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
@@ -1669,7 +1712,7 @@
                                 <h2 className="text-xl font-bold text-violet-300">Sub-breeder Records Needing Update ({sharedNeedsUpdate.length})</h2>
                             </div>
                             <p className="text-sm text-slate-400 mb-3">
-                                These belong to breeders in your program. They need to update them from their own login &mdash; you can view but not edit.
+                                These belong to breeders in your program. As program owner you can resolve them yourself, or the sub-breeder can from their own login.
                             </p>
                             <div className="space-y-3">
                                 {sharedNeedsUpdate.map((item, idx) => (
