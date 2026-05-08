@@ -312,21 +312,30 @@
             const dayLabel = item.daysUntil !== null
                 ? item.daysUntil < 0 ? `${Math.abs(item.daysUntil)} days overdue` : item.daysUntil === 0 ? 'Today' : `${item.daysUntil} days`
                 : '';
+            // Layout:
+            //   Mobile  \u2014 single column. Icon + text on top, actions stretch
+            //             below in a wrapping row so each button is reachable.
+            //   \u2265sm     \u2014 icon + text on the left, actions floated right.
+            // The text container uses min-w-0 so it can shrink inside the
+            // flex row (without it, button labels force the text into a
+            // ~60-pixel column where every word wraps).
             return (
-                <div className={`flex items-start gap-4 p-4 rounded-lg border ${urgencyColor}`}>
-                    <div className="flex-shrink-0 mt-1">
-                        <div className={`w-3 h-3 rounded-full ${urgencyColor.includes('red') ? 'bg-red-500' : urgencyColor.includes('orange') ? 'bg-orange-500' : urgencyColor.includes('yellow') ? 'bg-yellow-500' : 'bg-blue-500'}`}></div>
-                    </div>
-                    <div className="flex-grow">
-                        <p className="font-semibold text-slate-100">{item.dog}</p>
-                        <p className="text-sm text-slate-400">{item.event}</p>
-                        <p className="text-xs text-slate-500 mt-1">{item.date} {dayLabel ? `\u2022 ${dayLabel}` : ''}</p>
+                <div className={`flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 p-4 rounded-lg border ${urgencyColor}`}>
+                    <div className="flex items-start gap-3 sm:gap-4 sm:flex-grow min-w-0">
+                        <div className="flex-shrink-0 mt-1">
+                            <div className={`w-3 h-3 rounded-full ${urgencyColor.includes('red') ? 'bg-red-500' : urgencyColor.includes('orange') ? 'bg-orange-500' : urgencyColor.includes('yellow') ? 'bg-yellow-500' : 'bg-blue-500'}`}></div>
+                        </div>
+                        <div className="flex-grow min-w-0">
+                            <p className="font-semibold text-slate-100">{item.dog}</p>
+                            <p className="text-sm text-slate-400">{item.event}</p>
+                            <p className="text-xs text-slate-500 mt-1">{item.date} {dayLabel ? `\u2022 ${dayLabel}` : ''}</p>
+                        </div>
                     </div>
                     {item.actions && item.actions.length > 0 && (
-                        <div className="flex-shrink-0 flex gap-2">
+                        <div className="flex flex-wrap gap-2 sm:flex-shrink-0 sm:flex-nowrap">
                             {item.actions.map((action, i) => (
                                 <button key={i} onClick={action.onClick} disabled={action.loading}
-                                    className={`text-xs px-3 py-1.5 rounded font-medium transition ${action.primary
+                                    className={`flex-1 sm:flex-none text-xs px-3 py-2 sm:py-1.5 rounded font-medium transition whitespace-nowrap ${action.primary
                                         ? 'bg-emerald-600 text-white hover:bg-emerald-500'
                                         : 'bg-slate-700 text-slate-300 hover:bg-slate-600'} disabled:opacity-50`}>
                                     {action.loading ? '\u23F3' : action.label}
