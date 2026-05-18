@@ -278,7 +278,17 @@
             font-size: 14px; line-height: 1.45; max-width: 85%;
           }
           .askbreediq-msg-assistant.pending { opacity: 0.85; }
+          .askbreediq-msg-assistant.error {
+            background: #422006; color: #fecaca; border: 1px solid #7c2d12;
+          }
           .askbreediq-msg-assistant a { color: #6ee7b7; text-decoration: underline; }
+          .askbreediq-retry-row { margin-top: 8px; }
+          .askbreediq-retry-btn {
+            background: #0f172a; color: #f1f5f9; border: 1px solid #475569;
+            padding: 6px 14px; font-size: 13px; font-weight: 600;
+            border-radius: 8px; cursor: pointer;
+          }
+          .askbreediq-retry-btn:hover { background: #1e293b; border-color: #64748b; }
           .askbreediq-tool-chip {
             align-self: flex-start; font-size: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
             background: #0b1220; color: #cbd5e1;
@@ -364,11 +374,23 @@
             if (msg.role === 'user') {
                 messagesEl.appendChild(h('div', { class: 'askbreediq-msg askbreediq-msg-user' }, [msg.text || '']));
             } else if (msg.role === 'assistant') {
-                const wrap = h('div', { class: 'askbreediq-msg askbreediq-msg-assistant' + (msg.pending ? ' pending' : '') });
+                const cls = 'askbreediq-msg askbreediq-msg-assistant'
+                    + (msg.pending ? ' pending' : '')
+                    + (msg.error ? ' error' : '');
+                const wrap = h('div', { class: cls });
                 const bodyText = msg.text || (msg.pending ? '' : '');
                 if (bodyText) wrap.appendChild(document.createTextNode(bodyText));
                 if (msg.pending) {
                     wrap.appendChild(h('span', { class: 'askbreediq-typing' }, [h('span'), h('span'), h('span')]));
+                }
+                // Retry button on a failed turn — re-sends the same conversation.
+                if (msg.error && msg.retryable) {
+                    wrap.appendChild(h('div', { class: 'askbreediq-retry-row' }, [
+                        h('button', {
+                            class: 'askbreediq-retry-btn',
+                            onclick: () => retryLastFailedTurn()
+                        }, ['↻ Retry'])
+                    ]));
                 }
                 messagesEl.appendChild(wrap);
 
@@ -452,6 +474,23 @@
         }
         if (extraUserBlocks) apiMessages.push({ role: 'user', content: extraUserBlocks });
 
+        await runChatRequest(apiMessages, assistantMsg);
+    }
+
+    // Translate raw HTTP / network errors into a one-line friendly message.
+    // Hides Vercel internals like "FUNCTION_INVOCATION_FAILED sfo1::…" which
+    // mean nothing to a breeder.
+    function friendlyError(status) {
+        if (status === 401) return "Your session expired — sign in again and try once more.";
+        if (status === 429) return "BreedIQ is rate-limited right now. Give it a few seconds and tap Retry.";
+        if (status >= 500) return "BreedIQ hit a snag on the server. Tap Retry to try again.";
+        if (status === 0) return "I couldn't reach the server. Check your connection and tap Retry.";
+        return "Something went wrong reaching BreedIQ. Tap Retry to try again.";
+    }
+
+    // Shared fetch+stream wrapper used by both first-send and retry.
+    // assistantMsg is the pending bubble that will be mutated with the result.
+    async function runChatRequest(apiMessages, assistantMsg) {
         try {
             const resp = await fetch('/api/assistant/chat', {
                 method: 'POST',
@@ -463,16 +502,20 @@
                 })
             });
             if (!resp.ok) {
-                const errText = await resp.text().catch(() => '');
                 assistantMsg.pending = false;
-                assistantMsg.text = `I couldn\'t reach the server (${resp.status}). ${errText.slice(0, 200)}`;
+                assistantMsg.text = friendlyError(resp.status);
+                assistantMsg.error = true;
+                assistantMsg.retryable = true;
                 renderMessages();
                 return;
             }
             await consumeNdjsonStream(resp, assistantMsg);
         } catch (err) {
             assistantMsg.pending = false;
-            assistantMsg.text = (assistantMsg.text || '') + '\n\nSomething went wrong: ' + (err.message || String(err));
+            // Network failure (offline, DNS, CORS, etc.) — no HTTP status.
+            assistantMsg.text = friendlyError(0);
+            assistantMsg.error = true;
+            assistantMsg.retryable = true;
             renderMessages();
         } finally {
             state.sending = false;
@@ -480,6 +523,46 @@
             persistHistory();
         }
     }
+
+    // Retry the last failed assistant turn: drop the error bubble and re-send
+    // the same conversation that produced it. The user's message stays in
+    // history — only the failed AI reply is replaced with a fresh attempt.
+    async function retryLastFailedTurn() {
+        if (state.sending) return;
+
+        // Pop the most recent error assistant message.
+        for (let i = state.messages.length - 1; i >= 0; i--) {
+            if (state.messages[i].role === 'assistant' && state.messages[i].error) {
+                state.messages.splice(i, 1);
+                break;
+            }
+        }
+
+        // Create a new pending assistant bubble in its place.
+        const assistantMsg = { role: 'assistant', text: '', pending: true, toolEvents: [] };
+        state.messages.push(assistantMsg);
+
+        state.sending = true;
+        if (sendBtnEl) { sendBtnEl.disabled = true; sendBtnEl.textContent = 'Sending…'; }
+        renderMessages();
+
+        // Build apiMessages from the current state (excluding the new pending bubble).
+        const apiMessages = [];
+        for (const m of state.messages) {
+            if (m === assistantMsg) break;
+            if (m.role === 'user') {
+                apiMessages.push({ role: 'user', content: m.text || '' });
+            } else if (m.role === 'assistant' && !m.pending) {
+                if (m.text) apiMessages.push({ role: 'assistant', content: m.text });
+            }
+        }
+
+        await runChatRequest(apiMessages, assistantMsg);
+    }
+
+    // Exposed so the in-message Retry button can call it via inline onclick.
+    window.AskBreedIQ = window.AskBreedIQ || {};
+    window.AskBreedIQ._retry = retryLastFailedTurn;
 
     async function consumeNdjsonStream(resp, assistantMsg) {
         const reader = resp.body.getReader();
