@@ -18,48 +18,59 @@ const MODEL = 'claude-sonnet-4-6';
 const MAX_TOOL_TURNS = 10;
 
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+    // Top-level guard: every code path below is wrapped so any unexpected
+    // throw (request-body parse error, SDK init failure, etc.) gets logged
+    // with full context and returned as a structured JSON 500 instead of
+    // Vercel's FUNCTION_INVOCATION_FAILED HTML page.
+    let userId = null;
+    let messageCount = 0;
+    let headersSent = false;
 
-    const auth = await requireAuth(req, res);
-    if (!auth) return;
+    try {
+        if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-        return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
-    }
+        const auth = await requireAuth(req, res);
+        if (!auth) return;
+        userId = auth.user.id;
 
-    const userId = auth.user.id;
-    const supabase = getServiceClient();
-
-    const { messages = [], page_context = {}, confirm_delete = false } = req.body || {};
-    if (!Array.isArray(messages) || messages.length === 0) {
-        return res.status(400).json({ error: 'messages[] is required' });
-    }
-
-    // Normalize user messages into Anthropic content block shape.
-    // Accept strings (convert to text blocks) or arrays (pass through).
-    const normalizedMessages = messages.map(m => {
-        if (typeof m.content === 'string') {
-            return { role: m.role, content: [{ type: 'text', text: m.content }] };
+        const apiKey = process.env.ANTHROPIC_API_KEY;
+        if (!apiKey) {
+            return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
         }
-        return { role: m.role, content: m.content };
-    });
 
-    // Determine if thinking should be enabled — longer user input benefits from it
-    const lastUser = [...normalizedMessages].reverse().find(m => m.role === 'user');
-    let userLen = 0;
-    if (lastUser) {
-        for (const b of (lastUser.content || [])) {
-            if (b.type === 'text') userLen += (b.text || '').length;
+        const supabase = getServiceClient();
+
+        const { messages = [], page_context = {}, confirm_delete = false } = req.body || {};
+        if (!Array.isArray(messages) || messages.length === 0) {
+            return res.status(400).json({ error: 'messages[] is required' });
         }
-    }
-    const enableThinking = userLen > 1500;
+        messageCount = messages.length;
 
-    // Prepare NDJSON stream
-    res.setHeader('Content-Type', 'application/x-ndjson');
-    res.setHeader('Cache-Control', 'no-cache, no-transform');
-    res.setHeader('X-Accel-Buffering', 'no');
-    if (typeof res.flushHeaders === 'function') res.flushHeaders();
+        // Normalize user messages into Anthropic content block shape.
+        // Accept strings (convert to text blocks) or arrays (pass through).
+        const normalizedMessages = messages.map(m => {
+            if (typeof m.content === 'string') {
+                return { role: m.role, content: [{ type: 'text', text: m.content }] };
+            }
+            return { role: m.role, content: m.content };
+        });
+
+        // Determine if thinking should be enabled — longer user input benefits from it
+        const lastUser = [...normalizedMessages].reverse().find(m => m.role === 'user');
+        let userLen = 0;
+        if (lastUser) {
+            for (const b of (lastUser.content || [])) {
+                if (b.type === 'text') userLen += (b.text || '').length;
+            }
+        }
+        const enableThinking = userLen > 1500;
+
+        // Prepare NDJSON stream
+        res.setHeader('Content-Type', 'application/x-ndjson');
+        res.setHeader('Cache-Control', 'no-cache, no-transform');
+        res.setHeader('X-Accel-Buffering', 'no');
+        if (typeof res.flushHeaders === 'function') res.flushHeaders();
+        headersSent = true;
 
     const emit = (obj) => {
         try { res.write(JSON.stringify(obj) + '\n'); }
@@ -103,37 +114,49 @@ export default async function handler(req, res) {
             const textByIndex = {};
 
             stream.on('streamEvent', (event) => {
-                if (event.type === 'content_block_start') {
-                    if (event.content_block?.type === 'tool_use') {
-                        toolUsesByIndex[event.index] = {
-                            id: event.content_block.id,
-                            name: event.content_block.name,
-                            input: ''
-                        };
-                        emit({ type: 'tool_use_start', tool_use_id: event.content_block.id, tool_name: event.content_block.name });
-                    } else if (event.content_block?.type === 'text') {
-                        textByIndex[event.index] = '';
-                    } else if (event.content_block?.type === 'thinking') {
-                        emit({ type: 'thinking_start' });
-                    }
-                } else if (event.type === 'content_block_delta') {
-                    if (event.delta?.type === 'text_delta') {
-                        const txt = event.delta.text || '';
-                        if (textByIndex[event.index] !== undefined) textByIndex[event.index] += txt;
-                        emit({ type: 'text_delta', text: txt });
-                    } else if (event.delta?.type === 'input_json_delta') {
+                // Defensive: any throw from inside the SDK's event dispatch
+                // (bad partial_json, etc.) would otherwise become an uncaught
+                // promise rejection at the worker level and crash the function
+                // with FUNCTION_INVOCATION_FAILED. Swallow + log here.
+                try {
+                    if (event.type === 'content_block_start') {
+                        if (event.content_block?.type === 'tool_use') {
+                            toolUsesByIndex[event.index] = {
+                                id: event.content_block.id,
+                                name: event.content_block.name,
+                                input: ''
+                            };
+                            emit({ type: 'tool_use_start', tool_use_id: event.content_block.id, tool_name: event.content_block.name });
+                        } else if (event.content_block?.type === 'text') {
+                            textByIndex[event.index] = '';
+                        } else if (event.content_block?.type === 'thinking') {
+                            emit({ type: 'thinking_start' });
+                        }
+                    } else if (event.type === 'content_block_delta') {
+                        if (event.delta?.type === 'text_delta') {
+                            const txt = event.delta.text || '';
+                            if (textByIndex[event.index] !== undefined) textByIndex[event.index] += txt;
+                            emit({ type: 'text_delta', text: txt });
+                        } else if (event.delta?.type === 'input_json_delta') {
+                            const tu = toolUsesByIndex[event.index];
+                            if (tu) tu.input += event.delta.partial_json || '';
+                        }
+                    } else if (event.type === 'content_block_stop') {
                         const tu = toolUsesByIndex[event.index];
-                        if (tu) tu.input += event.delta.partial_json || '';
+                        if (tu) {
+                            let parsedInput = {};
+                            try { parsedInput = tu.input ? JSON.parse(tu.input) : {}; }
+                            catch (e) { console.error(`[assistant] bad tool JSON for ${tu.name}:`, tu.input); }
+                            tu.parsedInput = parsedInput;
+                            emit({ type: 'tool_use', tool_use_id: tu.id, tool_name: tu.name, input: parsedInput });
+                        }
                     }
-                } else if (event.type === 'content_block_stop') {
-                    const tu = toolUsesByIndex[event.index];
-                    if (tu) {
-                        let parsedInput = {};
-                        try { parsedInput = tu.input ? JSON.parse(tu.input) : {}; }
-                        catch (e) { console.error(`[assistant] bad tool JSON for ${tu.name}:`, tu.input); }
-                        tu.parsedInput = parsedInput;
-                        emit({ type: 'tool_use', tool_use_id: tu.id, tool_name: tu.name, input: parsedInput });
-                    }
+                } catch (handlerErr) {
+                    console.error('[assistant] streamEvent handler threw', {
+                        event_type: event?.type,
+                        message: handlerErr?.message,
+                        stack: handlerErr?.stack
+                    });
                 }
             });
 
@@ -229,5 +252,33 @@ export default async function handler(req, res) {
         console.error('[assistant] stream error', err);
         emit({ type: 'error', error: err.message || 'Unknown error' });
         try { res.end(); } catch {}
+    }
+
+    } catch (outerErr) {
+        // Outer guard: anything that escapes both the streaming try/catch
+        // AND the pre-stream code path lands here. Most importantly, this
+        // captures errors that happen BEFORE the response headers are sent
+        // (e.g. SDK init, body parse, requireAuth crashes) so the client
+        // sees a clean JSON 500 instead of Vercel's HTML wrapper.
+        console.error('[assistant] handler outer error', {
+            message: outerErr?.message,
+            name: outerErr?.name,
+            stack: outerErr?.stack,
+            user_id: userId,
+            message_count: messageCount,
+            headers_sent: headersSent
+        });
+        if (!headersSent && !res.headersSent) {
+            try {
+                res.status(500).json({
+                    error: outerErr?.message || 'Server error',
+                    error_kind: outerErr?.name || 'Error'
+                });
+            } catch { /* response may already be closed */ }
+        } else {
+            // Headers already streamed — try to emit a final NDJSON error event.
+            try { res.write(JSON.stringify({ type: 'error', error: outerErr?.message || 'Server error' }) + '\n'); } catch {}
+            try { res.end(); } catch {}
+        }
     }
 }
