@@ -16,6 +16,12 @@ import { TOOL_SCHEMAS, DESTRUCTIVE_TOOLS, executeTool } from '../../lib/assistan
 
 const MODEL = 'claude-sonnet-4-6';
 const MAX_TOOL_TURNS = 10;
+// Soft time budget — must be a few seconds shorter than vercel.json's
+// maxDuration for this function (60s) so we can close the stream cleanly
+// before Vercel kills the process. A killed process produces 500 +
+// "(node:4) Warning: Failed to..." in the logs and a FUNCTION_INVOCATION_FAILED
+// for the client; this budget lets us emit a graceful timeout event instead.
+const SOFT_TIME_BUDGET_MS = 50_000;
 
 export default async function handler(req, res) {
     // Top-level guard: every code path below is wrapped so any unexpected
@@ -91,11 +97,26 @@ export default async function handler(req, res) {
     const toolsUsed = [];
     let turns = 0;
     let stopReason = null;
+    const startedAt = Date.now();
 
     emit({ type: 'start', model: MODEL, thinking: enableThinking });
 
     try {
         while (turns < MAX_TOOL_TURNS) {
+            // Soft time-budget guard. If we're close to the Vercel maxDuration,
+            // stop the loop, tell the user, and close cleanly. Beats getting
+            // killed mid-turn (which produces FUNCTION_INVOCATION_FAILED).
+            const elapsed = Date.now() - startedAt;
+            if (elapsed > SOFT_TIME_BUDGET_MS) {
+                console.warn('[assistant] soft time budget exceeded', { elapsed_ms: elapsed, turns, user_id: userId });
+                emit({
+                    type: 'error',
+                    error: "That request is taking longer than expected on my end. Try simplifying it, or break it into smaller steps and tap Retry.",
+                    reason: 'time_budget'
+                });
+                stopReason = 'time_budget';
+                break;
+            }
             turns++;
 
             const requestParams = {
