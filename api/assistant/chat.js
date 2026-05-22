@@ -23,6 +23,10 @@ const MAX_TOOL_TURNS = 10;
 // for the client; this budget lets us emit a graceful timeout event instead.
 const SOFT_TIME_BUDGET_MS = 50_000;
 
+// Module-load probe: if this never appears in logs but requests still fail,
+// the throw is during the import statements above, not in the handler.
+console.log('[assistant-debug] module loaded', { time: Date.now() });
+
 export default async function handler(req, res) {
     // Top-level guard: every code path below is wrapped so any unexpected
     // throw (request-body parse error, SDK init failure, etc.) gets logged
@@ -31,13 +35,19 @@ export default async function handler(req, res) {
     let userId = null;
     let messageCount = 0;
     let headersSent = false;
+    let lastStep = 'enter';
+
+    console.log('[assistant-debug] handler enter', { method: req.method });
 
     try {
         if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+        lastStep = 'post_method_check';
 
         const auth = await requireAuth(req, res);
         if (!auth) return;
         userId = auth.user.id;
+        lastStep = 'post_require_auth';
+        console.log('[assistant-debug] auth ok', { user_id: userId });
 
         const apiKey = process.env.ANTHROPIC_API_KEY;
         if (!apiKey) {
@@ -46,11 +56,18 @@ export default async function handler(req, res) {
 
         const supabase = getServiceClient();
 
+        lastStep = 'pre_body_destructure';
+        const bodyType = typeof req.body;
+        const bodyKeys = req.body && typeof req.body === 'object' ? Object.keys(req.body) : null;
+        console.log('[assistant-debug] body shape', { bodyType, bodyKeys });
+
         const { messages = [], page_context = {}, confirm_delete = false } = req.body || {};
         if (!Array.isArray(messages) || messages.length === 0) {
             return res.status(400).json({ error: 'messages[] is required' });
         }
         messageCount = messages.length;
+        lastStep = 'post_body_destructure';
+        console.log('[assistant-debug] body parsed', { message_count: messageCount });
 
         // Normalize user messages into Anthropic content block shape.
         // Accept strings (convert to text blocks) or arrays (pass through).
@@ -72,11 +89,14 @@ export default async function handler(req, res) {
         const enableThinking = userLen > 1500;
 
         // Prepare NDJSON stream
+        lastStep = 'pre_flush_headers';
         res.setHeader('Content-Type', 'application/x-ndjson');
         res.setHeader('Cache-Control', 'no-cache, no-transform');
         res.setHeader('X-Accel-Buffering', 'no');
         if (typeof res.flushHeaders === 'function') res.flushHeaders();
         headersSent = true;
+        lastStep = 'post_flush_headers';
+        console.log('[assistant-debug] headers flushed');
 
     const emit = (obj) => {
         try { res.write(JSON.stringify(obj) + '\n'); }
@@ -287,7 +307,8 @@ export default async function handler(req, res) {
             stack: outerErr?.stack,
             user_id: userId,
             message_count: messageCount,
-            headers_sent: headersSent
+            headers_sent: headersSent,
+            last_step: lastStep
         });
         if (!headersSent && !res.headersSent) {
             try {
