@@ -13,7 +13,10 @@
 //   4. Bump CACHE_VERSION when we ship a new build to force
 //      old caches to be cleaned up.
 
-const CACHE_VERSION = 'breediq-v1';
+// Bump this any time we ship a code fix that needs PWA users to drop
+// their cached client bundle (e.g. ask-breediq.js after a chat fix).
+// Old caches under different versions are deleted on `activate`.
+const CACHE_VERSION = 'breediq-v2';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 
