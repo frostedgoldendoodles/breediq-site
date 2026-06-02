@@ -220,6 +220,7 @@
             width: min(420px, 100dvw);
             /* Respect iOS safe-area insets so content (Send button, message
                text) doesn't slide under the notch or home indicator. */
+            padding-top: env(safe-area-inset-top, 0px);
             padding-left: env(safe-area-inset-left, 0px);
             padding-right: env(safe-area-inset-right, 0px);
             padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -250,11 +251,14 @@
           .askbreediq-title-icon { color: #34d399; display: inline-flex; }
           .askbreediq-header-actions { display: flex; gap: 4px; }
           .askbreediq-icon-btn {
-            background: transparent; border: none; color: #94a3b8;
-            padding: 6px 8px; cursor: pointer; border-radius: 6px;
+            background: transparent; border: none; color: #cbd5e1;
+            padding: 10px 12px; cursor: pointer; border-radius: 8px;
             display: inline-flex; align-items: center; justify-content: center;
+            min-width: 44px; min-height: 44px; /* iOS Human Interface tap target */
           }
-          .askbreediq-icon-btn:hover { background: #1e293b; color: #f1f5f9; }
+          .askbreediq-icon-btn:hover, .askbreediq-icon-btn:active {
+            background: #1e293b; color: #f1f5f9;
+          }
           .askbreediq-context-pill {
             margin: 10px 16px; padding: 6px 10px; font-size: 12px;
             color: #a7f3d0; background: #064e3b; border: 1px solid #065f46;
