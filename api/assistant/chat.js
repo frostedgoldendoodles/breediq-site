@@ -21,7 +21,7 @@ const MAX_TOOL_TURNS = 10;
 // before Vercel kills the process. A killed process produces 500 +
 // "(node:4) Warning: Failed to..." in the logs and a FUNCTION_INVOCATION_FAILED
 // for the client; this budget lets us emit a graceful timeout event instead.
-const SOFT_TIME_BUDGET_MS = 50_000;
+const SOFT_TIME_BUDGET_MS = 40_000;
 
 // Module-load probe: if this never appears in logs but requests still fail,
 // the throw is during the import statements above, not in the handler.

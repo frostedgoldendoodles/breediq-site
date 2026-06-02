@@ -16,7 +16,7 @@
 // Bump this any time we ship a code fix that needs PWA users to drop
 // their cached client bundle (e.g. ask-breediq.js after a chat fix).
 // Old caches under different versions are deleted on `activate`.
-const CACHE_VERSION = 'breediq-v2';
+const CACHE_VERSION = 'breediq-v3';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 

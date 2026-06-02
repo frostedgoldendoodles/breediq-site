@@ -488,6 +488,27 @@
         return "Something went wrong reaching BreedIQ. Tap Retry to try again.";
     }
 
+    // If tools already succeeded during the stream before something tore,
+    // the actual writes ARE done — don't scare the user with a server-error
+    // message and a Retry button (retrying would redo the work). Show a soft
+    // success message instead.
+    function applyErrorOrPartialSuccess(assistantMsg, status) {
+        assistantMsg.pending = false;
+        const savedCount = assistantMsg.toolSuccessCount || 0;
+        if (savedCount > 0) {
+            assistantMsg.text = (assistantMsg.text || '').trim()
+                + (assistantMsg.text ? '\n\n' : '')
+                + `✓ Your ${savedCount === 1 ? 'update was' : `${savedCount} updates were`} saved. I had trouble finishing my reply, but your records are up to date.`;
+            assistantMsg.error = false;
+            assistantMsg.retryable = false;
+        } else {
+            assistantMsg.text = friendlyError(status);
+            assistantMsg.error = true;
+            assistantMsg.retryable = true;
+        }
+        renderMessages();
+    }
+
     // Shared fetch+stream wrapper used by both first-send and retry.
     // assistantMsg is the pending bubble that will be mutated with the result.
     async function runChatRequest(apiMessages, assistantMsg) {
@@ -502,21 +523,13 @@
                 })
             });
             if (!resp.ok) {
-                assistantMsg.pending = false;
-                assistantMsg.text = friendlyError(resp.status);
-                assistantMsg.error = true;
-                assistantMsg.retryable = true;
-                renderMessages();
+                applyErrorOrPartialSuccess(assistantMsg, resp.status);
                 return;
             }
             await consumeNdjsonStream(resp, assistantMsg);
         } catch (err) {
-            assistantMsg.pending = false;
-            // Network failure (offline, DNS, CORS, etc.) — no HTTP status.
-            assistantMsg.text = friendlyError(0);
-            assistantMsg.error = true;
-            assistantMsg.retryable = true;
-            renderMessages();
+            // Network failure (offline, DNS, CORS, stream tore, etc.) — no HTTP status.
+            applyErrorOrPartialSuccess(assistantMsg, 0);
         } finally {
             state.sending = false;
             if (sendBtnEl) { sendBtnEl.disabled = false; sendBtnEl.textContent = 'Send'; }
@@ -614,6 +627,10 @@
                 let message = '';
                 if (evt.ok) {
                     message = summarizeResult(evt.tool_name, evt.result);
+                    // Track whether ANY tool succeeded so the error UI can
+                    // distinguish "couldn't reach server" from "server did
+                    // the work but stream tore mid-reply".
+                    assistantMsg.toolSuccessCount = (assistantMsg.toolSuccessCount || 0) + 1;
                 } else if (evt.requires_confirmation) {
                     message = describeDestructive(evt.tool_name, evt.target);
                 } else if (evt.error) {
