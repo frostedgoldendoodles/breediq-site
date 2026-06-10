@@ -2,6 +2,7 @@
 // GET: List litters with dam/sire details
 // POST: Create a new litter
 import { requireAuth, getServiceClient, attachSignedPhotoUrls } from '../../lib/supabase.js';
+import { GESTATION_DAYS, computeDueDate, gestationProgress } from '../../lib/gestation.js';
 
 export default async function handler(req, res) {
     const auth = await requireAuth(req, res);
@@ -55,18 +56,13 @@ export default async function handler(req, res) {
             // Add computed gestation info for active pregnancies
             const enriched = (litters || []).map(l => {
                 if (l.breed_date && !l.whelp_date && ['confirmed'].includes(l.status)) {
-                    const breedDate = new Date(l.breed_date);
-                    const today = new Date();
-                    const gestationDay = Math.floor((today - breedDate) / (24 * 60 * 60 * 1000));
-                    const dueDate = l.due_date || new Date(breedDate.getTime() + 61 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-                    const daysRemaining = Math.max(0, 61 - gestationDay);
-
+                    const prog = gestationProgress(l.breed_date);
                     return {
                         ...l,
-                        computed_gestation_day: gestationDay,
-                        computed_due_date: dueDate,
-                        days_remaining: daysRemaining,
-                        gestation_progress: Math.min(Math.round((gestationDay / 61) * 100), 100)
+                        computed_gestation_day: prog.computed_gestation_day,
+                        computed_due_date: l.due_date || computeDueDate(l.breed_date),
+                        days_remaining: prog.days_remaining,
+                        gestation_progress: prog.gestation_progress
                     };
                 }
                 return l;
@@ -104,12 +100,10 @@ export default async function handler(req, res) {
                 price_per_puppy, notes
             } = req.body;
 
-            // Auto-calculate due date if breed_date given (61-day gestation)
+            // Auto-calculate due date if breed_date given (GESTATION_DAYS)
             let computedDueDate = due_date;
             if (breed_date && !due_date) {
-                const bd = new Date(breed_date);
-                bd.setDate(bd.getDate() + 61);
-                computedDueDate = bd.toISOString().split('T')[0];
+                computedDueDate = computeDueDate(breed_date);
             }
 
             const { data: litter, error } = await supabase

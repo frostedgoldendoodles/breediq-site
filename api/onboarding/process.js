@@ -44,7 +44,7 @@ const TOOLS = [
                 dam_name: { type: 'string', description: 'Name of the dam (mother). Must match a dog recorded via create_dog.' },
                 sire_name: { type: 'string', description: 'Name of the sire (father). Must match a dog recorded via create_dog, or can be an outside stud.' },
                 breed_date: { type: 'string', description: 'YYYY-MM-DD of breeding/mating' },
-                due_date: { type: 'string', description: 'YYYY-MM-DD of expected whelping. Gestation is ~63 days from breed_date if known.' },
+                due_date: { type: 'string', description: 'YYYY-MM-DD of expected whelping. BreedIQ uses a 61-day gestation from breed_date if no due date is given.' },
                 whelp_date: { type: 'string', description: 'YYYY-MM-DD of actual whelping, if already born' },
                 puppy_count: { type: 'number', description: 'Total puppies born, or expected count for planned litters' },
                 status: { type: 'string', enum: ['planned', 'confirmed', 'born', 'available', 'placed', 'archived'], description: 'Litter status' },
@@ -118,7 +118,7 @@ Read the content carefully, then call tools to record each distinct dog, litter,
 2. **One entity per call.** Call create_dog once per unique dog. If "Poppy" is mentioned five times, merge those mentions into ONE call with the combined data.
 3. **Name matching for litters.** When calling create_litter, use the EXACT same dam_name and sire_name you used in create_dog (so we can link them). If a sire is an outside stud not in the records, use their name anyway.
 4. **Dates are YYYY-MM-DD.** If you see "March 14, 2022" write "2022-03-14". If you see "3/14/22" assume US MM/DD/YY → "2022-03-14". If the year is ambiguous, omit the date.
-5. **Gestation math.** Canine gestation is ~63 days. If you see a breed_date but no due_date, you may compute due_date = breed_date + 63 days. If you see a whelp_date, don't compute anything.
+5. **Gestation math.** BreedIQ uses a 61-day gestation. If you see a breed_date but no due_date, you may compute due_date = breed_date + 61 days. If you see a whelp_date, don't compute anything.
 6. **Sex/role inference.** "Dam", "queen", "mom", "had a litter" → sex: female, role: dam. "Stud", "sire", "dad of the litter" → sex: male, role: stud.
 7. **Call finish last.** When you've extracted everything, call the finish tool with a brief summary.
 

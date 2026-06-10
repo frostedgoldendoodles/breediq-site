@@ -3,6 +3,7 @@
 // PUT: Update litter (status changes, add puppy count, etc.)
 // DELETE: Archive litter
 import { requireAuth, getServiceClient, getProgramUserIds, attachSignedPhotoUrls } from '../../lib/supabase.js';
+import { computeDueDate, gestationProgress } from '../../lib/gestation.js';
 
 export default async function handler(req, res) {
     const auth = await requireAuth(req, res);
@@ -37,11 +38,7 @@ export default async function handler(req, res) {
 
             // Add gestation tracking for active pregnancies
             if (litter.breed_date && !litter.whelp_date) {
-                const breedDate = new Date(litter.breed_date);
-                const today = new Date();
-                litter.computed_gestation_day = Math.floor((today - breedDate) / (24 * 60 * 60 * 1000));
-                litter.days_remaining = Math.max(0, 61 - litter.computed_gestation_day);
-                litter.gestation_progress = Math.min(Math.round((litter.computed_gestation_day / 61) * 100), 100);
+                Object.assign(litter, gestationProgress(litter.breed_date));
             }
 
             // Sign embedded dam/sire photo URLs.
@@ -91,9 +88,7 @@ export default async function handler(req, res) {
 
             // Auto-calculate due date if breed_date changed and no due_date provided
             if (updates.breed_date && !updates.due_date) {
-                const bd = new Date(updates.breed_date);
-                bd.setDate(bd.getDate() + 61);
-                updates.due_date = bd.toISOString().split('T')[0];
+                updates.due_date = computeDueDate(updates.breed_date);
             }
 
             const { data: litter, error } = await supabase
