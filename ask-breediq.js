@@ -162,6 +162,7 @@
             id: 'askbreediq-panel',
             class: 'askbreediq-panel',
             role: 'dialog',
+            'aria-modal': 'true',
             'aria-label': 'BreedIQ assistant',
             'aria-hidden': 'true'
         }, [header, contextPillEl, messagesEl, composer]);
@@ -786,6 +787,9 @@
         if (backdropEl) backdropEl.setAttribute('data-open', 'false');
         try { document.body.style.overflow = ''; } catch (e) { }
         try { localStorage.setItem(LS_OPEN_KEY, '0'); } catch (e) { }
+        // Return focus to the trigger so keyboard users aren't dropped at the
+        // top of the page after the dialog closes (WCAG 2.4.3 Focus Order).
+        try { btnEl?.focus(); } catch (e) { }
     }
     function toggle() { state.open ? close() : open(); }
     function setContext(ctx) {

@@ -532,6 +532,7 @@
                                     value={pastedText}
                                     onChange={(e) => setPastedText(e.target.value)}
                                     placeholder="Paste anything — Apple Notes, a spreadsheet copy-paste, text messages with your vet, a breeding log, whatever you've got. We'll sort it."
+                                    aria-label="Paste your breeding records here"
                                     className="paste-box w-full min-h-[280px] rounded-xl px-5 py-4 text-base text-gray-100 placeholder-gray-500 resize-y"
                                 />
 
@@ -545,7 +546,7 @@
                                 >
                                     <div className="flex items-center justify-between gap-4 flex-wrap">
                                         <div className="flex items-center gap-3">
-                                            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg aria-hidden="true" className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                             </svg>
                                             <div>
@@ -679,6 +680,7 @@
                                                     value={q.answer}
                                                     onChange={(e) => setQuestions(prev => prev.map((x, i) => i === idx ? { ...x, answer: e.target.value } : x))}
                                                     placeholder="Your answer (we'll append this as a note)"
+                                                    aria-label={q.question}
                                                     className="w-full bg-slate-900/60 border border-slate-700 rounded px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-amber-400"
                                                 />
                                             </div>
@@ -763,7 +765,7 @@
                         {step === 4 && confirmResult && (
                             <div className="flex flex-col items-center justify-center py-12 space-y-6 text-center">
                                 <div className="w-20 h-20 rounded-full bg-green-500/20 border border-green-500/40 flex items-center justify-center">
-                                    <svg className="w-12 h-12 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg aria-hidden="true" className="w-12 h-12 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
                                 </div>
@@ -815,6 +817,7 @@
                                     onClick={() => onRemove(idx)}
                                     className="icon-btn danger"
                                     title="Remove"
+                                    aria-label="Remove this row"
                                 >×</button>
                             </div>
                         ))}
@@ -826,23 +829,23 @@
         function DogRow({ dog, onChange }) {
             return (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    <input placeholder="Name" value={dog.name || ''} onChange={e => onChange('name', e.target.value)} />
-                    <select value={dog.sex || ''} onChange={e => onChange('sex', e.target.value || undefined)}>
+                    <input aria-label="Dog name" placeholder="Name" value={dog.name || ''} onChange={e => onChange('name', e.target.value)} />
+                    <select aria-label="Dog sex" value={dog.sex || ''} onChange={e => onChange('sex', e.target.value || undefined)}>
                         <option value="">Sex</option>
                         <option value="female">Female</option>
                         <option value="male">Male</option>
                     </select>
-                    <input placeholder="Breed" value={dog.breed || ''} onChange={e => onChange('breed', e.target.value)} />
-                    <input placeholder="DOB (YYYY-MM-DD)" value={dog.date_of_birth || ''} onChange={e => onChange('date_of_birth', e.target.value)} />
-                    <select value={dog.role || ''} onChange={e => onChange('role', e.target.value || undefined)}>
+                    <input aria-label="Dog breed" placeholder="Breed" value={dog.breed || ''} onChange={e => onChange('breed', e.target.value)} />
+                    <input aria-label="Dog date of birth (YYYY-MM-DD)" placeholder="DOB (YYYY-MM-DD)" value={dog.date_of_birth || ''} onChange={e => onChange('date_of_birth', e.target.value)} />
+                    <select aria-label="Dog role" value={dog.role || ''} onChange={e => onChange('role', e.target.value || undefined)}>
                         <option value="">Role</option>
                         <option value="dam">Dam</option>
                         <option value="stud">Stud</option>
                         <option value="prospect">Prospect</option>
                     </select>
-                    <input placeholder="Color" value={dog.color || ''} onChange={e => onChange('color', e.target.value)} />
-                    <input placeholder="Weight (lbs)" type="number" value={dog.weight_lbs || ''} onChange={e => onChange('weight_lbs', e.target.value ? Number(e.target.value) : undefined)} />
-                    <input placeholder="Notes" value={dog.notes || ''} onChange={e => onChange('notes', e.target.value)} />
+                    <input aria-label="Dog color" placeholder="Color" value={dog.color || ''} onChange={e => onChange('color', e.target.value)} />
+                    <input aria-label="Dog weight in pounds" placeholder="Weight (lbs)" type="number" value={dog.weight_lbs || ''} onChange={e => onChange('weight_lbs', e.target.value ? Number(e.target.value) : undefined)} />
+                    <input aria-label="Dog notes" placeholder="Notes" value={dog.notes || ''} onChange={e => onChange('notes', e.target.value)} />
                 </div>
             );
         }
@@ -850,13 +853,13 @@
         function LitterRow({ litter, onChange }) {
             return (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    <input placeholder="Dam name" value={litter.dam_name || ''} onChange={e => onChange('dam_name', e.target.value)} />
-                    <input placeholder="Sire name" value={litter.sire_name || ''} onChange={e => onChange('sire_name', e.target.value)} />
-                    <input placeholder="Breed date" value={litter.breed_date || ''} onChange={e => onChange('breed_date', e.target.value)} />
-                    <input placeholder="Due date" value={litter.due_date || ''} onChange={e => onChange('due_date', e.target.value)} />
-                    <input placeholder="Whelp date" value={litter.whelp_date || ''} onChange={e => onChange('whelp_date', e.target.value)} />
-                    <input placeholder="Puppy count" type="number" value={litter.puppy_count || ''} onChange={e => onChange('puppy_count', e.target.value ? Number(e.target.value) : undefined)} />
-                    <select value={litter.status || ''} onChange={e => onChange('status', e.target.value || undefined)}>
+                    <input aria-label="Litter dam name" placeholder="Dam name" value={litter.dam_name || ''} onChange={e => onChange('dam_name', e.target.value)} />
+                    <input aria-label="Litter sire name" placeholder="Sire name" value={litter.sire_name || ''} onChange={e => onChange('sire_name', e.target.value)} />
+                    <input aria-label="Litter breed date" placeholder="Breed date" value={litter.breed_date || ''} onChange={e => onChange('breed_date', e.target.value)} />
+                    <input aria-label="Litter due date" placeholder="Due date" value={litter.due_date || ''} onChange={e => onChange('due_date', e.target.value)} />
+                    <input aria-label="Litter whelp date" placeholder="Whelp date" value={litter.whelp_date || ''} onChange={e => onChange('whelp_date', e.target.value)} />
+                    <input aria-label="Litter puppy count" placeholder="Puppy count" type="number" value={litter.puppy_count || ''} onChange={e => onChange('puppy_count', e.target.value ? Number(e.target.value) : undefined)} />
+                    <select aria-label="Litter status" value={litter.status || ''} onChange={e => onChange('status', e.target.value || undefined)}>
                         <option value="">Status</option>
                         <option value="planned">Planned</option>
                         <option value="confirmed">Confirmed</option>
@@ -865,7 +868,7 @@
                         <option value="placed">Placed</option>
                         <option value="archived">Archived</option>
                     </select>
-                    <input placeholder="Notes" value={litter.notes || ''} onChange={e => onChange('notes', e.target.value)} />
+                    <input aria-label="Litter notes" placeholder="Notes" value={litter.notes || ''} onChange={e => onChange('notes', e.target.value)} />
                 </div>
             );
         }
@@ -873,12 +876,12 @@
         function GuardianRow({ guardian, onChange }) {
             return (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    <input placeholder="Family name" value={guardian.family_name || ''} onChange={e => onChange('family_name', e.target.value)} />
-                    <input placeholder="Contact name" value={guardian.contact_name || ''} onChange={e => onChange('contact_name', e.target.value)} />
-                    <input placeholder="Email" value={guardian.email || ''} onChange={e => onChange('email', e.target.value)} />
-                    <input placeholder="Phone" value={guardian.phone || ''} onChange={e => onChange('phone', e.target.value)} />
-                    <input placeholder="Dog they guard" value={guardian.dog_name_if_known || ''} onChange={e => onChange('dog_name_if_known', e.target.value)} />
-                    <input placeholder="Notes" className="md:col-span-3" value={guardian.notes || ''} onChange={e => onChange('notes', e.target.value)} />
+                    <input aria-label="Guardian family name" placeholder="Family name" value={guardian.family_name || ''} onChange={e => onChange('family_name', e.target.value)} />
+                    <input aria-label="Guardian contact name" placeholder="Contact name" value={guardian.contact_name || ''} onChange={e => onChange('contact_name', e.target.value)} />
+                    <input aria-label="Guardian email" placeholder="Email" value={guardian.email || ''} onChange={e => onChange('email', e.target.value)} />
+                    <input aria-label="Guardian phone" placeholder="Phone" value={guardian.phone || ''} onChange={e => onChange('phone', e.target.value)} />
+                    <input aria-label="Dog the guardian cares for" placeholder="Dog they guard" value={guardian.dog_name_if_known || ''} onChange={e => onChange('dog_name_if_known', e.target.value)} />
+                    <input aria-label="Guardian notes" placeholder="Notes" className="md:col-span-3" value={guardian.notes || ''} onChange={e => onChange('notes', e.target.value)} />
                 </div>
             );
         }

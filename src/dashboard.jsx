@@ -171,63 +171,63 @@
         // ICON COMPONENTS
         // ═══════════════════════════════════════════════════════
         const IconHeart = () => (
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
             </svg>
         );
 
         const IconBaby = () => (
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                 <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
             </svg>
         );
 
         const IconFire = () => (
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633z" clipRule="evenodd" />
                 <path fillRule="evenodd" d="M7.684 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633z" clipRule="evenodd" />
             </svg>
         );
 
         const IconCalendar = () => (
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l12-12v12z" />
             </svg>
         );
 
         const IconBell = () => (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg aria-hidden="true" className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
         );
 
         const IconMenu = () => (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg aria-hidden="true" className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
         );
 
         const IconSearch = () => (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg aria-hidden="true" className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
         );
 
         const IconX = () => (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg aria-hidden="true" className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
         );
 
         const IconSend = () => (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg aria-hidden="true" className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
         );
 
         const IconSparkle = () => (
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 2l1.5 4.5L16 8l-4.5 1.5L10 14l-1.5-4.5L4 8l4.5-1.5L10 2z" />
             </svg>
         );
@@ -569,11 +569,13 @@
                                         onKeyDown={(e) => { if (e.key === 'Enter') handleAiSend(); }}
                                         onFocus={() => setActivePanel('ai')}
                                         placeholder={`Tell me what changed... e.g. "Poppy's pups went home today"`}
+                                        aria-label="Tell the AI what changed"
                                         className="flex-grow px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
                                     />
                                     <button
                                         onClick={handleAiSend}
                                         disabled={!aiInput.trim() || aiLoading}
+                                        aria-label="Send to AI"
                                         className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg transition"
                                     >
                                         <IconSend />
@@ -590,7 +592,7 @@
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
                                     <div>
                                         <label className="block text-xs text-slate-400 mb-1">Select Dog</label>
-                                        <select value={selectedDogId} onChange={(e) => setSelectedDogId(e.target.value)}
+                                        <select aria-label="Select dog" value={selectedDogId} onChange={(e) => setSelectedDogId(e.target.value)}
                                             className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100">
                                             <option value="">Choose a dog...</option>
                                             {dogs.map(d => <option key={d.id} value={d.id}>{d.name} ({heatStatusLabel(d.heat_status)})</option>)}
@@ -598,7 +600,7 @@
                                     </div>
                                     <div>
                                         <label className="block text-xs text-slate-400 mb-1">New Status</label>
-                                        <select value={newDogStatus} onChange={(e) => setNewDogStatus(e.target.value)}
+                                        <select aria-label="New dog status" value={newDogStatus} onChange={(e) => setNewDogStatus(e.target.value)}
                                             className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100">
                                             <option value="">Choose status...</option>
                                             <optgroup label="Dog Status">
@@ -630,7 +632,7 @@
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
                                     <div>
                                         <label className="block text-xs text-slate-400 mb-1">Select Litter</label>
-                                        <select value={selectedLitterId} onChange={(e) => setSelectedLitterId(e.target.value)}
+                                        <select aria-label="Select litter" value={selectedLitterId} onChange={(e) => setSelectedLitterId(e.target.value)}
                                             className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100">
                                             <option value="">Choose a litter...</option>
                                             {activeLitters.map(l => (
@@ -642,7 +644,7 @@
                                     </div>
                                     <div>
                                         <label className="block text-xs text-slate-400 mb-1">Milestone</label>
-                                        <select value={newLitterStatus} onChange={(e) => setNewLitterStatus(e.target.value)}
+                                        <select aria-label="Litter milestone" value={newLitterStatus} onChange={(e) => setNewLitterStatus(e.target.value)}
                                             className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100">
                                             <option value="">Choose milestone...</option>
                                             <option value="confirmed">Confirmed (Ultrasound)</option>
@@ -657,6 +659,7 @@
                                             {newLitterStatus === 'born' ? 'Whelp Date' : newLitterStatus === 'placed' ? 'Go-Home Date' : newLitterStatus === 'confirmed' ? 'Ultrasound Date' : 'Date'}
                                         </label>
                                         <input type="date" value={litterDate} onChange={(e) => setLitterDate(e.target.value)}
+                                            aria-label={newLitterStatus === 'born' ? 'Whelp Date' : newLitterStatus === 'placed' ? 'Go-Home Date' : newLitterStatus === 'confirmed' ? 'Ultrasound Date' : 'Date'}
                                             className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100" />
                                     </div>
                                     <button onClick={handleLitterMilestoneUpdate} disabled={!selectedLitterId || !newLitterStatus || saving}
@@ -670,16 +673,19 @@
                                         <div>
                                             <label className="block text-xs text-slate-400 mb-1">Total Pups</label>
                                             <input type="number" value={litterPuppyCount} onChange={(e) => setLitterPuppyCount(e.target.value)}
+                                                aria-label="Total puppies"
                                                 className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100" placeholder="e.g. 7" />
                                         </div>
                                         <div>
                                             <label className="block text-xs text-slate-400 mb-1">Males</label>
                                             <input type="number" value={litterMales} onChange={(e) => setLitterMales(e.target.value)}
+                                                aria-label="Number of males"
                                                 className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100" placeholder="e.g. 3" />
                                         </div>
                                         <div>
                                             <label className="block text-xs text-slate-400 mb-1">Females</label>
                                             <input type="number" value={litterFemales} onChange={(e) => setLitterFemales(e.target.value)}
+                                                aria-label="Number of females"
                                                 className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100" placeholder="e.g. 4" />
                                         </div>
                                     </div>
@@ -693,7 +699,7 @@
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
                                     <div>
                                         <label className="block text-xs text-slate-400 mb-1">Select Dam</label>
-                                        <select value={heatDogId} onChange={(e) => setHeatDogId(e.target.value)}
+                                        <select aria-label="Select dam" value={heatDogId} onChange={(e) => setHeatDogId(e.target.value)}
                                             className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100">
                                             <option value="">Choose a dam...</option>
                                             {dams.map(d => <option key={d.id} value={d.id}>{d.name} {d.last_heat_date ? `(last heat: ${formatShortDate(d.last_heat_date)})` : ''}</option>)}
@@ -702,6 +708,7 @@
                                     <div>
                                         <label className="block text-xs text-slate-400 mb-1">Heat Start Date</label>
                                         <input type="date" value={heatDate} onChange={(e) => setHeatDate(e.target.value)}
+                                            aria-label="Heat start date"
                                             className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100" />
                                     </div>
                                     <button onClick={handleHeatCycleUpdate} disabled={!heatDogId || !heatDate || saving}
@@ -1151,10 +1158,12 @@
                             <div className="relative flex-grow">
                                 <input type="text" placeholder="Search guardians..."
                                     value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                                    aria-label="Search guardians"
                                     className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500" />
                                 <div className="absolute left-3 top-2.5 text-slate-500"><IconSearch /></div>
                             </div>
                             <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
+                                aria-label="Filter guardians by status"
                                 className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500">
                                 <option>All</option>
                                 <option value="active">Active</option>
@@ -1325,22 +1334,24 @@
 
                     {/* Add/Edit Modal */}
                     {showModal && (
-                        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
-                            <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)} onKeyDown={(e) => { if (e.key === 'Escape') setShowModal(false); }}>
+                            <div role="dialog" aria-modal="true" aria-labelledby="guardian-modal-title" className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                                 <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-                                    <h2 className="text-lg font-bold text-slate-100">{editingGuardian ? 'Edit Guardian' : 'Add Guardian'}</h2>
-                                    <button onClick={() => setShowModal(false)} className="text-slate-500 hover:text-slate-300"><IconX /></button>
+                                    <h2 id="guardian-modal-title" className="text-lg font-bold text-slate-100">{editingGuardian ? 'Edit Guardian' : 'Add Guardian'}</h2>
+                                    <button onClick={() => setShowModal(false)} aria-label="Close dialog" className="text-slate-500 hover:text-slate-300"><IconX /></button>
                                 </div>
                                 <div className="p-6 space-y-4">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="col-span-2 sm:col-span-1">
                                             <label className="block text-xs text-slate-500 mb-1">Family Name *</label>
                                             <input type="text" value={form.family_name} onChange={(e) => setForm({...form, family_name: e.target.value})}
+                                                aria-label="Family name"
                                                 className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" placeholder="Smith" />
                                         </div>
                                         <div className="col-span-2 sm:col-span-1">
                                             <label className="block text-xs text-slate-500 mb-1">Contact Name</label>
                                             <input type="text" value={form.contact_name} onChange={(e) => setForm({...form, contact_name: e.target.value})}
+                                                aria-label="Contact name"
                                                 className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" placeholder="John Smith" />
                                         </div>
                                     </div>
@@ -1348,33 +1359,39 @@
                                         <div>
                                             <label className="block text-xs text-slate-500 mb-1">Email</label>
                                             <input type="email" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})}
+                                                aria-label="Guardian email"
                                                 className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" placeholder="john@email.com" />
                                         </div>
                                         <div>
                                             <label className="block text-xs text-slate-500 mb-1">Phone</label>
                                             <input type="tel" value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})}
+                                                aria-label="Guardian phone"
                                                 className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" placeholder="(555) 123-4567" />
                                         </div>
                                     </div>
                                     <div>
                                         <label className="block text-xs text-slate-500 mb-1">Address</label>
                                         <input type="text" value={form.address} onChange={(e) => setForm({...form, address: e.target.value})}
+                                            aria-label="Address"
                                             className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" placeholder="123 Main St" />
                                     </div>
                                     <div className="grid grid-cols-3 gap-4">
                                         <div>
                                             <label className="block text-xs text-slate-500 mb-1">City</label>
                                             <input type="text" value={form.city} onChange={(e) => setForm({...form, city: e.target.value})}
+                                                aria-label="City"
                                                 className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" />
                                         </div>
                                         <div>
                                             <label className="block text-xs text-slate-500 mb-1">State</label>
                                             <input type="text" value={form.state} onChange={(e) => setForm({...form, state: e.target.value})}
+                                                aria-label="State"
                                                 className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" />
                                         </div>
                                         <div>
                                             <label className="block text-xs text-slate-500 mb-1">Zip</label>
                                             <input type="text" value={form.zip} onChange={(e) => setForm({...form, zip: e.target.value})}
+                                                aria-label="Zip code"
                                                 className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" />
                                         </div>
                                     </div>
@@ -1382,6 +1399,7 @@
                                         <div>
                                             <label className="block text-xs text-slate-500 mb-1">Status</label>
                                             <select value={form.status} onChange={(e) => setForm({...form, status: e.target.value})}
+                                                aria-label="Guardian status"
                                                 className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500">
                                                 <option value="active">Active</option>
                                                 <option value="inactive">Inactive</option>
@@ -1391,12 +1409,14 @@
                                         <div>
                                             <label className="block text-xs text-slate-500 mb-1">Check-in (days)</label>
                                             <input type="number" value={form.checkin_frequency_days} onChange={(e) => setForm({...form, checkin_frequency_days: parseInt(e.target.value) || 30})}
+                                                aria-label="Check-in frequency in days"
                                                 className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" />
                                         </div>
                                     </div>
                                     <div>
                                         <label className="block text-xs text-slate-500 mb-1">Notes</label>
                                         <textarea value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} rows={3}
+                                            aria-label="Guardian notes"
                                             className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500 resize-none"
                                             placeholder="Any notes about this guardian family..." />
                                     </div>
@@ -1414,11 +1434,11 @@
 
                     {/* Assign Dog Modal */}
                     {showAssignModal && (
-                        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowAssignModal(false)}>
-                            <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-md max-h-[70vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowAssignModal(false)} onKeyDown={(e) => { if (e.key === 'Escape') setShowAssignModal(false); }}>
+                            <div role="dialog" aria-modal="true" aria-labelledby="assign-modal-title" className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-md max-h-[70vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                                 <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-                                    <h2 className="text-lg font-bold text-slate-100">Assign Dog to Guardian</h2>
-                                    <button onClick={() => setShowAssignModal(false)} className="text-slate-500 hover:text-slate-300"><IconX /></button>
+                                    <h2 id="assign-modal-title" className="text-lg font-bold text-slate-100">Assign Dog to Guardian</h2>
+                                    <button onClick={() => setShowAssignModal(false)} aria-label="Close dialog" className="text-slate-500 hover:text-slate-300"><IconX /></button>
                                 </div>
                                 <div className="p-4">
                                     {availableDogs.length > 0 ? availableDogs.map(d => (
@@ -1468,12 +1488,14 @@
                                 placeholder="Search dogs..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
+                                aria-label="Search dogs"
                                 className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
                             />
                         </div>
                         <select
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value)}
+                            aria-label="Filter dogs by status"
                             className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500"
                         >
                             <option>All</option>
@@ -1880,11 +1902,11 @@
                     </div>
 
                     {subModalOpen && subStatus.url && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setSubModalOpen(false)}>
-                            <div className="bg-slate-900 border border-slate-700 rounded-xl max-w-lg w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setSubModalOpen(false)} onKeyDown={(e) => { if (e.key === 'Escape') setSubModalOpen(false); }}>
+                            <div role="dialog" aria-modal="true" aria-labelledby="calsub-modal-title" className="bg-slate-900 border border-slate-700 rounded-xl max-w-lg w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex items-start justify-between gap-4 mb-4">
                                     <div>
-                                        <h3 className="text-lg font-bold text-slate-100">Calendar subscription</h3>
+                                        <h3 id="calsub-modal-title" className="text-lg font-bold text-slate-100">Calendar subscription</h3>
                                         <p className="text-sm text-slate-400 mt-1">Updates roughly every hour. Works with Google Calendar, Apple Calendar, and Outlook.</p>
                                     </div>
                                     <button onClick={() => setSubModalOpen(false)} className="text-slate-400 hover:text-slate-200 text-xl leading-none" aria-label="Close">&times;</button>
@@ -1894,7 +1916,7 @@
                                     <div>
                                         <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Subscription URL</label>
                                         <div className="flex gap-2 mt-1">
-                                            <input readOnly value={subStatus.url || ''} onFocus={(e) => e.target.select()} className="flex-grow min-w-0 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono" />
+                                            <input readOnly aria-label="Subscription URL" value={subStatus.url || ''} onFocus={(e) => e.target.select()} className="flex-grow min-w-0 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono" />
                                             <button onClick={() => copyToClipboard(subStatus.url)} className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-lg transition whitespace-nowrap">Copy</button>
                                         </div>
                                         <p className="text-xs text-slate-500 mt-1">webcal:// opens directly in Apple Calendar and Outlook.</p>
@@ -1903,7 +1925,7 @@
                                     <div>
                                         <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">HTTPS fallback (for Google Calendar)</label>
                                         <div className="flex gap-2 mt-1">
-                                            <input readOnly value={subStatus.httpsUrl || ''} onFocus={(e) => e.target.select()} className="flex-grow min-w-0 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono" />
+                                            <input readOnly aria-label="HTTPS fallback subscription URL" value={subStatus.httpsUrl || ''} onFocus={(e) => e.target.select()} className="flex-grow min-w-0 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono" />
                                             <button onClick={() => copyToClipboard(subStatus.httpsUrl)} className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-100 text-sm font-semibold rounded-lg transition whitespace-nowrap">Copy</button>
                                         </div>
                                     </div>
@@ -2411,6 +2433,7 @@
                                         value={deleteConfirm}
                                         onChange={(e) => setDeleteConfirm(e.target.value)}
                                         autoComplete="off"
+                                        aria-label="Type your email to confirm account deletion"
                                     />
                                     {deleteErr && <p className="text-sm text-red-400">{deleteErr}</p>}
                                     <div className="flex items-center justify-end gap-2">
@@ -2580,11 +2603,12 @@
                                 <div className="flex-grow mx-4 hidden md:block">
                                     <div className="relative max-w-md">
                                         <input type="text" placeholder="Search dogs, events..."
+                                            aria-label="Search dogs and events"
                                             className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500" />
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <button className="relative text-slate-400 hover:text-slate-100 transition">
+                                    <button aria-label="Notifications" className="relative text-slate-400 hover:text-slate-100 transition">
                                         <IconBell />
                                         <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                                     </button>
