@@ -124,13 +124,15 @@ export default async function handler(req, res) {
                 results.assigned = assign_dog_ids.length;
             }
 
-            // Unassign dogs from this guardian
+            // Unassign dogs from this guardian (scope to the program so a
+            // forged dog id from another tenant can't be touched)
             if (unassign_dog_ids && unassign_dog_ids.length > 0) {
                 const { error: unassignError } = await supabase
                     .from('dogs')
                     .update({ guardian_id: null, status: 'active', updated_at: new Date().toISOString() })
                     .in('id', unassign_dog_ids)
-                    .eq('guardian_id', id);
+                    .eq('guardian_id', id)
+                    .in('user_id', programUserIds);
 
                 if (unassignError) {
                     console.error('Unassign dogs error:', unassignError);
@@ -149,11 +151,27 @@ export default async function handler(req, res) {
     // ── DELETE: Remove guardian ──────────────────────────────
     if (req.method === 'DELETE') {
         try {
-            // First unlink all dogs from this guardian
+            // Verify the guardian belongs to the caller's program BEFORE
+            // touching any dogs. Previously the dog-unlink ran first and
+            // unscoped, so a forged guardian id from another tenant would
+            // null out that tenant's dogs' guardian_id + reset their status.
+            const { data: guardian } = await supabase
+                .from('guardians')
+                .select('id')
+                .eq('id', id)
+                .in('user_id', programUserIds)
+                .maybeSingle();
+
+            if (!guardian) {
+                return res.status(404).json({ error: 'Guardian not found' });
+            }
+
+            // Unlink dogs from this guardian, scoped to the program.
             await supabase
                 .from('dogs')
                 .update({ guardian_id: null, status: 'active', updated_at: new Date().toISOString() })
-                .eq('guardian_id', id);
+                .eq('guardian_id', id)
+                .in('user_id', programUserIds);
 
             // Then delete the guardian
             const { error } = await supabase
