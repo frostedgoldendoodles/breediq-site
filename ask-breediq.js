@@ -60,6 +60,7 @@
     let root;       // container element
     let btnEl;
     let panelEl;
+    let backdropEl;
     let messagesEl;
     let contextPillEl;
     let textareaEl;
@@ -165,7 +166,18 @@
             'aria-hidden': 'true'
         }, [header, contextPillEl, messagesEl, composer]);
 
+        // Backdrop scrim — tapping anywhere outside the panel closes it. This
+        // is the primary, always-reachable way to dismiss the widget on a
+        // phone, so the user never has to hunt for the X in the corner.
+        backdropEl = h('div', {
+            id: 'askbreediq-backdrop',
+            class: 'askbreediq-backdrop',
+            'aria-hidden': 'true',
+            onclick: () => close()
+        });
+
         root.appendChild(btnEl);
+        root.appendChild(backdropEl);
         root.appendChild(panelEl);
         document.body.appendChild(root);
 
@@ -250,15 +262,31 @@
           @media (max-width: 640px) {
             .askbreediq-panel { width: 100dvw; border-left: none; }
           }
+          /* Tap-outside-to-close scrim. Sits just below the panel. */
+          .askbreediq-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(2, 6, 23, 0.5);
+            opacity: 0; pointer-events: none;
+            transition: opacity 220ms ease;
+            z-index: 2147483000;
+          }
+          .askbreediq-backdrop[data-open="true"] { opacity: 1; pointer-events: auto; }
           .askbreediq-header {
             display: flex; justify-content: space-between; align-items: center;
+            gap: 8px;
             padding: 14px 16px;
             border-bottom: 1px solid #1e293b;
             background: linear-gradient(90deg, #064e3b 0%, #0f172a 100%);
+            /* Pin the header so the close X is ALWAYS at the top of the panel,
+               even if the messages scroll or iOS shifts the layout. */
+            position: sticky; top: 0; z-index: 2;
+            flex-shrink: 0;
           }
-          .askbreediq-title { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
-          .askbreediq-title-icon { color: #34d399; display: inline-flex; }
-          .askbreediq-header-actions { display: flex; gap: 4px; }
+          .askbreediq-title { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; min-width: 0; overflow: hidden; }
+          .askbreediq-title span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+          .askbreediq-title-icon { color: #34d399; display: inline-flex; flex-shrink: 0; }
+          /* Keep the close/clear buttons at full size and always on-screen. */
+          .askbreediq-header-actions { display: flex; gap: 4px; flex-shrink: 0; }
           .askbreediq-icon-btn {
             background: transparent; border: none; color: #cbd5e1;
             padding: 10px 12px; cursor: pointer; border-radius: 8px;
@@ -274,12 +302,13 @@
             border-radius: 9999px; display: inline-flex; width: fit-content;
           }
           .askbreediq-messages {
-            flex: 1; overflow-y: auto; padding: 12px 16px;
+            flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 16px;
             display: flex; flex-direction: column; gap: 10px;
+            min-height: 0; /* allow the flex child to actually scroll */
           }
           .askbreediq-messages::-webkit-scrollbar { width: 6px; }
           .askbreediq-messages::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 6px; }
-          .askbreediq-msg { max-width: 100%; word-wrap: break-word; white-space: pre-wrap; }
+          .askbreediq-msg { max-width: 100%; word-wrap: break-word; overflow-wrap: anywhere; white-space: pre-wrap; }
           .askbreediq-msg-user {
             align-self: flex-end; background: #064e3b; color: #d1fae5;
             padding: 8px 12px; border-radius: 14px 14px 2px 14px;
@@ -319,6 +348,7 @@
           .askbreediq-confirm-btn.cancel { background: #1e293b; color: #cbd5e1; }
           .askbreediq-composer {
             border-top: 1px solid #1e293b; padding: 10px 12px; background: #0b1220;
+            flex-shrink: 0; /* stay pinned at the bottom, don't get squeezed */
           }
           .askbreediq-textarea {
             width: 100%; padding: 10px 12px; font-size: 14px; line-height: 1.4;
@@ -741,6 +771,10 @@
             panelEl.setAttribute('aria-hidden', 'false');
             setTimeout(() => textareaEl?.focus(), 120);
         }
+        if (backdropEl) backdropEl.setAttribute('data-open', 'true');
+        // Lock the underlying page so it can't scroll behind the panel — on
+        // iOS that page-scroll is what shifts the fixed panel and buries the X.
+        try { document.body.style.overflow = 'hidden'; } catch (e) { }
         try { localStorage.setItem(LS_OPEN_KEY, '1'); } catch (e) { }
     }
     function close() {
@@ -749,6 +783,8 @@
             panelEl.setAttribute('data-open', 'false');
             panelEl.setAttribute('aria-hidden', 'true');
         }
+        if (backdropEl) backdropEl.setAttribute('data-open', 'false');
+        try { document.body.style.overflow = ''; } catch (e) { }
         try { localStorage.setItem(LS_OPEN_KEY, '0'); } catch (e) { }
     }
     function toggle() { state.open ? close() : open(); }
