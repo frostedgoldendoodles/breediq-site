@@ -205,9 +205,9 @@ export default async function handler(req, res) {
                 .from('breeding_iq_scores')
                 .select('manual_overrides')
                 .eq('user_id', userId)
-                .order('created_at', { ascending: false })
+                .order('calculated_at', { ascending: false })
                 .limit(1)
-                .single();
+                .maybeSingle();
 
             const manualOverrides = latestSnapshot?.manual_overrides || {};
 

@@ -1,10 +1,11 @@
 // BreedIQ Quick Update — AI Natural Language Parser
 // -----------------------------------------------------------
-// DEPRECATED as of Phase 2 (2026-04-19). Superseded by
-// /api/assistant/chat.js, which is streaming + tool-use based
-// and handles a broader set of breeder-program actions. Left
-// in place because older dashboard builds may still call it;
-// safe to delete once no traffic is observed.
+// STILL IN USE: dashboard.html's inline "Quick Update" assistant POSTs here
+// (see dashboard.html ~line 487). NOT safe to delete. The newer streaming,
+// tool-use assistant lives at /api/assistant/chat.js and backs the floating
+// "Ask BreedIQ" widget; migrating the dashboard's inline assistant onto it
+// is tracked as a follow-up. Until then, keep this endpoint working and on a
+// current model.
 // -----------------------------------------------------------
 // POST: Parse natural language update requests into structured actions
 // Uses Anthropic Claude API to understand intent and map to dog/litter updates
@@ -124,7 +125,7 @@ ONLY output valid JSON. No markdown, no code fences, no explanation outside the 
                 'anthropic-version': '2023-06-01'
             },
             body: JSON.stringify({
-                model: 'claude-sonnet-4-20250514',
+                model: 'claude-sonnet-4-6',
                 max_tokens: 1024,
                 system: systemPrompt,
                 messages: messages
