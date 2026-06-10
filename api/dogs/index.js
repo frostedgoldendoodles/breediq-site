@@ -1,7 +1,7 @@
 // BreedIQ Dogs CRUD API
 // GET: List all dogs for current user (with optional filters)
 // POST: Create a new dog
-import { requireAuth, getServiceClient, attachSignedPhotoUrls, attachSignedPhotoUrl } from '../../lib/supabase.js';
+import { requireAuth, getServiceClient, attachSignedPhotoUrls, attachSignedPhotoUrl, sanitizeFilterValue } from '../../lib/supabase.js';
 
 export default async function handler(req, res) {
     const auth = await requireAuth(req, res);
@@ -44,7 +44,10 @@ export default async function handler(req, res) {
             if (status) query = query.eq('status', status);
             if (role) query = query.eq('role', role);
             if (sex) query = query.eq('sex', sex);
-            if (search) query = query.or(`name.ilike.%${search}%,call_name.ilike.%${search}%`);
+            if (search) {
+                const s = sanitizeFilterValue(search);
+                if (s) query = query.or(`name.ilike.%${s}%,call_name.ilike.%${s}%`);
+            }
 
             const { data: dogs, error } = await query;
 

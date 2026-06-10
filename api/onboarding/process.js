@@ -200,7 +200,7 @@ export default async function handler(req, res) {
 
     // Mark files as processing
     if (fileIds.length > 0) {
-        await supabase.from('files').update({ processing_status: 'processing' }).in('id', fileIds);
+        await supabase.from('files').update({ processing_status: 'processing' }).in('id', fileIds).eq('user_id', userId);
     }
 
     // Build user-turn content blocks
@@ -313,7 +313,7 @@ export default async function handler(req, res) {
 
         // Update files to completed
         if (fileIds.length > 0) {
-            await supabase.from('files').update({ processing_status: 'completed' }).in('id', fileIds);
+            await supabase.from('files').update({ processing_status: 'completed' }).in('id', fileIds).eq('user_id', userId);
         }
 
         emit({
@@ -331,7 +331,7 @@ export default async function handler(req, res) {
     } catch (err) {
         console.error('Process stream error:', err);
         if (fileIds.length > 0) {
-            await supabase.from('files').update({ processing_status: 'failed' }).in('id', fileIds).catch(() => {});
+            await supabase.from('files').update({ processing_status: 'failed' }).in('id', fileIds).eq('user_id', userId).catch(() => {});
         }
         emit({ type: 'error', error: err.message || 'Unknown error' });
         try { res.end(); } catch {}
