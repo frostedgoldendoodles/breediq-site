@@ -1,0 +1,2626 @@
+// BreedIQ dashboard — application source.
+// Compiled to /dashboard.bundle.js by `npm run build` (esbuild, classic JSX
+// transform against the global React/ReactDOM loaded from the CDN in
+// dashboard.html). Edit THIS file, not the bundle. React is a free global
+// here on purpose — it is NOT imported, so esbuild leaves React.createElement
+// resolving to window.React from the UMD <script> tags.
+
+        const { useState, useEffect, useRef, useCallback } = React;
+
+        // ═══════════════════════════════════════════════════════
+        // SHARED DATA CONTEXT — live data from API
+        // ═══════════════════════════════════════════════════════
+        const useBreedData = () => {
+            const [dogs, setDogs] = useState([]);
+            const [litters, setLitters] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+            const fetchingRef = useRef(false);
+
+            const fetchData = useCallback(async () => {
+                if (fetchingRef.current) return; // prevent duplicate inflight requests
+                fetchingRef.current = true;
+                try {
+                    const [dogsRes, littersRes] = await Promise.all([
+                        fetch('/api/dogs', { credentials: 'include' }),
+                        fetch('/api/litters', { credentials: 'include' })
+                    ]);
+                    if (!dogsRes.ok || !littersRes.ok) throw new Error('Failed to fetch data');
+                    const dogsData = await dogsRes.json();
+                    const littersData = await littersRes.json();
+                    setDogs(dogsData.dogs || []);
+                    setLitters(littersData.litters || []);
+                    setLoading(false);
+                } catch (err) {
+                    console.error('Data fetch error:', err);
+                    setError(err.message);
+                    setLoading(false);
+                } finally {
+                    fetchingRef.current = false;
+                }
+            }, []);
+
+            useEffect(() => { fetchData(); }, [fetchData]);
+
+            return { dogs, litters, loading, error, refetch: fetchData };
+        };
+
+        // ═══════════════════════════════════════════════════════
+        // HELPER FUNCTIONS
+        // ═══════════════════════════════════════════════════════
+        const formatShortDate = (iso) => {
+            if (!iso) return '';
+            const d = new Date(iso + 'T12:00:00');
+            // Include year when the date isn't in the current calendar year —
+            // otherwise a DOB like 2021-01-02 renders as "1/2" which looks broken.
+            const opts = d.getFullYear() === new Date().getFullYear()
+                ? { month: 'numeric', day: 'numeric' }
+                : { month: 'numeric', day: 'numeric', year: 'numeric' };
+            return d.toLocaleDateString('en-US', opts);
+        };
+
+        const daysUntil = (iso) => {
+            if (!iso) return null;
+            const target = new Date(iso + 'T12:00:00');
+            const today = new Date();
+            today.setHours(12,0,0,0);
+            return Math.ceil((target - today) / (24*60*60*1000));
+        };
+
+        const gestationProgress = (breedDate) => {
+            if (!breedDate) return 0;
+            const bd = new Date(breedDate);
+            const today = new Date();
+            const days = Math.floor((today - bd) / (24*60*60*1000));
+            return Math.min(Math.round((days / 61) * 100), 100);
+        };
+
+        const heatStatusLabel = (s) => {
+            const map = { none: 'Open', in_heat: 'In Heat', bred: 'Bred', pregnant: 'Pregnant', nursing: 'Nursing' };
+            return map[s] || s || 'Open';
+        };
+
+        const statusColor = (s) => {
+            const label = heatStatusLabel(s);
+            if (label === 'Pregnant') return 'bg-amber-900 text-amber-200';
+            if (label === 'Nursing') return 'bg-blue-900 text-blue-200';
+            if (label === 'In Heat') return 'bg-red-900 text-red-200';
+            if (label === 'Bred') return 'bg-purple-900 text-purple-200';
+            if (s === 'retired') return 'bg-slate-700 text-slate-200';
+            return 'bg-emerald-900 text-emerald-200';
+        };
+
+        // ═══════════════════════════════════════════════════════
+        // TOAST — global, surfaces real API errors with copyable detail
+        // ═══════════════════════════════════════════════════════
+        // Fired from anywhere via: window.dispatchEvent(new CustomEvent('breediq-toast', { detail: { kind, title, body } }))
+        // Or via the `showToast(kind, title, body)` helper below.
+        const showToast = (kind, title, body) => {
+            window.dispatchEvent(new CustomEvent('breediq-toast', { detail: { kind, title, body } }));
+        };
+
+        // Parse a fetch Response into a readable error message that surfaces
+        // the API's own `error` and `details` fields. Always returns a string.
+        const parseApiError = async (res, fallback) => {
+            const status = res.status;
+            let bodyText = '';
+            try {
+                const ct = res.headers.get('content-type') || '';
+                if (ct.includes('application/json')) {
+                    const data = await res.json();
+                    bodyText = [data?.error, data?.details].filter(Boolean).join(' \u2014 ');
+                } else {
+                    bodyText = (await res.text()).trim().slice(0, 240);
+                }
+            } catch (e) { /* ignore parse errors, fall back below */ }
+            const summary = bodyText || fallback || 'Update failed';
+            return `${summary} (HTTP ${status})`;
+        };
+
+        const ToastHost = () => {
+            const [toasts, setToasts] = useState([]);
+
+            useEffect(() => {
+                const handler = (e) => {
+                    const t = { id: Date.now() + Math.random(), kind: 'info', title: '', body: '', ...(e.detail || {}) };
+                    setToasts(prev => [...prev, t]);
+                    const ttl = t.kind === 'error' ? 9000 : 4000;
+                    setTimeout(() => setToasts(prev => prev.filter(x => x.id !== t.id)), ttl);
+                };
+                window.addEventListener('breediq-toast', handler);
+                return () => window.removeEventListener('breediq-toast', handler);
+            }, []);
+
+            if (!toasts.length) return null;
+            return (
+                <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 max-w-sm w-[calc(100vw-2rem)] sm:w-auto pointer-events-none">
+                    {toasts.map(t => {
+                        const palette = t.kind === 'error'
+                            ? 'bg-red-950 border-red-700 text-red-100'
+                            : t.kind === 'success'
+                                ? 'bg-emerald-950 border-emerald-700 text-emerald-100'
+                                : 'bg-slate-900 border-slate-700 text-slate-100';
+                        return (
+                            <div key={t.id} className={`pointer-events-auto border rounded-lg shadow-lg px-4 py-3 ${palette}`}>
+                                <div className="flex items-start gap-3">
+                                    <div className="flex-grow min-w-0">
+                                        {t.title && <p className="font-semibold text-sm">{t.title}</p>}
+                                        {t.body && <p className="text-xs mt-1 break-words whitespace-pre-wrap opacity-90">{t.body}</p>}
+                                    </div>
+                                    <button
+                                        onClick={() => setToasts(prev => prev.filter(x => x.id !== t.id))}
+                                        className="flex-shrink-0 text-current opacity-60 hover:opacity-100 leading-none"
+                                        aria-label="Dismiss">&times;</button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        };
+
+        // ═══════════════════════════════════════════════════════
+        // ICON COMPONENTS
+        // ═══════════════════════════════════════════════════════
+        const IconHeart = () => (
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
+            </svg>
+        );
+
+        const IconBaby = () => (
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+            </svg>
+        );
+
+        const IconFire = () => (
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M7.684 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633z" clipRule="evenodd" />
+            </svg>
+        );
+
+        const IconCalendar = () => (
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l12-12v12z" />
+            </svg>
+        );
+
+        const IconBell = () => (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+        );
+
+        const IconMenu = () => (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        );
+
+        const IconSearch = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+        );
+
+        const IconX = () => (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        );
+
+        const IconSend = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+        );
+
+        const IconSparkle = () => (
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 2l1.5 4.5L16 8l-4.5 1.5L10 14l-1.5-4.5L4 8l4.5-1.5L10 2z" />
+            </svg>
+        );
+
+        // ═══════════════════════════════════════════════════════
+        // STAT CARD
+        // ═══════════════════════════════════════════════════════
+        const StatCard = ({ icon: Icon, label, value, color, onClick, onExpand, expanded, dogs }) => (
+            <div className="relative">
+                <div
+                    onClick={onClick}
+                    className="bg-slate-900 rounded-lg p-4 md:p-6 border border-slate-800 cursor-pointer hover:border-slate-600 hover:bg-slate-800/50 transition-all active:scale-[0.98]"
+                >
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-slate-400 text-sm font-medium">{label}</p>
+                            <p className={`text-3xl font-bold mt-2 ${color}`}>{value}</p>
+                        </div>
+                        <div className="flex flex-col items-center gap-1">
+                            <div className={`text-3xl opacity-20 ${color}`}>
+                                <Icon />
+                            </div>
+                            {value > 0 && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onExpand && onExpand(); }}
+                                    className={`text-slate-500 hover:text-slate-300 transition-transform ${expanded ? 'rotate-180' : ''}`}
+                                    title={expanded ? 'Collapse' : 'Quick peek'}
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+                {expanded && dogs && dogs.length > 0 && (
+                    <div className="mt-2 bg-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-lg">
+                        {dogs.slice(0, 8).map((d, i) => (
+                            <div key={d.id || i} className={`px-4 py-2.5 flex items-center justify-between text-sm ${i > 0 ? 'border-t border-slate-800' : ''}`}>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-slate-100 font-medium">{d.name}</span>
+                                    {d.breeder_name && <span className="text-xs text-slate-500">({d.breeder_name})</span>}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {d.guardian?.family_name && <span className="text-xs text-slate-500">Guardian: {d.guardian.family_name}</span>}
+                                    <span className={`text-xs px-2 py-0.5 rounded-full ${heatStatusColor(heatStatusLabel(d.heat_status))}`}>{heatStatusLabel(d.heat_status)}</span>
+                                </div>
+                            </div>
+                        ))}
+                        {dogs.length > 8 && (
+                            <div className="px-4 py-2 border-t border-slate-800 text-center">
+                                <button onClick={onClick} className="text-xs text-emerald-400 hover:text-emerald-300">View all {dogs.length} &rarr;</button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        );
+
+        // ═══════════════════════════════════════════════════════
+        // ALERT ITEM
+        // ═══════════════════════════════════════════════════════
+        const AlertItem = ({ item, urgencyColor }) => {
+            const dayLabel = item.daysUntil !== null
+                ? item.daysUntil < 0 ? `${Math.abs(item.daysUntil)} days overdue` : item.daysUntil === 0 ? 'Today' : `${item.daysUntil} days`
+                : '';
+            // Layout:
+            //   Mobile  \u2014 single column. Icon + text on top, actions stretch
+            //             below in a wrapping row so each button is reachable.
+            //   \u2265sm     \u2014 icon + text on the left, actions floated right.
+            // The text container uses min-w-0 so it can shrink inside the
+            // flex row (without it, button labels force the text into a
+            // ~60-pixel column where every word wraps).
+            return (
+                <div className={`flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 p-4 rounded-lg border ${urgencyColor}`}>
+                    <div className="flex items-start gap-3 sm:gap-4 sm:flex-grow min-w-0">
+                        <div className="flex-shrink-0 mt-1">
+                            <div className={`w-3 h-3 rounded-full ${urgencyColor.includes('red') ? 'bg-red-500' : urgencyColor.includes('orange') ? 'bg-orange-500' : urgencyColor.includes('yellow') ? 'bg-yellow-500' : 'bg-blue-500'}`}></div>
+                        </div>
+                        <div className="flex-grow min-w-0">
+                            <p className="font-semibold text-slate-100">{item.dog}</p>
+                            <p className="text-sm text-slate-400">{item.event}</p>
+                            <p className="text-xs text-slate-500 mt-1">{item.date} {dayLabel ? `\u2022 ${dayLabel}` : ''}</p>
+                        </div>
+                    </div>
+                    {item.actions && item.actions.length > 0 && (
+                        <div className="flex flex-wrap gap-2 sm:flex-shrink-0 sm:flex-nowrap">
+                            {item.actions.map((action, i) => (
+                                <button key={i} onClick={action.onClick} disabled={action.loading}
+                                    className={`flex-1 sm:flex-none text-xs px-3 py-2 sm:py-1.5 rounded font-medium transition whitespace-nowrap ${action.primary
+                                        ? 'bg-emerald-600 text-white hover:bg-emerald-500'
+                                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'} disabled:opacity-50`}>
+                                    {action.loading ? '\u23F3' : action.label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // ═══════════════════════════════════════════════════════
+        // QUICK UPDATE BAR — Manual Actions + AI Chat
+        // ═══════════════════════════════════════════════════════
+        const QuickUpdateBar = ({ dogs, litters, refetch }) => {
+            const [activePanel, setActivePanel] = useState(null); // 'dogStatus' | 'litterMilestone' | 'heatCycle' | 'ai'
+            const [saving, setSaving] = useState(false);
+            const [successMsg, setSuccessMsg] = useState('');
+
+            // Manual form states
+            const [selectedDogId, setSelectedDogId] = useState('');
+            const [newDogStatus, setNewDogStatus] = useState('');
+            const [selectedLitterId, setSelectedLitterId] = useState('');
+            const [newLitterStatus, setNewLitterStatus] = useState('');
+            const [litterDate, setLitterDate] = useState('');
+            const [litterPuppyCount, setLitterPuppyCount] = useState('');
+            const [litterMales, setLitterMales] = useState('');
+            const [litterFemales, setLitterFemales] = useState('');
+            const [heatDogId, setHeatDogId] = useState('');
+            const [heatDate, setHeatDate] = useState('');
+
+            // AI chat states
+            const [aiInput, setAiInput] = useState('');
+            const [aiMessages, setAiMessages] = useState([]);
+            const [aiLoading, setAiLoading] = useState(false);
+            const [aiPreview, setAiPreview] = useState(null);
+            const chatEndRef = useRef(null);
+
+            useEffect(() => {
+                if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+            }, [aiMessages]);
+
+            const showSuccess = (msg) => {
+                setSuccessMsg(msg);
+                setTimeout(() => setSuccessMsg(''), 3000);
+            };
+
+            const resetForms = () => {
+                setSelectedDogId(''); setNewDogStatus('');
+                setSelectedLitterId(''); setNewLitterStatus(''); setLitterDate('');
+                setLitterPuppyCount(''); setLitterMales(''); setLitterFemales('');
+                setHeatDogId(''); setHeatDate('');
+            };
+
+            // ── Dog Status Update ──
+            const handleDogStatusUpdate = async () => {
+                if (!selectedDogId || !newDogStatus) return;
+                setSaving(true);
+                try {
+                    const body = {};
+                    if (['active','retired','guardian','sold','deceased'].includes(newDogStatus)) {
+                        body.status = newDogStatus;
+                    } else {
+                        body.heat_status = newDogStatus;
+                    }
+                    const res = await fetch(`/api/dogs/${selectedDogId}`, {
+                        method: 'PUT', credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+                    if (!res.ok) {
+                        const detail = await parseApiError(res, 'Could not update dog');
+                        throw new Error(detail);
+                    }
+                    const dog = dogs.find(d => d.id === selectedDogId);
+                    showSuccess(`Updated ${dog?.name || 'dog'} successfully!`);
+                    resetForms(); setActivePanel(null); refetch();
+                } catch (err) {
+                    const dog = dogs.find(d => d.id === selectedDogId);
+                    showToast('error', `Couldn't update ${dog?.name || 'dog'}`, err.message || 'Unknown error');
+                } finally { setSaving(false); }
+            };
+
+            // ── Litter Milestone Update ──
+            const handleLitterMilestoneUpdate = async () => {
+                if (!selectedLitterId || !newLitterStatus) return;
+                setSaving(true);
+                try {
+                    const body = { status: newLitterStatus };
+                    if (newLitterStatus === 'born' && litterDate) {
+                        body.whelp_date = litterDate;
+                        if (litterPuppyCount) body.puppy_count = parseInt(litterPuppyCount);
+                        if (litterMales) body.males_count = parseInt(litterMales);
+                        if (litterFemales) body.females_count = parseInt(litterFemales);
+                    }
+                    if (newLitterStatus === 'placed' && litterDate) body.go_home_date = litterDate;
+                    if (newLitterStatus === 'confirmed' && litterDate) body.ultrasound_date = litterDate;
+
+                    const res = await fetch(`/api/litters/${selectedLitterId}`, {
+                        method: 'PUT', credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+                    if (!res.ok) {
+                        const detail = await parseApiError(res, 'Could not update litter');
+                        throw new Error(detail);
+                    }
+                    const litter = litters.find(l => l.id === selectedLitterId);
+                    showSuccess(`Updated ${litter?.dam?.name || 'litter'}'s litter successfully!`);
+                    resetForms(); setActivePanel(null); refetch();
+                } catch (err) {
+                    const litter = litters.find(l => l.id === selectedLitterId);
+                    showToast('error', `Couldn't update ${litter?.dam?.name || 'litter'}'s litter`, err.message || 'Unknown error');
+                } finally { setSaving(false); }
+            };
+
+            // ── Heat Cycle Update ──
+            const handleHeatCycleUpdate = async () => {
+                if (!heatDogId || !heatDate) return;
+                setSaving(true);
+                try {
+                    const res = await fetch(`/api/dogs/${heatDogId}`, {
+                        method: 'PUT', credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ heat_status: 'in_heat', last_heat_date: heatDate })
+                    });
+                    if (!res.ok) {
+                        const detail = await parseApiError(res, 'Could not record heat');
+                        throw new Error(detail);
+                    }
+                    const dog = dogs.find(d => d.id === heatDogId);
+                    showSuccess(`Recorded heat for ${dog?.name || 'dog'}!`);
+                    resetForms(); setActivePanel(null); refetch();
+                } catch (err) {
+                    const dog = dogs.find(d => d.id === heatDogId);
+                    showToast('error', `Couldn't record heat for ${dog?.name || 'dog'}`, err.message || 'Unknown error');
+                } finally { setSaving(false); }
+            };
+
+            // ── AI Chat ──
+            const handleAiSend = async () => {
+                if (!aiInput.trim()) return;
+                const userMsg = aiInput.trim();
+                setAiInput('');
+                setAiMessages(prev => [...prev, { role: 'user', text: userMsg }]);
+                setAiLoading(true);
+
+                try {
+                    const res = await fetch('/api/updates/parse', {
+                        method: 'POST', credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: userMsg,
+                            conversationHistory: aiMessages.map(m => ({ role: m.role, content: m.text }))
+                        })
+                    });
+                    if (!res.ok) throw new Error('AI request failed');
+                    const data = await res.json();
+
+                    if (data.type === 'followup') {
+                        setAiMessages(prev => [...prev, { role: 'assistant', text: data.question }]);
+                    } else if (data.type === 'preview') {
+                        setAiMessages(prev => [...prev, { role: 'assistant', text: data.summary }]);
+                        setAiPreview(data.actions);
+                    } else if (data.type === 'error') {
+                        setAiMessages(prev => [...prev, { role: 'assistant', text: data.message || 'Sorry, I could not understand that. Try something like "Update Poppy\'s litter to placed".' }]);
+                    }
+                } catch (err) {
+                    setAiMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, the AI assistant is not available yet. Use the manual buttons above for now!' }]);
+                } finally { setAiLoading(false); }
+            };
+
+            const handleAiConfirm = async () => {
+                if (!aiPreview) return;
+                setSaving(true);
+                try {
+                    for (const action of aiPreview) {
+                        const res = await fetch(action.endpoint, {
+                            method: action.method || 'PUT',
+                            credentials: 'include',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(action.changes)
+                        });
+                        if (!res.ok) {
+                            const detail = await parseApiError(res, `Could not update ${action.endpoint}`);
+                            throw new Error(detail);
+                        }
+                    }
+                    showSuccess('All updates applied!');
+                    setAiPreview(null);
+                    setAiMessages(prev => [...prev, { role: 'assistant', text: 'Done! Updates have been saved.' }]);
+                    refetch();
+                } catch (err) {
+                    showToast('error', 'Could not apply updates', err.message || 'Unknown error');
+                } finally { setSaving(false); }
+            };
+
+            const dams = dogs.filter(d => d.sex === 'female' && d.status !== 'deceased');
+            const activeLitters = litters.filter(l => !['archived', 'placed'].includes(l.status));
+
+            return (
+                <div className="mb-8">
+                    {/* Success Toast */}
+                    {successMsg && (
+                        <div className="mb-4 bg-emerald-900 border border-emerald-700 text-emerald-200 px-4 py-3 rounded-lg flex items-center gap-2 animate-pulse">
+                            <span className="text-lg">&#10003;</span> {successMsg}
+                        </div>
+                    )}
+
+                    {/* Quick Update Header */}
+                    <div className="bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 rounded-lg p-4">
+                        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                            {/* Manual Action Buttons */}
+                            <div className="flex flex-wrap gap-2 flex-shrink-0">
+                                <span className="text-sm font-semibold text-slate-400 self-center mr-1">Quick Update:</span>
+                                <button
+                                    onClick={() => setActivePanel(activePanel === 'dogStatus' ? null : 'dogStatus')}
+                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${activePanel === 'dogStatus' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                                >
+                                    Dog Status
+                                </button>
+                                <button
+                                    onClick={() => setActivePanel(activePanel === 'litterMilestone' ? null : 'litterMilestone')}
+                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${activePanel === 'litterMilestone' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                                >
+                                    Litter Milestone
+                                </button>
+                                <button
+                                    onClick={() => setActivePanel(activePanel === 'heatCycle' ? null : 'heatCycle')}
+                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${activePanel === 'heatCycle' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                                >
+                                    Heat Cycle
+                                </button>
+                            </div>
+
+                            {/* Divider */}
+                            <div className="hidden lg:block w-px h-8 bg-slate-700"></div>
+
+                            {/* AI Input */}
+                            <div className="flex-grow flex items-center gap-2">
+                                <div className="flex items-center gap-1 text-emerald-400 flex-shrink-0">
+                                    <IconSparkle />
+                                    <span className="text-xs font-semibold hidden sm:inline">AI</span>
+                                </div>
+                                <div className="flex-grow flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={aiInput}
+                                        onChange={(e) => setAiInput(e.target.value)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') handleAiSend(); }}
+                                        onFocus={() => setActivePanel('ai')}
+                                        placeholder={`Tell me what changed... e.g. "Poppy's pups went home today"`}
+                                        className="flex-grow px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                                    />
+                                    <button
+                                        onClick={handleAiSend}
+                                        disabled={!aiInput.trim() || aiLoading}
+                                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg transition"
+                                    >
+                                        <IconSend />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* ── Expandable Panels ── */}
+
+                        {/* Dog Status Panel */}
+                        {activePanel === 'dogStatus' && (
+                            <div className="mt-4 pt-4 border-t border-slate-700">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                                    <div>
+                                        <label className="block text-xs text-slate-400 mb-1">Select Dog</label>
+                                        <select value={selectedDogId} onChange={(e) => setSelectedDogId(e.target.value)}
+                                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100">
+                                            <option value="">Choose a dog...</option>
+                                            {dogs.map(d => <option key={d.id} value={d.id}>{d.name} ({heatStatusLabel(d.heat_status)})</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-slate-400 mb-1">New Status</label>
+                                        <select value={newDogStatus} onChange={(e) => setNewDogStatus(e.target.value)}
+                                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100">
+                                            <option value="">Choose status...</option>
+                                            <optgroup label="Dog Status">
+                                                <option value="active">Active</option>
+                                                <option value="retired">Retired</option>
+                                                <option value="guardian">Guardian</option>
+                                                <option value="sold">Sold</option>
+                                            </optgroup>
+                                            <optgroup label="Heat Status">
+                                                <option value="none">Open (No Heat)</option>
+                                                <option value="in_heat">In Heat</option>
+                                                <option value="bred">Bred</option>
+                                                <option value="pregnant">Pregnant</option>
+                                                <option value="nursing">Nursing</option>
+                                            </optgroup>
+                                        </select>
+                                    </div>
+                                    <button onClick={handleDogStatusUpdate} disabled={!selectedDogId || !newDogStatus || saving}
+                                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold rounded-lg transition">
+                                        {saving ? 'Saving...' : 'Save'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Litter Milestone Panel */}
+                        {activePanel === 'litterMilestone' && (
+                            <div className="mt-4 pt-4 border-t border-slate-700">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+                                    <div>
+                                        <label className="block text-xs text-slate-400 mb-1">Select Litter</label>
+                                        <select value={selectedLitterId} onChange={(e) => setSelectedLitterId(e.target.value)}
+                                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100">
+                                            <option value="">Choose a litter...</option>
+                                            {activeLitters.map(l => (
+                                                <option key={l.id} value={l.id}>
+                                                    {l.dam?.name || 'Unknown'}'s litter ({l.status})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-slate-400 mb-1">Milestone</label>
+                                        <select value={newLitterStatus} onChange={(e) => setNewLitterStatus(e.target.value)}
+                                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100">
+                                            <option value="">Choose milestone...</option>
+                                            <option value="confirmed">Confirmed (Ultrasound)</option>
+                                            <option value="born">Born (Whelped)</option>
+                                            <option value="nursing">Nursing</option>
+                                            <option value="placed">Placed (Gone Home)</option>
+                                            <option value="archived">Archived</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-slate-400 mb-1">
+                                            {newLitterStatus === 'born' ? 'Whelp Date' : newLitterStatus === 'placed' ? 'Go-Home Date' : newLitterStatus === 'confirmed' ? 'Ultrasound Date' : 'Date'}
+                                        </label>
+                                        <input type="date" value={litterDate} onChange={(e) => setLitterDate(e.target.value)}
+                                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100" />
+                                    </div>
+                                    <button onClick={handleLitterMilestoneUpdate} disabled={!selectedLitterId || !newLitterStatus || saving}
+                                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold rounded-lg transition">
+                                        {saving ? 'Saving...' : 'Save'}
+                                    </button>
+                                </div>
+                                {/* Extra fields for 'born' status */}
+                                {newLitterStatus === 'born' && (
+                                    <div className="grid grid-cols-3 gap-3 mt-3">
+                                        <div>
+                                            <label className="block text-xs text-slate-400 mb-1">Total Pups</label>
+                                            <input type="number" value={litterPuppyCount} onChange={(e) => setLitterPuppyCount(e.target.value)}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100" placeholder="e.g. 7" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-slate-400 mb-1">Males</label>
+                                            <input type="number" value={litterMales} onChange={(e) => setLitterMales(e.target.value)}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100" placeholder="e.g. 3" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-slate-400 mb-1">Females</label>
+                                            <input type="number" value={litterFemales} onChange={(e) => setLitterFemales(e.target.value)}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100" placeholder="e.g. 4" />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Heat Cycle Panel */}
+                        {activePanel === 'heatCycle' && (
+                            <div className="mt-4 pt-4 border-t border-slate-700">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                                    <div>
+                                        <label className="block text-xs text-slate-400 mb-1">Select Dam</label>
+                                        <select value={heatDogId} onChange={(e) => setHeatDogId(e.target.value)}
+                                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100">
+                                            <option value="">Choose a dam...</option>
+                                            {dams.map(d => <option key={d.id} value={d.id}>{d.name} {d.last_heat_date ? `(last heat: ${formatShortDate(d.last_heat_date)})` : ''}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-slate-400 mb-1">Heat Start Date</label>
+                                        <input type="date" value={heatDate} onChange={(e) => setHeatDate(e.target.value)}
+                                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100" />
+                                    </div>
+                                    <button onClick={handleHeatCycleUpdate} disabled={!heatDogId || !heatDate || saving}
+                                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold rounded-lg transition">
+                                        {saving ? 'Saving...' : 'Record Heat'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* AI Chat Panel */}
+                        {activePanel === 'ai' && aiMessages.length > 0 && (
+                            <div className="mt-4 pt-4 border-t border-slate-700">
+                                <div className="max-h-60 overflow-y-auto space-y-2 mb-3">
+                                    {aiMessages.map((msg, idx) => (
+                                        <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                            <div className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${
+                                                msg.role === 'user'
+                                                    ? 'bg-emerald-900 text-emerald-100'
+                                                    : 'bg-slate-800 text-slate-200'
+                                            }`}>
+                                                {msg.text}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {aiLoading && (
+                                        <div className="flex justify-start">
+                                            <div className="bg-slate-800 text-slate-400 px-3 py-2 rounded-lg text-sm animate-pulse">
+                                                Thinking...
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div ref={chatEndRef}></div>
+                                </div>
+                                {/* Preview Confirm/Cancel */}
+                                {aiPreview && (
+                                    <div className="flex gap-2 justify-end">
+                                        <button onClick={() => { setAiPreview(null); setAiMessages(prev => [...prev, { role: 'assistant', text: 'Cancelled. What else would you like to update?' }]); }}
+                                            className="px-3 py-1.5 bg-slate-700 text-slate-300 rounded-lg text-sm hover:bg-slate-600 transition">
+                                            Cancel
+                                        </button>
+                                        <button onClick={handleAiConfirm} disabled={saving}
+                                            className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-500 transition font-semibold">
+                                            {saving ? 'Applying...' : 'Confirm Update'}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // ═══════════════════════════════════════════════════════
+        // DASHBOARD VIEW — Now uses live data
+        // ═══════════════════════════════════════════════════════
+        const DashboardView = ({ dogs, litters, refetch, onNavigate }) => {
+            const [expandedCard, setExpandedCard] = useState(null);
+            const toggleExpand = (card) => setExpandedCard(prev => prev === card ? null : card);
+            // Compute stats from live data (keep arrays for inline preview)
+            const activeDamsList = dogs.filter(d => d.sex === 'female' && !['deceased','sold'].includes(d.status));
+            const activeDams = activeDamsList.length;
+            const pregnantList = dogs.filter(d => d.heat_status === 'pregnant');
+            const pregnantCount = pregnantList.length
+                + litters.filter(l => l.status === 'confirmed' && !dogs.find(d => d.id === l.dam_id && d.heat_status === 'pregnant')).length;
+            const nursingList = dogs.filter(d => d.heat_status === 'nursing');
+            const nursingCount = nursingList.length;
+            const inHeatList = dogs.filter(d => d.heat_status === 'in_heat');
+            const inHeatCount = inHeatList.length;
+
+            // Build action items from live data
+            const actionItems = [];
+            litters.forEach(l => {
+                if (l.due_date && ['confirmed','bred'].includes(l.status)) {
+                    const d = daysUntil(l.due_date);
+                    if (d !== null && d <= 30 && d >= -7) {
+                        actionItems.push({
+                            dog: l.dam?.name || 'Unknown',
+                            event: 'Due to give birth',
+                            date: formatShortDate(l.due_date),
+                            daysUntil: d,
+                            urgency: d <= 7 ? 'Critical' : d <= 14 ? 'High' : 'Medium'
+                        });
+                    }
+                }
+                if (l.go_home_date && ['born','nursing'].includes(l.status)) {
+                    const d = daysUntil(l.go_home_date);
+                    if (d !== null && d <= 30 && d >= -7) {
+                        actionItems.push({
+                            dog: l.dam?.name || 'Unknown',
+                            event: 'Pups go home',
+                            date: formatShortDate(l.go_home_date),
+                            daysUntil: d,
+                            urgency: d <= 7 ? 'High' : 'Medium'
+                        });
+                    }
+                }
+                if (l.ultrasound_date && l.status === 'bred') {
+                    const d = daysUntil(l.ultrasound_date);
+                    if (d !== null && d <= 14 && d >= -3) {
+                        actionItems.push({
+                            dog: l.dam?.name || 'Unknown',
+                            event: 'Ultrasound',
+                            date: formatShortDate(l.ultrasound_date),
+                            daysUntil: d,
+                            urgency: d <= 3 ? 'High' : 'Medium'
+                        });
+                    }
+                }
+            });
+            dogs.forEach(d => {
+                if (d.heat_status === 'in_heat') {
+                    actionItems.push({
+                        dog: d.name,
+                        event: 'Currently in heat',
+                        date: d.last_heat_date ? formatShortDate(d.last_heat_date) : 'Now',
+                        daysUntil: 0,
+                        urgency: 'Critical'
+                    });
+                }
+            });
+            actionItems.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
+
+            // Litter pipeline (active pregnancies)
+            const pipeline = litters.filter(l => ['confirmed','bred'].includes(l.status) && l.breed_date);
+            const nursing = litters.filter(l => ['born','nursing'].includes(l.status));
+
+            return (
+                <div className="space-y-8">
+                    {/* Quick Update Bar removed in Phase 2 — replaced by the "Ask BreedIQ"
+                        floating assistant (see /ask-breediq.js). The QuickUpdateBar component
+                        is kept in this file (unused) until we're confident nothing else calls it. */}
+
+                    {/* Stats Row — tap to navigate to Dams with filter, chevron for inline preview */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                        <StatCard icon={IconHeart} label="Active Dams" value={activeDams} color="text-emerald-400"
+                            onClick={() => onNavigate && onNavigate('dams', 'All')}
+                            onExpand={() => toggleExpand('dams')} expanded={expandedCard === 'dams'} dogs={activeDamsList} />
+                        <StatCard icon={IconFire} label="Pregnant" value={pregnantCount} color="text-amber-400"
+                            onClick={() => onNavigate && onNavigate('dams', 'Pregnant')}
+                            onExpand={() => toggleExpand('pregnant')} expanded={expandedCard === 'pregnant'} dogs={pregnantList} />
+                        <StatCard icon={IconBaby} label="Nursing" value={nursingCount} color="text-blue-400"
+                            onClick={() => onNavigate && onNavigate('dams', 'Nursing')}
+                            onExpand={() => toggleExpand('nursing')} expanded={expandedCard === 'nursing'} dogs={nursingList} />
+                        <StatCard icon={IconCalendar} label="In Heat" value={inHeatCount} color="text-red-400"
+                            onClick={() => onNavigate && onNavigate('dams', 'In Heat')}
+                            onExpand={() => toggleExpand('inheat')} expanded={expandedCard === 'inheat'} dogs={inHeatList} />
+                    </div>
+
+                    {/* Action Items */}
+                    {actionItems.length > 0 && (
+                        <div>
+                            <h2 className="text-2xl font-bold text-slate-100 mb-4">Action Items</h2>
+                            <div className="space-y-3">
+                                {actionItems.map((item, idx) => {
+                                    let urgencyColor = '';
+                                    if (item.urgency === 'Critical') urgencyColor = 'bg-red-950 border-red-700';
+                                    else if (item.urgency === 'High') urgencyColor = 'bg-orange-950 border-orange-700';
+                                    else if (item.urgency === 'Medium') urgencyColor = 'bg-yellow-950 border-yellow-700';
+                                    else urgencyColor = 'bg-blue-950 border-blue-700';
+                                    return <AlertItem key={idx} item={item} urgencyColor={urgencyColor} />;
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Litter Pipeline */}
+                    {pipeline.length > 0 && (
+                        <div>
+                            <h2 className="text-2xl font-bold text-slate-100 mb-4">Litter Pipeline</h2>
+                            <div className="space-y-4">
+                                {pipeline.map((litter) => {
+                                    const progress = gestationProgress(litter.breed_date);
+                                    return (
+                                        <div key={litter.id} className="bg-slate-900 rounded-lg p-6 border border-slate-800">
+                                            <div className="flex justify-between items-start mb-3">
+                                                <div>
+                                                    <p className="font-semibold text-slate-100">{litter.dam?.name || 'Unknown'}<BreederBadge item={litter} /></p>
+                                                    <p className="text-sm text-slate-400">
+                                                        Bred: {formatShortDate(litter.breed_date)} &bull; Due: {formatShortDate(litter.due_date)}
+                                                        {litter.sire?.name ? ` \u2022 Sire: ${litter.sire.name}` : ''}
+                                                    </p>
+                                                </div>
+                                                <span className="text-xs bg-teal-900 text-teal-200 px-2 py-1 rounded">{litter.status}</span>
+                                            </div>
+                                            <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
+                                                <div className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all" style={{width: `${progress}%`}}></div>
+                                            </div>
+                                            <p className="text-xs text-slate-400 mt-2">
+                                                {progress}% &bull; {litter.days_remaining !== undefined ? `${litter.days_remaining} days remaining` : `Day ${Math.round(progress * 61 / 100)} of 61`}
+                                            </p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Nursing Litters */}
+                    {nursing.length > 0 && (
+                        <div>
+                            <h2 className="text-2xl font-bold text-slate-100 mb-4">Nursing Litters</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {nursing.map((litter) => (
+                                    <div key={litter.id} className="bg-slate-900 rounded-lg p-6 border border-slate-800">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div>
+                                                <p className="font-semibold text-slate-100">{litter.dam?.name || 'Unknown'}<BreederBadge item={litter} /></p>
+                                                <p className="text-sm text-slate-400">Born: {formatShortDate(litter.whelp_date)}</p>
+                                            </div>
+                                            <span className="text-xs bg-blue-900 text-blue-200 px-2 py-1 rounded">{litter.status}</span>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-slate-400">Total Pups</span>
+                                                <span className="font-semibold text-slate-100">{litter.puppy_count || '?'}</span>
+                                            </div>
+                                            {(litter.females_count || litter.males_count) && (
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-slate-400">Females / Males</span>
+                                                    <span className="font-semibold text-slate-100">{litter.females_count || '?'} / {litter.males_count || '?'}</span>
+                                                </div>
+                                            )}
+                                            {litter.go_home_date && (
+                                                <div className="pt-2 border-t border-slate-700">
+                                                    <p className="text-xs text-emerald-400 font-semibold">Go-Home Date: {formatShortDate(litter.go_home_date)}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Program Overview */}
+                    <div>
+                        <h2 className="text-2xl font-bold text-slate-100 mb-4">Program Overview</h2>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="bg-slate-900 rounded-lg p-4 border border-slate-800 text-center">
+                                <p className="text-3xl font-bold text-emerald-400">{dogs.length}</p>
+                                <p className="text-slate-400 text-sm mt-1">Total Dogs</p>
+                            </div>
+                            <div className="bg-slate-900 rounded-lg p-4 border border-slate-800 text-center">
+                                <p className="text-3xl font-bold text-teal-400">{litters.filter(l => !['archived'].includes(l.status)).length}</p>
+                                <p className="text-slate-400 text-sm mt-1">Active Litters</p>
+                            </div>
+                            <div className="bg-slate-900 rounded-lg p-4 border border-slate-800 text-center">
+                                <p className="text-3xl font-bold text-blue-400">{dogs.filter(d => d.status === 'guardian').length}</p>
+                                <p className="text-slate-400 text-sm mt-1">Guardian Dogs</p>
+                            </div>
+                            <div className="bg-slate-900 rounded-lg p-4 border border-slate-800 text-center">
+                                <p className="text-3xl font-bold text-violet-400">{dogs.filter(d => d.is_shared).length}</p>
+                                <p className="text-slate-400 text-sm mt-1">Sub-breeder Dogs</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ═══════════════════════════════════════════════════════
+        // SUB-BREEDER BADGE
+        // ═══════════════════════════════════════════════════════
+        const BreederBadge = ({ item }) => {
+            if (!item.is_shared || !item.breeder) return null;
+            const label = item.breeder.kennel_name || item.breeder.full_name || 'Sub-breeder';
+            return (
+                <span className="text-xs px-2 py-0.5 rounded bg-violet-900 text-violet-200 font-medium ml-2">
+                    {label}
+                </span>
+            );
+        };
+
+        // ═══════════════════════════════════════════════════════
+        // DOG ROW
+        // ═══════════════════════════════════════════════════════
+        const DogRow = ({ dog, expanded, onToggle }) => (
+            <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+                <button
+                    onClick={onToggle}
+                    className="w-full p-4 flex items-center justify-between hover:bg-slate-800 transition text-left"
+                >
+                    <div className="flex-grow">
+                        <p className="font-semibold text-slate-100">{dog.name}<BreederBadge item={dog} /></p>
+                        <p className="text-sm text-slate-400">
+                            {[dog.guardian?.family_name ? `Guardian: ${dog.guardian.family_name}` : null, dog.weight_lbs ? `${dog.weight_lbs} lbs` : null].filter(Boolean).join(' \u2022 ') || '\u2014'}
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <span className={`text-xs px-3 py-1 rounded-full font-semibold ${statusColor(dog.heat_status || dog.status)}`}>
+                            {heatStatusLabel(dog.heat_status) !== 'Open' ? heatStatusLabel(dog.heat_status) : (dog.status === 'retired' ? 'Retired' : 'Open')}
+                        </span>
+                        <svg className={`w-5 h-5 text-slate-400 transition ${expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                    </div>
+                </button>
+                {expanded && (
+                    <div className="bg-slate-800 p-4 border-t border-slate-700 text-sm">
+                        <div className="grid grid-cols-2 gap-4">
+                            {dog.breed && <div><p className="text-slate-400">Breed</p><p className="text-slate-100 font-semibold">{dog.breed}</p></div>}
+                            {dog.color && <div><p className="text-slate-400">Color</p><p className="text-slate-100 font-semibold">{dog.color}</p></div>}
+                            {dog.date_of_birth && <div><p className="text-slate-400">DOB</p><p className="text-slate-100 font-semibold">{formatShortDate(dog.date_of_birth)}</p></div>}
+                            {dog.weight_lbs && <div><p className="text-slate-400">Weight</p><p className="text-slate-100 font-semibold">{dog.weight_lbs} lbs</p></div>}
+                            {dog.last_heat_date && <div><p className="text-slate-400">Last Heat</p><p className="text-slate-100 font-semibold">{formatShortDate(dog.last_heat_date)}</p></div>}
+                            {dog.guardian?.family_name && <div><p className="text-slate-400">Guardian</p><p className="text-slate-100 font-semibold">{dog.guardian.family_name}</p></div>}
+                            {dog.notes && <div className="col-span-2"><p className="text-slate-400">Notes</p><p className="text-slate-100">{dog.notes}</p></div>}
+                        </div>
+                        <a href={`/dog?id=${dog.id}`} className="inline-block mt-3 text-emerald-400 hover:text-emerald-300 text-xs font-semibold">
+                            View Full Profile &rarr;
+                        </a>
+                    </div>
+                )}
+            </div>
+        );
+
+        // ═══════════════════════════════════════════════════════
+        // GUARDIANS VIEW — Full guardian management
+        // ═══════════════════════════════════════════════════════
+        const GuardiansView = ({ dogs, refetch }) => {
+            const [guardians, setGuardians] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [filterStatus, setFilterStatus] = useState('All');
+            const [expandedId, setExpandedId] = useState(null);
+            const [showModal, setShowModal] = useState(false);
+            const [editingGuardian, setEditingGuardian] = useState(null);
+            const [saving, setSaving] = useState(false);
+            const [showAssignModal, setShowAssignModal] = useState(false);
+            const [assignGuardianId, setAssignGuardianId] = useState(null);
+
+            const emptyForm = { family_name: '', contact_name: '', email: '', phone: '', address: '', city: '', state: '', zip: '', checkin_frequency_days: 30, status: 'active', notes: '' };
+            const [form, setForm] = useState(emptyForm);
+
+            const fetchGuardians = useCallback(async () => {
+                try {
+                    const res = await fetch('/api/guardians', { credentials: 'include' });
+                    if (!res.ok) throw new Error('Failed to fetch guardians');
+                    const data = await res.json();
+                    setGuardians(data.guardians || []);
+                } catch (err) {
+                    console.error('Guardians fetch error:', err);
+                } finally {
+                    setLoading(false);
+                }
+            }, []);
+
+            useEffect(() => { fetchGuardians(); }, [fetchGuardians]);
+
+            const filtered = guardians.filter(g => {
+                const term = searchTerm.toLowerCase();
+                const matchesSearch = g.family_name.toLowerCase().includes(term) ||
+                    (g.contact_name || '').toLowerCase().includes(term) ||
+                    (g.email || '').toLowerCase().includes(term);
+                const matchesStatus = filterStatus === 'All' || g.status === filterStatus.toLowerCase();
+                return matchesSearch && matchesStatus;
+            });
+
+            const openAdd = () => { setForm(emptyForm); setEditingGuardian(null); setShowModal(true); };
+            const openEdit = (g) => {
+                setForm({
+                    family_name: g.family_name || '', contact_name: g.contact_name || '',
+                    email: g.email || '', phone: g.phone || '',
+                    address: g.address || '', city: g.city || '', state: g.state || '', zip: g.zip || '',
+                    checkin_frequency_days: g.checkin_frequency_days || 30,
+                    status: g.status || 'active', notes: g.notes || ''
+                });
+                setEditingGuardian(g);
+                setShowModal(true);
+            };
+
+            const handleSave = async () => {
+                if (!form.family_name.trim()) { alert('Family name is required'); return; }
+                setSaving(true);
+                try {
+                    const url = editingGuardian ? `/api/guardians/${editingGuardian.id}` : '/api/guardians';
+                    const method = editingGuardian ? 'PUT' : 'POST';
+                    const res = await fetch(url, {
+                        method, credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(form)
+                    });
+                    if (!res.ok) throw new Error('Save failed');
+                    setShowModal(false);
+                    fetchGuardians();
+                } catch (err) {
+                    alert('Failed to save: ' + err.message);
+                } finally { setSaving(false); }
+            };
+
+            const handleDelete = async (g) => {
+                if (!confirm(`Remove guardian "${g.family_name}"? Their dogs will be unlinked.`)) return;
+                try {
+                    const res = await fetch(`/api/guardians/${g.id}`, { method: 'DELETE', credentials: 'include' });
+                    if (!res.ok) throw new Error('Delete failed');
+                    fetchGuardians();
+                    refetch();
+                } catch (err) { alert('Failed to delete: ' + err.message); }
+            };
+
+            const openAssign = (gId) => { setAssignGuardianId(gId); setShowAssignModal(true); };
+
+            const handleAssignDog = async (dogId) => {
+                try {
+                    const res = await fetch(`/api/guardians/${assignGuardianId}`, {
+                        method: 'PATCH', credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ assign_dog_ids: [dogId] })
+                    });
+                    if (!res.ok) throw new Error('Assign failed');
+                    setShowAssignModal(false);
+                    fetchGuardians();
+                    refetch();
+                } catch (err) { alert('Failed to assign dog: ' + err.message); }
+            };
+
+            const handleUnassignDog = async (guardianId, dogId) => {
+                try {
+                    const res = await fetch(`/api/guardians/${guardianId}`, {
+                        method: 'PATCH', credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ unassign_dog_ids: [dogId] })
+                    });
+                    if (!res.ok) throw new Error('Unassign failed');
+                    fetchGuardians();
+                    refetch();
+                } catch (err) { alert('Failed to unassign dog: ' + err.message); }
+            };
+
+            // Dogs available for assignment (not already guardian-assigned)
+            const availableDogs = dogs.filter(d => !d.guardian_id && d.status !== 'retired');
+
+            if (loading) return (
+                <div className="text-center py-20">
+                    <div className="text-4xl mb-4">&#128101;</div>
+                    <p className="text-slate-400">Loading guardians...</p>
+                </div>
+            );
+
+            return (
+                <div className="space-y-6">
+                    {/* Header with Add button */}
+                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                        <div className="flex gap-3 flex-grow w-full sm:w-auto">
+                            <div className="relative flex-grow">
+                                <input type="text" placeholder="Search guardians..."
+                                    value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500" />
+                                <div className="absolute left-3 top-2.5 text-slate-500"><IconSearch /></div>
+                            </div>
+                            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
+                                className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500">
+                                <option>All</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="pending">Pending</option>
+                            </select>
+                        </div>
+                        <button onClick={openAdd}
+                            className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-600 transition whitespace-nowrap">
+                            + Add Guardian
+                        </button>
+                    </div>
+
+                    {/* Summary */}
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 text-center">
+                            <p className="text-2xl font-bold text-emerald-400">{guardians.length}</p>
+                            <p className="text-xs text-slate-500 mt-1">Total Guardians</p>
+                        </div>
+                        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 text-center">
+                            <p className="text-2xl font-bold text-teal-400">{guardians.reduce((s, g) => s + (g.dog_count || 0), 0)}</p>
+                            <p className="text-xs text-slate-500 mt-1">Dogs Placed</p>
+                        </div>
+                        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 text-center">
+                            <p className="text-2xl font-bold text-blue-400">{guardians.filter(g => g.status === 'active').length}</p>
+                            <p className="text-xs text-slate-500 mt-1">Active</p>
+                        </div>
+                    </div>
+
+                    {/* Guardian Cards */}
+                    <div className="space-y-3">
+                        {filtered.length > 0 ? filtered.map(g => {
+                            const isExpanded = expandedId === g.id;
+                            const statusColors = { active: 'bg-emerald-900 text-emerald-300', inactive: 'bg-slate-700 text-slate-400', pending: 'bg-yellow-900 text-yellow-300' };
+                            return (
+                                <div key={g.id} className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden hover:border-slate-700 transition">
+                                    {/* Card Header */}
+                                    <div className="p-4 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : g.id)}>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center font-bold text-white text-sm">
+                                                    {(g.family_name || '?')[0].toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-semibold text-slate-100">{g.family_name}</h3>
+                                                    {g.contact_name && <p className="text-sm text-slate-400">{g.contact_name}</p>}
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                {g.dog_count > 0 && (
+                                                    <span className="text-xs px-2 py-1 bg-slate-800 rounded-full text-slate-300">
+                                                        &#128054; {g.dog_count} dog{g.dog_count !== 1 ? 's' : ''}
+                                                    </span>
+                                                )}
+                                                <span className={`text-xs px-2 py-1 rounded-full ${statusColors[g.status] || statusColors.active}`}>
+                                                    {g.status}
+                                                </span>
+                                                <svg className={`w-4 h-4 text-slate-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        {/* Quick contact row */}
+                                        <div className="flex flex-wrap gap-4 mt-2 text-sm text-slate-500">
+                                            {g.phone && <span>&#128222; {g.phone}</span>}
+                                            {g.email && <span>&#9993;&#65039; {g.email}</span>}
+                                            {g.city && g.state && <span>&#128205; {g.city}, {g.state}</span>}
+                                        </div>
+                                    </div>
+
+                                    {/* Expanded Details */}
+                                    {isExpanded && (
+                                        <div className="border-t border-slate-800 p-4 space-y-4">
+                                            {/* Full Address */}
+                                            {(g.address || g.city) && (
+                                                <div>
+                                                    <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Address</p>
+                                                    <p className="text-sm text-slate-300">
+                                                        {g.address && <>{g.address}<br /></>}
+                                                        {[g.city, g.state].filter(Boolean).join(', ')} {g.zip || ''}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {/* Notes */}
+                                            {g.notes && (
+                                                <div>
+                                                    <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Notes</p>
+                                                    <p className="text-sm text-slate-300 whitespace-pre-wrap">{g.notes}</p>
+                                                </div>
+                                            )}
+
+                                            {/* Check-in Info */}
+                                            <div>
+                                                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Check-in Schedule</p>
+                                                <p className="text-sm text-slate-300">
+                                                    Every {g.checkin_frequency_days || 30} days
+                                                    {g.last_checkin && <> &mdash; Last: {new Date(g.last_checkin).toLocaleDateString()}</>}
+                                                </p>
+                                            </div>
+
+                                            {/* Linked Dogs */}
+                                            <div>
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <p className="text-xs text-slate-500 uppercase tracking-wider">Dogs ({(g.dogs || []).length})</p>
+                                                    <button onClick={(e) => { e.stopPropagation(); openAssign(g.id); }}
+                                                        className="text-xs text-emerald-400 hover:text-emerald-300">+ Assign Dog</button>
+                                                </div>
+                                                {(g.dogs || []).length > 0 ? (
+                                                    <div className="space-y-2">
+                                                        {g.dogs.map(d => (
+                                                            <div key={d.id} className="flex items-center justify-between bg-slate-800 rounded-lg px-3 py-2">
+                                                                <div className="flex items-center gap-3">
+                                                                    {d.photo_url ? (
+                                                                        <img src={d.photo_url} alt={d.name} className="w-8 h-8 rounded-full object-cover" />
+                                                                    ) : (
+                                                                        <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs">&#128054;</div>
+                                                                    )}
+                                                                    <div>
+                                                                        <a href={`/dogs?id=${d.id}`} className="text-sm font-medium text-emerald-400 hover:text-emerald-300">
+                                                                            {d.call_name || d.name}
+                                                                        </a>
+                                                                        <p className="text-xs text-slate-500">{d.color} &bull; {d.sex}</p>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">{d.status}</span>
+                                                                    <button onClick={(e) => { e.stopPropagation(); if(confirm(`Unassign ${d.call_name || d.name} from ${g.family_name}?`)) handleUnassignDog(g.id, d.id); }}
+                                                                        className="text-slate-600 hover:text-red-400 transition" title="Unassign">
+                                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-sm text-slate-600 italic">No dogs assigned yet</p>
+                                                )}
+                                            </div>
+
+                                            {/* Action Buttons */}
+                                            <div className="flex gap-2 pt-2 border-t border-slate-800">
+                                                <button onClick={(e) => { e.stopPropagation(); openEdit(g); }}
+                                                    className="px-3 py-1.5 text-xs bg-slate-800 text-slate-300 rounded hover:bg-slate-700 transition">
+                                                    &#9998; Edit
+                                                </button>
+                                                <button onClick={(e) => { e.stopPropagation(); handleDelete(g); }}
+                                                    className="px-3 py-1.5 text-xs bg-slate-800 text-red-400 rounded hover:bg-red-900/30 transition">
+                                                    &#128465; Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        }) : (
+                            <div className="text-center py-12">
+                                <div className="text-4xl mb-3">&#128101;</div>
+                                <p className="text-slate-400">{guardians.length === 0 ? 'No guardians yet. Add your first guardian family!' : 'No guardians match your search.'}</p>
+                                {guardians.length === 0 && (
+                                    <button onClick={openAdd} className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition">
+                                        + Add Guardian
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Add/Edit Modal */}
+                    {showModal && (
+                        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
+                            <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                                <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+                                    <h2 className="text-lg font-bold text-slate-100">{editingGuardian ? 'Edit Guardian' : 'Add Guardian'}</h2>
+                                    <button onClick={() => setShowModal(false)} className="text-slate-500 hover:text-slate-300"><IconX /></button>
+                                </div>
+                                <div className="p-6 space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="col-span-2 sm:col-span-1">
+                                            <label className="block text-xs text-slate-500 mb-1">Family Name *</label>
+                                            <input type="text" value={form.family_name} onChange={(e) => setForm({...form, family_name: e.target.value})}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" placeholder="Smith" />
+                                        </div>
+                                        <div className="col-span-2 sm:col-span-1">
+                                            <label className="block text-xs text-slate-500 mb-1">Contact Name</label>
+                                            <input type="text" value={form.contact_name} onChange={(e) => setForm({...form, contact_name: e.target.value})}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" placeholder="John Smith" />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs text-slate-500 mb-1">Email</label>
+                                            <input type="email" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" placeholder="john@email.com" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-slate-500 mb-1">Phone</label>
+                                            <input type="tel" value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" placeholder="(555) 123-4567" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-slate-500 mb-1">Address</label>
+                                        <input type="text" value={form.address} onChange={(e) => setForm({...form, address: e.target.value})}
+                                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" placeholder="123 Main St" />
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-xs text-slate-500 mb-1">City</label>
+                                            <input type="text" value={form.city} onChange={(e) => setForm({...form, city: e.target.value})}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-slate-500 mb-1">State</label>
+                                            <input type="text" value={form.state} onChange={(e) => setForm({...form, state: e.target.value})}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-slate-500 mb-1">Zip</label>
+                                            <input type="text" value={form.zip} onChange={(e) => setForm({...form, zip: e.target.value})}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs text-slate-500 mb-1">Status</label>
+                                            <select value={form.status} onChange={(e) => setForm({...form, status: e.target.value})}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500">
+                                                <option value="active">Active</option>
+                                                <option value="inactive">Inactive</option>
+                                                <option value="pending">Pending</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-slate-500 mb-1">Check-in (days)</label>
+                                            <input type="number" value={form.checkin_frequency_days} onChange={(e) => setForm({...form, checkin_frequency_days: parseInt(e.target.value) || 30})}
+                                                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-slate-500 mb-1">Notes</label>
+                                        <textarea value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} rows={3}
+                                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500 resize-none"
+                                            placeholder="Any notes about this guardian family..." />
+                                    </div>
+                                </div>
+                                <div className="p-6 border-t border-slate-800 flex justify-end gap-3">
+                                    <button onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-400 hover:text-slate-200 transition">Cancel</button>
+                                    <button onClick={handleSave} disabled={saving}
+                                        className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-600 transition disabled:opacity-50">
+                                        {saving ? 'Saving...' : editingGuardian ? 'Update Guardian' : 'Add Guardian'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Assign Dog Modal */}
+                    {showAssignModal && (
+                        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowAssignModal(false)}>
+                            <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-md max-h-[70vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                                <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+                                    <h2 className="text-lg font-bold text-slate-100">Assign Dog to Guardian</h2>
+                                    <button onClick={() => setShowAssignModal(false)} className="text-slate-500 hover:text-slate-300"><IconX /></button>
+                                </div>
+                                <div className="p-4">
+                                    {availableDogs.length > 0 ? availableDogs.map(d => (
+                                        <button key={d.id} onClick={() => handleAssignDog(d.id)}
+                                            className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition text-left">
+                                            {d.photo_url ? (
+                                                <img src={d.photo_url} alt={d.name} className="w-10 h-10 rounded-full object-cover" />
+                                            ) : (
+                                                <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">&#128054;</div>
+                                            )}
+                                            <div>
+                                                <p className="text-sm font-medium text-slate-100">{d.call_name || d.name}</p>
+                                                <p className="text-xs text-slate-500">{d.color} &bull; {d.sex} &bull; {d.status}</p>
+                                            </div>
+                                        </button>
+                                    )) : (
+                                        <p className="text-center py-8 text-slate-500">All dogs are already assigned to guardians</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // ═══════════════════════════════════════════════════════
+        // DAMS VIEW — Now uses live data
+        // ═══════════════════════════════════════════════════════
+        const DamsView = ({ dogs, initialFilter }) => {
+            const [searchTerm, setSearchTerm] = useState('');
+            const [filterStatus, setFilterStatus] = useState(initialFilter || 'All');
+            const [expandedDog, setExpandedDog] = useState(null);
+
+            const filteredDogs = dogs.filter(dog => {
+                const matchesSearch = dog.name.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesStatus = filterStatus === 'All' || heatStatusLabel(dog.heat_status) === filterStatus || dog.status === filterStatus.toLowerCase();
+                return matchesSearch && matchesStatus;
+            });
+
+            return (
+                <div className="space-y-6">
+                    <div className="space-y-4">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="Search dogs..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                            />
+                        </div>
+                        <select
+                            value={filterStatus}
+                            onChange={(e) => setFilterStatus(e.target.value)}
+                            className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500"
+                        >
+                            <option>All</option>
+                            <option>Open</option>
+                            <option>Pregnant</option>
+                            <option>Nursing</option>
+                            <option>In Heat</option>
+                            <option>retired</option>
+                        </select>
+                    </div>
+
+                    <div className="space-y-3">
+                        {filteredDogs.length > 0 ? (
+                            filteredDogs.map(dog => (
+                                <DogRow
+                                    key={dog.id}
+                                    dog={dog}
+                                    expanded={expandedDog === dog.id}
+                                    onToggle={() => setExpandedDog(expandedDog === dog.id ? null : dog.id)}
+                                />
+                            ))
+                        ) : (
+                            <div className="text-center py-12">
+                                <p className="text-slate-400">No dogs found matching your filters</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // ═══════════════════════════════════════════════════════
+        // ALERTS VIEW — Live data with stale-data action prompts
+        // ═══════════════════════════════════════════════════════
+        const AlertsView = ({ dogs, litters, refetch }) => {
+            const [updating, setUpdating] = useState({});
+
+            const handleUpdate = async (type, id, body, label) => {
+                const key = `${type}-${id}`;
+                setUpdating(prev => ({ ...prev, [key]: true }));
+                try {
+                    const res = await fetch(`/api/${type}/${id}`, {
+                        method: 'PUT', credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+                    if (!res.ok) {
+                        const detail = await parseApiError(res, `Could not update ${label || type}`);
+                        throw new Error(detail);
+                    }
+                    showToast('success', `Updated ${label || type}`, '');
+                    refetch();
+                } catch (err) {
+                    showToast('error', `Couldn't update ${label || type}`, err.message || 'Unknown error');
+                } finally {
+                    setUpdating(prev => ({ ...prev, [key]: false }));
+                }
+            };
+
+            const isUpdating = (type, id) => updating[`${type}-${id}`] || false;
+
+            // ── Needs Update: past-due items that need breeder action ──
+            // Skip shared records: an owner viewing a sub-breeder's litter cannot
+            // edit it (the API will 403). Surface those separately as informational.
+            const needsUpdate = [];
+            const sharedNeedsUpdate = [];
+            litters.forEach(l => {
+                const damName = l.dam?.name || 'Unknown';
+                const sink = l.is_shared ? sharedNeedsUpdate : needsUpdate;
+                // Past due date but still marked pregnant
+                if (l.due_date && ['confirmed','bred'].includes(l.status)) {
+                    const d = daysUntil(l.due_date);
+                    if (d !== null && d < 0) {
+                        const overdue = Math.abs(d);
+                        sink.push({
+                            dog: damName,
+                            isShared: !!l.is_shared,
+                            breeder: l.breeder,
+                            event: overdue > 14
+                                ? `Was due ${formatShortDate(l.due_date)} \u2014 still marked as pregnant`
+                                : `${overdue} days past due date \u2014 did she whelp?`,
+                            date: formatShortDate(l.due_date),
+                            daysUntil: d,
+                            urgency: 'needsUpdate',
+                            // Program owners can now edit sub-breeder records, so the
+                            // same Resolve actions appear regardless of is_shared.
+                            actions: [
+                                { label: '\uD83D\uDC3E Mark as Born', primary: true, loading: isUpdating('litters', l.id),
+                                  onClick: () => handleUpdate('litters', l.id, { status: 'born', whelp_date: l.due_date }, damName) },
+                                // 'archived' is the schema-valid way to remove a litter (CHECK constraint on litters.status).
+                                { label: '\u274C Not Pregnant', loading: isUpdating('litters', l.id),
+                                  onClick: () => { if (confirm(`Remove ${damName}'s litter record? This will archive it as lost/reabsorbed.`)) handleUpdate('litters', l.id, { status: 'archived' }, damName); } }
+                            ]
+                        });
+                    }
+                }
+                // Past go-home date but pups still marked as nursing/born
+                if (l.go_home_date && ['born','nursing'].includes(l.status)) {
+                    const d = daysUntil(l.go_home_date);
+                    if (d !== null && d < 0) {
+                        const overdue = Math.abs(d);
+                        sink.push({
+                            dog: damName,
+                            isShared: !!l.is_shared,
+                            breeder: l.breeder,
+                            event: overdue > 14
+                                ? `Pups were due home ${formatShortDate(l.go_home_date)} \u2014 still marked as nursing`
+                                : `Pups were due home ${overdue} days ago \u2014 have they gone?`,
+                            date: formatShortDate(l.go_home_date),
+                            daysUntil: d,
+                            urgency: 'needsUpdate',
+                            // Program owners can now edit sub-breeder records \u2014 same Resolve
+                            // actions appear regardless of is_shared.
+                            actions: [
+                                { label: '\u2705 Pups Went Home', primary: true, loading: isUpdating('litters', l.id),
+                                  onClick: () => handleUpdate('litters', l.id, { status: 'placed' }, damName) },
+                                { label: '\uD83D\uDCC5 Update Date', loading: isUpdating('litters', l.id),
+                                  onClick: () => {
+                                      const newDate = prompt(`Enter new go-home date for ${damName}'s pups (YYYY-MM-DD):`, new Date(Date.now() + 7*86400000).toISOString().split('T')[0]);
+                                      if (newDate && /^\d{4}-\d{2}-\d{2}$/.test(newDate)) handleUpdate('litters', l.id, { go_home_date: newDate }, damName);
+                                  }}
+                            ]
+                        });
+                    }
+                }
+            });
+            needsUpdate.sort((a, b) => a.daysUntil - b.daysUntil); // most overdue first
+            sharedNeedsUpdate.sort((a, b) => a.daysUntil - b.daysUntil);
+
+            // ── Upcoming: future alerts only ──
+            // Each upcoming alert gets the same actions as its overdue counterpart,
+            // so the breeder can mark an event done as soon as it happens (e.g.
+            // mark "born" the day they whelp instead of waiting for it to go overdue).
+            const today = new Date().toISOString().slice(0, 10);
+            const upcoming = [];
+            litters.forEach(l => {
+                const damName = l.dam?.name || 'Unknown';
+                if (l.due_date && ['confirmed','bred'].includes(l.status)) {
+                    const d = daysUntil(l.due_date);
+                    if (d !== null && d >= 0 && d <= 60) {
+                        upcoming.push({
+                            dog: damName,
+                            event: 'Due to give birth',
+                            date: formatShortDate(l.due_date),
+                            daysUntil: d,
+                            urgency: d <= 7 ? 'Critical' : d <= 14 ? 'High' : 'Medium',
+                            actions: [
+                                { label: '🐾 Mark as Born', primary: true, loading: isUpdating('litters', l.id),
+                                  onClick: () => handleUpdate('litters', l.id, { status: 'born', whelp_date: today }, damName) },
+                                { label: '❌ Not Pregnant', loading: isUpdating('litters', l.id),
+                                  onClick: () => { if (confirm(`Remove ${damName}'s litter record? This will archive it as lost/reabsorbed.`)) handleUpdate('litters', l.id, { status: 'archived' }, damName); } }
+                            ]
+                        });
+                    }
+                }
+                if (l.go_home_date && ['born','nursing'].includes(l.status)) {
+                    const d = daysUntil(l.go_home_date);
+                    if (d !== null && d >= 0 && d <= 30) {
+                        upcoming.push({
+                            dog: damName,
+                            event: 'Pups go home',
+                            date: formatShortDate(l.go_home_date),
+                            daysUntil: d,
+                            urgency: d <= 7 ? 'High' : 'Medium',
+                            actions: [
+                                { label: '✅ Pups Went Home', primary: true, loading: isUpdating('litters', l.id),
+                                  onClick: () => handleUpdate('litters', l.id, { status: 'placed', go_home_date: today }, damName) }
+                            ]
+                        });
+                    }
+                }
+            });
+            dogs.forEach(d => {
+                if (d.heat_status === 'in_heat') {
+                    upcoming.push({
+                        dog: d.name,
+                        event: 'Currently in heat',
+                        date: 'Now',
+                        daysUntil: 0,
+                        urgency: 'Critical',
+                        actions: [
+                            { label: '🐶 Mark as Bred', primary: true, loading: isUpdating('dogs', d.id),
+                              onClick: () => handleUpdate('dogs', d.id, { heat_status: 'bred' }, d.name) },
+                            { label: '✓ Heat Ended', loading: isUpdating('dogs', d.id),
+                              onClick: () => handleUpdate('dogs', d.id, { heat_status: 'none' }, d.name) }
+                        ]
+                    });
+                }
+            });
+            upcoming.sort((a, b) => (a.daysUntil || 0) - (b.daysUntil || 0));
+
+            const grouped = { Critical: [], High: [], Medium: [], Low: [] };
+            upcoming.forEach(i => { if (grouped[i.urgency]) grouped[i.urgency].push(i); });
+
+            const urgencyColors = { Critical: 'bg-red-950 border-red-700', High: 'bg-orange-950 border-orange-700', Medium: 'bg-yellow-950 border-yellow-700', Low: 'bg-blue-950 border-blue-700' };
+            const needsUpdateColor = 'bg-amber-950 border-amber-600';
+
+            const hasAnything = needsUpdate.length > 0 || sharedNeedsUpdate.length > 0 || upcoming.length > 0;
+
+            return (
+                <div className="space-y-8">
+                    {!hasAnything && (
+                        <div className="text-center py-12 bg-slate-900 border border-slate-800 rounded-lg">
+                            <p className="text-4xl mb-3">&#9989;</p>
+                            <p className="text-slate-300 font-semibold">All clear! No alerts or overdue items.</p>
+                        </div>
+                    )}
+                    {needsUpdate.length > 0 && (
+                        <div>
+                            <div className="flex items-center gap-2 mb-4">
+                                <span className="text-xl">\u26A0\uFE0F</span>
+                                <h2 className="text-xl font-bold text-amber-400">Needs Update ({needsUpdate.length})</h2>
+                            </div>
+                            <p className="text-sm text-slate-400 mb-3">These records are past their dates. Update them to keep your dashboard accurate.</p>
+                            <div className="space-y-3">
+                                {needsUpdate.map((item, idx) => (
+                                    <AlertItem key={`nu-${idx}`} item={item} urgencyColor={needsUpdateColor} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {sharedNeedsUpdate.length > 0 && (
+                        <div>
+                            <div className="flex items-center gap-2 mb-4">
+                                <span className="text-xl">&#128101;</span>
+                                <h2 className="text-xl font-bold text-violet-300">Sub-breeder Records Needing Update ({sharedNeedsUpdate.length})</h2>
+                            </div>
+                            <p className="text-sm text-slate-400 mb-3">
+                                These belong to breeders in your program. As program owner you can resolve them yourself, or the sub-breeder can from their own login.
+                            </p>
+                            <div className="space-y-3">
+                                {sharedNeedsUpdate.map((item, idx) => (
+                                    <AlertItem
+                                        key={`snu-${idx}`}
+                                        item={{
+                                            ...item,
+                                            event: `${item.event}${item.breeder?.kennel_name || item.breeder?.full_name ? ` \u2014 ${item.breeder.kennel_name || item.breeder.full_name}` : ''}`
+                                        }}
+                                        urgencyColor="bg-violet-950 border-violet-700"
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {Object.entries(grouped).map(([level, items]) => (
+                        items.length > 0 && (
+                            <div key={level}>
+                                <h2 className="text-xl font-bold text-slate-100 mb-4">{level} Priority</h2>
+                                <div className="space-y-3">
+                                    {items.map((item, idx) => (
+                                        <AlertItem key={idx} item={item} urgencyColor={urgencyColors[level]} />
+                                    ))}
+                                </div>
+                            </div>
+                        )
+                    ))}
+                </div>
+            );
+        };
+
+        // ═══════════════════════════════════════════════════════
+        // CALENDAR VIEW (unchanged — already uses live API)
+        // ═══════════════════════════════════════════════════════
+        const CalendarView = ({ user }) => {
+            const [events, setEvents] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+            const [viewMode, setViewMode] = useState(() => {
+                if (typeof window === 'undefined') return 'agenda';
+                return window.innerWidth >= 768 ? 'month' : 'agenda';
+            });
+            const [cursor, setCursor] = useState(() => {
+                const d = new Date();
+                return { year: d.getFullYear(), month: d.getMonth() };
+            });
+
+            // Calendar subscription (ICS feed) state
+            const [subStatus, setSubStatus] = useState({ loading: true, connected: false, url: null, httpsUrl: null });
+            const [subModalOpen, setSubModalOpen] = useState(false);
+            const [subActionLoading, setSubActionLoading] = useState(false);
+            const [copyNotice, setCopyNotice] = useState(null);
+            const [regenConfirm, setRegenConfirm] = useState(false);
+
+            const isPro = user && (user.plan === 'pro' || user.plan === 'kennel');
+
+            useEffect(() => {
+                fetch('/api/litters/calendar', { credentials: 'include' })
+                    .then(res => { if (!res.ok) throw new Error('Failed to load calendar'); return res.json(); })
+                    .then(data => { setEvents(data.events || []); setLoading(false); })
+                    .catch(err => { setError(err.message); setLoading(false); });
+            }, []);
+
+            // Load current subscription status on mount (so card shows Connected if already set up)
+            useEffect(() => {
+                fetch('/api/calendar/subscription', { credentials: 'include' })
+                    .then(res => res.ok ? res.json() : Promise.reject(new Error('Failed to load subscription')))
+                    .then(data => setSubStatus({ loading: false, connected: !!data.connected, url: data.url || null, httpsUrl: data.httpsUrl || null }))
+                    .catch(() => setSubStatus(s => ({ ...s, loading: false })));
+            }, []);
+
+            const openConnectModal = async () => {
+                setSubActionLoading(true);
+                setRegenConfirm(false);
+                try {
+                    const res = await fetch('/api/calendar/subscription', { method: 'POST', credentials: 'include' });
+                    if (!res.ok) throw new Error('Failed to create subscription');
+                    const data = await res.json();
+                    setSubStatus({ loading: false, connected: true, url: data.url, httpsUrl: data.httpsUrl });
+                    setSubModalOpen(true);
+                } catch (err) {
+                    alert('Could not create calendar subscription. Please try again.');
+                } finally {
+                    setSubActionLoading(false);
+                }
+            };
+
+            const regenerateToken = async () => {
+                setSubActionLoading(true);
+                try {
+                    const res = await fetch('/api/calendar/subscription', { method: 'DELETE', credentials: 'include' });
+                    if (!res.ok) throw new Error('Failed to regenerate');
+                    const data = await res.json();
+                    setSubStatus({ loading: false, connected: true, url: data.url, httpsUrl: data.httpsUrl });
+                    setRegenConfirm(false);
+                    setCopyNotice('New URL generated. Old subscribers will stop receiving updates.');
+                    setTimeout(() => setCopyNotice(null), 4000);
+                } catch (err) {
+                    alert('Could not regenerate URL. Please try again.');
+                } finally {
+                    setSubActionLoading(false);
+                }
+            };
+
+            const copyToClipboard = async (text) => {
+                try {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(text);
+                    } else {
+                        const ta = document.createElement('textarea');
+                        ta.value = text;
+                        ta.style.position = 'fixed';
+                        ta.style.opacity = '0';
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(ta);
+                    }
+                    setCopyNotice('Copied to clipboard');
+                    setTimeout(() => setCopyNotice(null), 2500);
+                } catch (err) {
+                    setCopyNotice('Copy failed — select and copy manually');
+                    setTimeout(() => setCopyNotice(null), 3500);
+                }
+            };
+
+            const eventsByDate = {};
+            events.forEach(ev => { if (!eventsByDate[ev.date]) eventsByDate[ev.date] = []; eventsByDate[ev.date].push(ev); });
+
+            const todayIso = new Date().toISOString().slice(0, 10);
+            const upcoming = events.filter(ev => ev.date >= todayIso);
+            const past = events.filter(ev => ev.date < todayIso).slice(-5);
+
+            const firstOfMonth = new Date(cursor.year, cursor.month, 1);
+            const startDayOfWeek = firstOfMonth.getDay();
+            const daysInMonth = new Date(cursor.year, cursor.month + 1, 0).getDate();
+            const cells = [];
+            for (let i = 0; i < 42; i++) {
+                const dayNum = i - startDayOfWeek + 1;
+                if (dayNum < 1 || dayNum > daysInMonth) { cells.push(null); }
+                else { const dt = new Date(cursor.year, cursor.month, dayNum); const iso = dt.toISOString().slice(0, 10); cells.push({ dayNum, iso, events: eventsByDate[iso] || [] }); }
+            }
+
+            const monthName = new Date(cursor.year, cursor.month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const prevMonth = () => setCursor(c => { const m = c.month - 1; return m < 0 ? { year: c.year - 1, month: 11 } : { year: c.year, month: m }; });
+            const nextMonth = () => setCursor(c => { const m = c.month + 1; return m > 11 ? { year: c.year + 1, month: 0 } : { year: c.year, month: m }; });
+            const formatDate = (iso) => { const d = new Date(iso + 'T12:00:00'); return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); };
+
+            return (
+                <div className="space-y-6">
+                    {/* Calendar subscription (ICS feed) — works with Google, Apple, Outlook */}
+                    <div className="bg-gradient-to-r from-emerald-950 to-teal-950 border border-emerald-800 rounded-lg p-4 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                            <span className="text-2xl">&#128260;</span>
+                            <div className="min-w-0">
+                                <p className="font-semibold text-emerald-100 flex items-center gap-2 flex-wrap">
+                                    Sync to your calendar
+                                    {subStatus.connected && <span className="px-2 py-0.5 text-[10px] bg-emerald-600 text-white font-bold rounded uppercase tracking-wide">Connected</span>}
+                                </p>
+                                <p className="text-sm text-emerald-300/80">Subscribe from Google, Apple, or Outlook &mdash; heats, whelps, and go-home dates stay in sync.</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            {subStatus.connected ? (
+                                <button onClick={() => { setRegenConfirm(false); setSubModalOpen(true); }} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-100 font-semibold rounded-lg transition whitespace-nowrap border border-emerald-800">
+                                    View subscription
+                                </button>
+                            ) : (
+                                <button onClick={openConnectModal} disabled={subActionLoading || subStatus.loading} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg transition whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
+                                    {subActionLoading ? 'Connecting\u2026' : 'Connect'}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {subModalOpen && subStatus.url && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setSubModalOpen(false)}>
+                            <div className="bg-slate-900 border border-slate-700 rounded-xl max-w-lg w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex items-start justify-between gap-4 mb-4">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-slate-100">Calendar subscription</h3>
+                                        <p className="text-sm text-slate-400 mt-1">Updates roughly every hour. Works with Google Calendar, Apple Calendar, and Outlook.</p>
+                                    </div>
+                                    <button onClick={() => setSubModalOpen(false)} className="text-slate-400 hover:text-slate-200 text-xl leading-none" aria-label="Close">&times;</button>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Subscription URL</label>
+                                        <div className="flex gap-2 mt-1">
+                                            <input readOnly value={subStatus.url || ''} onFocus={(e) => e.target.select()} className="flex-grow min-w-0 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono" />
+                                            <button onClick={() => copyToClipboard(subStatus.url)} className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-lg transition whitespace-nowrap">Copy</button>
+                                        </div>
+                                        <p className="text-xs text-slate-500 mt-1">webcal:// opens directly in Apple Calendar and Outlook.</p>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">HTTPS fallback (for Google Calendar)</label>
+                                        <div className="flex gap-2 mt-1">
+                                            <input readOnly value={subStatus.httpsUrl || ''} onFocus={(e) => e.target.select()} className="flex-grow min-w-0 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono" />
+                                            <button onClick={() => copyToClipboard(subStatus.httpsUrl)} className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-100 text-sm font-semibold rounded-lg transition whitespace-nowrap">Copy</button>
+                                        </div>
+                                    </div>
+
+                                    {copyNotice && <div className="text-xs text-emerald-300 bg-emerald-950/60 border border-emerald-800 rounded px-3 py-2">{copyNotice}</div>}
+
+                                    <div className="bg-slate-950/60 border border-slate-800 rounded-lg p-3 text-sm text-slate-300 space-y-2">
+                                        <p className="font-semibold text-slate-200">How to subscribe</p>
+                                        <ul className="space-y-1.5 text-slate-400">
+                                            <li><span className="text-slate-200 font-semibold">Google Calendar:</span> Other calendars &rarr; "+" &rarr; From URL &rarr; paste the HTTPS URL.</li>
+                                            <li><span className="text-slate-200 font-semibold">Apple Calendar:</span> File &rarr; New Calendar Subscription &rarr; paste the webcal:// URL.</li>
+                                            <li><span className="text-slate-200 font-semibold">Outlook:</span> Add calendar &rarr; Subscribe from web &rarr; paste the HTTPS URL.</li>
+                                        </ul>
+                                    </div>
+
+                                    <div className="pt-2 border-t border-slate-800">
+                                        {regenConfirm ? (
+                                            <div className="bg-red-950/60 border border-red-800 rounded-lg p-3 space-y-2">
+                                                <p className="text-sm text-red-200 font-semibold">Regenerate this URL?</p>
+                                                <p className="text-xs text-red-300/80">Any calendar app already subscribed to the old URL will stop receiving updates. You'll need to resubscribe everywhere.</p>
+                                                <div className="flex gap-2">
+                                                    <button onClick={regenerateToken} disabled={subActionLoading} className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-sm font-semibold rounded disabled:opacity-60">{subActionLoading ? 'Regenerating\u2026' : 'Yes, regenerate'}</button>
+                                                    <button onClick={() => setRegenConfirm(false)} className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm rounded">Cancel</button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <button onClick={() => setRegenConfirm(true)} className="text-xs text-slate-400 hover:text-red-300 transition underline">
+                                                Regenerate URL (invalidates old subscribers)
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                            <button onClick={prevMonth} className="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-100 transition">&larr;</button>
+                            <h2 className="text-xl font-bold text-slate-100 min-w-[180px] text-center">{monthName}</h2>
+                            <button onClick={nextMonth} className="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-100 transition">&rarr;</button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => setViewMode('month')} className={`px-3 py-1 rounded-lg text-sm transition ${viewMode === 'month' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}>Month</button>
+                            <button onClick={() => setViewMode('agenda')} className={`px-3 py-1 rounded-lg text-sm transition ${viewMode === 'agenda' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}>Agenda</button>
+                        </div>
+                    </div>
+
+                    {loading && <div className="text-center py-12 text-slate-400">Loading calendar...</div>}
+                    {error && !loading && <div className="bg-red-950 border border-red-800 rounded-lg p-4 text-red-200">Failed to load calendar: {error}</div>}
+                    {!loading && !error && events.length === 0 && (
+                        <div className="text-center py-12 bg-slate-900 border border-slate-800 rounded-lg">
+                            <p className="text-4xl mb-3">&#128197;</p>
+                            <p className="text-slate-300 font-semibold">No events in the next 90 days</p>
+                            <p className="text-slate-500 text-sm mt-2">Add heat dates to your dams or create a litter to see events here.</p>
+                        </div>
+                    )}
+
+                    {!loading && !error && events.length > 0 && viewMode === 'month' && (
+                        <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+                            <div className="grid grid-cols-7 bg-slate-800 border-b border-slate-700">
+                                {weekdays.map(wd => <div key={wd} className="p-2 text-center text-xs font-semibold text-slate-400">{wd}</div>)}
+                            </div>
+                            <div className="grid grid-cols-7">
+                                {cells.map((cell, idx) => (
+                                    <div key={idx} className={`min-h-[90px] p-1 border-r border-b border-slate-800 ${cell ? 'bg-slate-900' : 'bg-slate-950/50'}`}>
+                                        {cell && (<>
+                                            <div className={`text-xs font-semibold mb-1 ${cell.iso === todayIso ? 'text-emerald-400' : 'text-slate-400'}`}>{cell.dayNum}</div>
+                                            <div className="space-y-0.5">
+                                                {cell.events.slice(0, 3).map(ev => <div key={ev.id} className={`${ev.color} text-[10px] text-white px-1 py-0.5 rounded truncate`} title={ev.title}>{ev.dogName || ev.label}</div>)}
+                                                {cell.events.length > 3 && <div className="text-[10px] text-slate-500">+{cell.events.length - 3} more</div>}
+                                            </div>
+                                        </>)}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {!loading && !error && events.length > 0 && viewMode === 'agenda' && (
+                        <div className="space-y-4">
+                            {upcoming.length > 0 && (
+                                <div>
+                                    <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">Upcoming</h3>
+                                    <div className="space-y-2">
+                                        {upcoming.map(ev => (
+                                            <div key={ev.id} className="flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-lg p-3 hover:border-slate-700 transition">
+                                                <div className={`w-2 h-10 ${ev.color} rounded-full flex-shrink-0`}></div>
+                                                <div className="flex-grow min-w-0">
+                                                    <p className="text-slate-100 font-semibold truncate">{ev.title}</p>
+                                                    <p className="text-xs text-slate-500">{formatDate(ev.date)} &middot; {ev.label}</p>
+                                                </div>
+                                                <button onClick={subStatus.connected ? () => { setRegenConfirm(false); setSubModalOpen(true); } : openConnectModal}
+                                                    className="text-xs px-2 py-1 rounded transition flex-shrink-0 bg-slate-800 text-slate-300 hover:bg-slate-700"
+                                                    title={subStatus.connected ? 'View calendar subscription' : 'Subscribe to BreedIQ calendar'}>
+                                                    {subStatus.connected ? '\uD83D\uDCC5 Subscribed' : '\uD83D\uDCC5 Sync'}
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {past.length > 0 && (
+                                <div>
+                                    <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2 mt-6">Recent (past 30 days)</h3>
+                                    <div className="space-y-2 opacity-60">
+                                        {past.map(ev => (
+                                            <div key={ev.id} className="flex items-center gap-3 bg-slate-900/50 border border-slate-800 rounded-lg p-3">
+                                                <div className={`w-2 h-10 ${ev.color} rounded-full flex-shrink-0`}></div>
+                                                <div className="flex-grow min-w-0">
+                                                    <p className="text-slate-300 truncate">{ev.title}</p>
+                                                    <p className="text-xs text-slate-500">{formatDate(ev.date)} &middot; {ev.label}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // ═══════════════════════════════════════════════════════
+        // SETTINGS VIEW
+        // ═══════════════════════════════════════════════════════
+        const TIMEZONES = [
+            'America/New_York', 'America/Chicago', 'America/Denver',
+            'America/Phoenix', 'America/Los_Angeles', 'America/Anchorage',
+            'Pacific/Honolulu', 'UTC',
+            'Europe/London', 'Europe/Paris', 'Europe/Berlin',
+            'Asia/Tokyo', 'Asia/Singapore', 'Australia/Sydney'
+        ];
+
+        const PLAN_DETAILS = {
+            starter: { label: 'Starter', color: 'bg-slate-800 text-slate-200', blurb: 'Free while we build. Core tracking for a small program.' },
+            pro:     { label: 'Pro',     color: 'bg-emerald-900 text-emerald-200', blurb: 'Unlock calendar exports, AI insights, and guardian automations.' },
+            kennel:  { label: 'Kennel',  color: 'bg-amber-900 text-amber-200', blurb: 'For multi-breeder programs. Sub-breeders, shared dogs, analytics.' }
+        };
+
+        const SettingsSection = ({ title, description, children, footer }) => (
+            <section className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                <div className="p-6 border-b border-slate-800">
+                    <h2 className="text-lg font-semibold text-slate-100">{title}</h2>
+                    {description && <p className="text-sm text-slate-400 mt-1">{description}</p>}
+                </div>
+                <div className="p-6 space-y-4">{children}</div>
+                {footer && <div className="bg-slate-950/60 border-t border-slate-800 px-6 py-4 flex items-center justify-end gap-3">{footer}</div>}
+            </section>
+        );
+
+        const Field = ({ label, hint, children, htmlFor }) => (
+            <div>
+                <label htmlFor={htmlFor} className="block text-sm font-medium text-slate-300">{label}</label>
+                {children}
+                {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
+            </div>
+        );
+
+        const textInputClass = "mt-1 w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed";
+
+        const Toggle = ({ checked, onChange, disabled }) => (
+            <button
+                type="button"
+                onClick={() => !disabled && onChange(!checked)}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition ${checked ? 'bg-emerald-600' : 'bg-slate-700'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                role="switch"
+                aria-checked={checked}
+            >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${checked ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+        );
+
+        const NOTIF_ITEMS = [
+            { key: 'heat_reminders',    label: 'Heat cycle reminders',   desc: 'Estimated next heat date for each of your dams.' },
+            { key: 'whelp_reminders',   label: 'Whelp & litter milestones', desc: 'Due dates, ultrasound, xray, and go-home day alerts.' },
+            { key: 'guardian_checkins', label: 'Guardian check-ins',     desc: 'Nudges when a guardian home is due for a check-in.' },
+            { key: 'weekly_summary',    label: 'Weekly program summary', desc: 'A Monday-morning digest of your program.' },
+            { key: 'product_updates',   label: 'Product updates',        desc: 'New features and improvements from the BreedIQ team.' }
+        ];
+
+        const SettingsView = ({ user, onUserUpdated }) => {
+            // Profile form state
+            const [profile, setProfile] = useState({
+                full_name: user?.name || '',
+                kennel_name: user?.kennel_name || '',
+                phone: user?.phone || '',
+                timezone: user?.timezone || 'America/Denver'
+            });
+            const [profileSaving, setProfileSaving] = useState(false);
+            const [profileMsg, setProfileMsg] = useState(null);
+
+            // Notifications
+            const defaultPrefs = { heat_reminders: true, whelp_reminders: true, guardian_checkins: true, weekly_summary: true, product_updates: true };
+            const [prefs, setPrefs] = useState({ ...defaultPrefs, ...(user?.notification_prefs || {}) });
+            const [prefsSaving, setPrefsSaving] = useState(false);
+            const [prefsMsg, setPrefsMsg] = useState(null);
+
+            // Password
+            const [pwMsg, setPwMsg] = useState(null);
+            const [pwSending, setPwSending] = useState(false);
+
+            // Billing
+            const [billingLoading, setBillingLoading] = useState(false);
+            const [billingError, setBillingError] = useState(null);
+
+            // Delete account
+            const [deleteOpen, setDeleteOpen] = useState(false);
+            const [deleteConfirm, setDeleteConfirm] = useState('');
+            const [deleting, setDeleting] = useState(false);
+            const [deleteErr, setDeleteErr] = useState(null);
+
+            const plan = user?.plan || 'starter';
+            const planInfo = PLAN_DETAILS[plan] || PLAN_DETAILS.starter;
+
+            // --- Profile save ---
+            const handleProfileSave = async (e) => {
+                e?.preventDefault?.();
+                setProfileSaving(true);
+                setProfileMsg(null);
+                try {
+                    const res = await fetch('/api/auth/me', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify(profile)
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Could not save profile');
+                    onUserUpdated && onUserUpdated(data.user);
+                    setProfileMsg({ type: 'ok', text: 'Profile saved.' });
+                } catch (err) {
+                    setProfileMsg({ type: 'err', text: err.message });
+                } finally {
+                    setProfileSaving(false);
+                    setTimeout(() => setProfileMsg(null), 3500);
+                }
+            };
+
+            // --- Notification prefs save ---
+            const togglePref = async (key) => {
+                const next = { ...prefs, [key]: !prefs[key] };
+                setPrefs(next);
+                setPrefsSaving(true);
+                setPrefsMsg(null);
+                try {
+                    const res = await fetch('/api/auth/me', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ notification_prefs: next })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Could not save preferences');
+                    onUserUpdated && onUserUpdated(data.user);
+                    setPrefsMsg({ type: 'ok', text: 'Saved.' });
+                } catch (err) {
+                    setPrefs(prefs); // revert
+                    setPrefsMsg({ type: 'err', text: err.message });
+                } finally {
+                    setPrefsSaving(false);
+                    setTimeout(() => setPrefsMsg(null), 2500);
+                }
+            };
+
+            // --- Password reset email ---
+            const handlePasswordReset = async () => {
+                setPwSending(true);
+                setPwMsg(null);
+                try {
+                    const res = await fetch('/api/auth/reset-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: user.email })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Could not send reset email');
+                    setPwMsg({ type: 'ok', text: 'Check your email for a password reset link.' });
+                } catch (err) {
+                    setPwMsg({ type: 'err', text: err.message });
+                } finally {
+                    setPwSending(false);
+                }
+            };
+
+            // --- Billing portal ---
+            const handleBillingPortal = async () => {
+                setBillingLoading(true);
+                setBillingError(null);
+                try {
+                    const res = await fetch('/api/billing/portal', { method: 'POST', credentials: 'include' });
+                    const data = await res.json();
+                    if (!res.ok || !data.url) throw new Error(data.error || 'Could not open billing portal');
+                    window.location.href = data.url;
+                } catch (err) {
+                    setBillingError(err.message);
+                    setBillingLoading(false);
+                }
+            };
+
+            // --- Delete account ---
+            const handleDelete = async () => {
+                setDeleting(true);
+                setDeleteErr(null);
+                try {
+                    const res = await fetch('/api/auth/delete-account', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ confirm_email: deleteConfirm })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Could not delete account');
+                    window.location.href = '/?account_deleted=1';
+                } catch (err) {
+                    setDeleteErr(err.message);
+                    setDeleting(false);
+                }
+            };
+
+            const canDelete = deleteConfirm.trim().toLowerCase() === (user?.email || '').toLowerCase();
+
+            return (
+                <div className="space-y-6 max-w-3xl">
+                    <div>
+                        <h1 className="text-2xl font-bold text-slate-100">Settings</h1>
+                        <p className="text-sm text-slate-400 mt-1">Manage your account, kennel info, billing, and notifications.</p>
+                    </div>
+
+                    {/* ────────── Profile ────────── */}
+                    <SettingsSection
+                        title="Profile"
+                        description="How your name and kennel appear throughout BreedIQ."
+                        footer={
+                            <>
+                                {profileMsg && (
+                                    <span className={`text-sm ${profileMsg.type === 'ok' ? 'text-emerald-400' : 'text-red-400'}`}>
+                                        {profileMsg.text}
+                                    </span>
+                                )}
+                                <button
+                                    onClick={handleProfileSave}
+                                    disabled={profileSaving}
+                                    className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-600 transition disabled:opacity-50"
+                                >
+                                    {profileSaving ? 'Saving...' : 'Save changes'}
+                                </button>
+                            </>
+                        }
+                    >
+                        <form onSubmit={handleProfileSave} className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <Field label="Full name" htmlFor="settings_full_name">
+                                    <input id="settings_full_name" type="text" className={textInputClass}
+                                        value={profile.full_name}
+                                        onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                                        placeholder="Jane Doe" />
+                                </Field>
+                                <Field label="Kennel name" htmlFor="settings_kennel_name" hint="Shown on buyer-facing pages and reports.">
+                                    <input id="settings_kennel_name" type="text" className={textInputClass}
+                                        value={profile.kennel_name}
+                                        onChange={(e) => setProfile({ ...profile, kennel_name: e.target.value })}
+                                        placeholder="Frosted Goldendoodles" />
+                                </Field>
+                                <Field label="Phone" htmlFor="settings_phone" hint="Never shown publicly.">
+                                    <input id="settings_phone" type="tel" className={textInputClass}
+                                        value={profile.phone}
+                                        onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                                        placeholder="(555) 123-4567" />
+                                </Field>
+                                <Field label="Timezone" htmlFor="settings_tz" hint="Used for due dates and reminder timing.">
+                                    <select id="settings_tz" className={textInputClass}
+                                        value={profile.timezone}
+                                        onChange={(e) => setProfile({ ...profile, timezone: e.target.value })}
+                                    >
+                                        {TIMEZONES.map(tz => <option key={tz} value={tz}>{tz}</option>)}
+                                    </select>
+                                </Field>
+                            </div>
+                            {/* Hidden submit for Enter-key support */}
+                            <button type="submit" className="hidden">Save</button>
+                        </form>
+                    </SettingsSection>
+
+                    {/* ────────── Account ────────── */}
+                    <SettingsSection
+                        title="Account"
+                        description="Sign-in credentials. Email changes require re-verification."
+                    >
+                        <Field label="Email" htmlFor="settings_email" hint="Contact support@breediq.ai to change your email.">
+                            <input id="settings_email" type="email" disabled className={textInputClass}
+                                value={user?.email || ''} readOnly />
+                        </Field>
+                        <div className="flex items-center justify-between gap-4 pt-2 border-t border-slate-800">
+                            <div>
+                                <p className="text-sm font-medium text-slate-200">Password</p>
+                                <p className="text-xs text-slate-500">We'll email a secure reset link to {user?.email}.</p>
+                            </div>
+                            <button
+                                onClick={handlePasswordReset}
+                                disabled={pwSending}
+                                className="px-4 py-2 border border-slate-700 rounded-lg text-slate-200 hover:border-slate-500 hover:bg-slate-800 transition disabled:opacity-50 whitespace-nowrap"
+                            >
+                                {pwSending ? 'Sending...' : 'Send reset link'}
+                            </button>
+                        </div>
+                        {pwMsg && (
+                            <p className={`text-sm ${pwMsg.type === 'ok' ? 'text-emerald-400' : 'text-red-400'}`}>{pwMsg.text}</p>
+                        )}
+                        <div className="flex items-center justify-between gap-4 pt-4 border-t border-slate-800 text-xs text-slate-500">
+                            <span>Member since {user?.created_at ? new Date(user.created_at).toLocaleDateString() : '—'}</span>
+                            <span className="font-mono truncate max-w-[220px]" title={user?.id}>{user?.id ? `id: ${user.id.slice(0,8)}…` : ''}</span>
+                        </div>
+                    </SettingsSection>
+
+                    {/* ────────── Billing & plan ────────── */}
+                    <SettingsSection
+                        title="Billing & plan"
+                        description="Your current BreedIQ plan and payment details."
+                    >
+                        <div className="flex items-start justify-between gap-4 flex-wrap">
+                            <div className="flex-grow min-w-[200px]">
+                                <div className="flex items-center gap-2">
+                                    <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${planInfo.color}`}>{planInfo.label}</span>
+                                    <span className="text-xs text-slate-500">Current plan</span>
+                                </div>
+                                <p className="text-sm text-slate-400 mt-2">{planInfo.blurb}</p>
+                            </div>
+                            <div className="flex gap-2 flex-shrink-0">
+                                {plan === 'starter' ? (
+                                    <a href="/#pricing"
+                                        className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-600 transition">
+                                        Upgrade
+                                    </a>
+                                ) : null}
+                                <button
+                                    onClick={handleBillingPortal}
+                                    disabled={billingLoading}
+                                    className="px-4 py-2 border border-slate-700 rounded-lg text-slate-200 hover:border-slate-500 hover:bg-slate-800 transition disabled:opacity-50"
+                                >
+                                    {billingLoading ? 'Opening...' : 'Manage billing'}
+                                </button>
+                            </div>
+                        </div>
+                        {billingError && (
+                            <p className="text-sm text-red-400">{billingError}</p>
+                        )}
+                        <p className="text-xs text-slate-500 pt-2 border-t border-slate-800">
+                            Billing is handled by Stripe. Use "Manage billing" to update your card, view invoices, or cancel.
+                        </p>
+                    </SettingsSection>
+
+                    {/* ────────── Notifications ────────── */}
+                    <SettingsSection
+                        title="Notifications"
+                        description="Email alerts we send you. You can toggle any of these off."
+                    >
+                        {NOTIF_ITEMS.map(item => (
+                            <div key={item.key} className="flex items-start justify-between gap-4 py-2 border-b border-slate-800 last:border-b-0">
+                                <div className="flex-grow min-w-0">
+                                    <p className="text-sm font-medium text-slate-200">{item.label}</p>
+                                    <p className="text-xs text-slate-500 mt-0.5">{item.desc}</p>
+                                </div>
+                                <Toggle checked={!!prefs[item.key]} onChange={() => togglePref(item.key)} disabled={prefsSaving} />
+                            </div>
+                        ))}
+                        {prefsMsg && (
+                            <p className={`text-xs ${prefsMsg.type === 'ok' ? 'text-emerald-400' : 'text-red-400'}`}>{prefsMsg.text}</p>
+                        )}
+                    </SettingsSection>
+
+                    {/* ────────── Danger zone ────────── */}
+                    <SettingsSection
+                        title="Danger zone"
+                        description="Permanent actions. These cannot be undone."
+                    >
+                        <div className="border border-red-900/60 rounded-lg p-4 bg-red-950/20">
+                            <div className="flex items-start justify-between gap-4 flex-wrap">
+                                <div className="flex-grow min-w-[220px]">
+                                    <p className="text-sm font-semibold text-red-300">Delete account</p>
+                                    <p className="text-xs text-slate-400 mt-1">
+                                        Permanently deletes your account and all associated data &mdash; dogs, litters, guardians, files, scores.
+                                        Cancel your subscription from "Manage billing" first.
+                                    </p>
+                                </div>
+                                {!deleteOpen ? (
+                                    <button
+                                        onClick={() => setDeleteOpen(true)}
+                                        className="px-4 py-2 border border-red-800 text-red-300 rounded-lg hover:bg-red-950 hover:border-red-700 transition"
+                                    >
+                                        Delete account
+                                    </button>
+                                ) : null}
+                            </div>
+                            {deleteOpen && (
+                                <div className="mt-4 pt-4 border-t border-red-900/40 space-y-3">
+                                    <p className="text-sm text-slate-300">
+                                        Type <span className="font-mono text-red-300">{user?.email}</span> to confirm.
+                                    </p>
+                                    <input
+                                        type="email"
+                                        className={textInputClass}
+                                        placeholder={user?.email}
+                                        value={deleteConfirm}
+                                        onChange={(e) => setDeleteConfirm(e.target.value)}
+                                        autoComplete="off"
+                                    />
+                                    {deleteErr && <p className="text-sm text-red-400">{deleteErr}</p>}
+                                    <div className="flex items-center justify-end gap-2">
+                                        <button
+                                            onClick={() => { setDeleteOpen(false); setDeleteConfirm(''); setDeleteErr(null); }}
+                                            disabled={deleting}
+                                            className="px-4 py-2 border border-slate-700 rounded-lg text-slate-200 hover:border-slate-500 hover:bg-slate-800 transition disabled:opacity-50"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handleDelete}
+                                            disabled={!canDelete || deleting}
+                                            className="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {deleting ? 'Deleting...' : 'Permanently delete'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </SettingsSection>
+                </div>
+            );
+        };
+
+        // ═══════════════════════════════════════════════════════
+        // MAIN APP
+        // ═══════════════════════════════════════════════════════
+        function BreedIQDashboard() {
+            // Sidebar default: open on desktop (≥768px), collapsed on mobile so the
+            // dashboard is the first thing a user sees when they open the app.
+            // On desktop the sidebar is always visible regardless of this state
+            // (the layout pins it via md:translate-x-0); the state only matters on
+            // mobile where the sidebar is an off-canvas overlay.
+            const [sidebarOpen, setSidebarOpen] = useState(() => {
+                if (typeof window === 'undefined' || !window.matchMedia) return true;
+                return window.matchMedia('(min-width: 768px)').matches;
+            });
+            // Respect `?view=settings` (or any nav id) on initial load so /settings deep-links work
+            const initialView = (() => {
+                try {
+                    const params = new URLSearchParams(window.location.search);
+                    const v = params.get('view');
+                    const allowed = ['dashboard', 'dams', 'alerts', 'calendar', 'guardians', 'analytics', 'settings'];
+                    return allowed.includes(v) ? v : 'dashboard';
+                } catch (e) { return 'dashboard'; }
+            })();
+            const [currentView, setCurrentView] = useState(initialView);
+            const [damFilter, setDamFilter] = useState(null);
+            const [authState, setAuthState] = useState('loading');
+            const [user, setUser] = useState(null);
+            const { dogs, litters, loading: dataLoading, error: dataError, refetch } = useBreedData();
+            const authFetchedRef = useRef(false);
+
+            useEffect(() => {
+                if (authFetchedRef.current) return;
+                authFetchedRef.current = true;
+                fetch('/api/auth/me', { credentials: 'include' })
+                    .then(res => { if (!res.ok) throw new Error('Not authenticated'); return res.json(); })
+                    .then(data => { setUser(data.user); setAuthState('authenticated'); })
+                    .catch(() => { setAuthState('unauthenticated'); window.location.href = '/login'; });
+            }, []);
+
+            // Dynamic page title per view
+            useEffect(() => {
+                const titles = { dashboard: 'Dashboard', dams: 'Dams', alerts: 'Alerts', calendar: 'Calendar', guardians: 'Guardians', analytics: 'Analytics', settings: 'Settings' };
+                document.title = `${titles[currentView] || 'Dashboard'} \u2014 BreedIQ`;
+            }, [currentView]);
+
+            // Navigate from stat cards to Dams with a pre-set filter
+            const handleNavigate = (view, filter) => {
+                if (filter) setDamFilter(filter);
+                setCurrentView(view);
+            };
+
+            // Clear damFilter when user manually switches away from dams.
+            // On mobile, also close the sidebar so the user immediately sees
+            // the view they tapped (the sidebar is an overlay, not a permanent
+            // column, on screens narrower than md).
+            const handleViewChange = (viewId) => {
+                if (viewId !== 'dams') setDamFilter(null);
+                setCurrentView(viewId);
+                if (typeof window !== 'undefined' && window.matchMedia &&
+                    !window.matchMedia('(min-width: 768px)').matches) {
+                    setSidebarOpen(false);
+                }
+            };
+
+            const handleSignOut = async () => {
+                await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+                window.location.href = '/';
+            };
+
+            if (authState === 'loading' || dataLoading) {
+                return (
+                    <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                        <div className="text-center space-y-4">
+                            <div className="text-4xl">&#129516;</div>
+                            <p className="text-slate-400">Loading your dashboard...</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            const navItems = [
+                { id: 'dashboard', label: 'Dashboard', icon: '&#128202;' },
+                { id: 'dams', label: 'Dams', icon: '&#128021;' },
+                { id: 'alerts', label: 'Alerts', icon: '&#9888;&#65039;' },
+                { id: 'calendar', label: 'Calendar', icon: '&#128197;' },
+                { id: 'guardians', label: 'Guardians', icon: '&#128101;' },
+                { id: 'analytics', label: 'Analytics', icon: '&#128200;' },
+                { id: 'settings', label: 'Settings', icon: '&#9881;&#65039;' }
+            ];
+
+            return (
+                <div className="flex h-screen bg-slate-950">
+                    {/* Sidebar */}
+                    <div className={`fixed md:relative inset-y-0 left-0 z-40 transform transition duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-64 bg-slate-900 border-r border-slate-800 flex flex-col md:translate-x-0`}>
+                        <div className="p-6 border-b border-slate-800">
+                            <a href="/" className="flex items-center gap-2 font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
+                                <span className="text-2xl">&#129516;</span> BreedIQ
+                            </a>
+                        </div>
+                        <nav className="flex-grow p-4 space-y-2">
+                            {navItems.map(item => (
+                                <button key={item.id} onClick={() => handleViewChange(item.id)}
+                                    className={`w-full text-left px-4 py-3 rounded-lg transition ${currentView === item.id ? 'bg-emerald-900 text-emerald-100' : 'text-slate-400 hover:bg-slate-800'}`}>
+                                    <span className="mr-3" dangerouslySetInnerHTML={{__html: item.icon}}></span>
+                                    {item.label}
+                                </button>
+                            ))}
+                        </nav>
+                        <div className="p-4 border-t border-slate-800">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center font-bold text-slate-900">
+                                    {user?.email ? user.email[0].toUpperCase() : 'U'}
+                                </div>
+                                <div>
+                                    <p className="text-sm font-semibold text-slate-100">{user?.email || 'User'}</p>
+                                    <p className="text-xs text-slate-500">{user?.plan || 'Starter'} plan</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Main Content */}
+                    <div className="flex-1 flex flex-col min-h-screen">
+                        <header className="bg-slate-900 border-b border-slate-800 p-4 sticky top-0 z-30">
+                            <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-2 md:hidden">
+                                    <button onClick={() => setSidebarOpen(!sidebarOpen)}
+                                        aria-label="Toggle menu"
+                                        className="text-slate-400 hover:text-slate-100 transition">
+                                        {sidebarOpen ? <IconX /> : <IconMenu />}
+                                    </button>
+                                    {/* Clickable wordmark — taps return to the dashboard from any
+                                        sub-view. On mobile this is the primary "go home" affordance
+                                        since the sidebar is collapsed by default. */}
+                                    <button onClick={() => handleViewChange('dashboard')}
+                                        aria-label="Go to dashboard"
+                                        className="flex items-center gap-1.5 font-bold text-base text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400 hover:opacity-80 transition">
+                                        <span className="text-lg" aria-hidden="true">&#129516;</span>
+                                        <span>BreedIQ</span>
+                                    </button>
+                                </div>
+                                <div className="flex-grow mx-4 hidden md:block">
+                                    <div className="relative max-w-md">
+                                        <input type="text" placeholder="Search dogs, events..."
+                                            className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500" />
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <button className="relative text-slate-400 hover:text-slate-100 transition">
+                                        <IconBell />
+                                        <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                                    </button>
+                                    <button onClick={() => { window.location.href = '/dogs?add=1'; }}
+                                        className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-600 transition">
+                                        + Add Dog
+                                    </button>
+                                    <button onClick={handleSignOut} className="px-3 py-2 text-slate-400 hover:text-white border border-slate-700 rounded-lg text-sm hover:border-slate-500 transition">
+                                        Sign Out
+                                    </button>
+                                </div>
+                            </div>
+                        </header>
+
+                        <main className="flex-grow overflow-auto p-6">
+                            <div className="max-w-7xl mx-auto">
+                                {dataError && (
+                                    <div className="mb-6 bg-red-950 border border-red-800 rounded-lg p-4 text-red-200">
+                                        Failed to load data: {dataError}. Showing cached view.
+                                    </div>
+                                )}
+                                {currentView === 'dashboard' && <DashboardView dogs={dogs} litters={litters} refetch={refetch} onNavigate={handleNavigate} />}
+                                {currentView === 'dams' && <DamsView dogs={dogs} initialFilter={damFilter} />}
+                                {currentView === 'alerts' && <AlertsView dogs={dogs} litters={litters} refetch={refetch} />}
+                                {currentView === 'calendar' && <CalendarView user={user} />}
+                                {currentView === 'guardians' && <GuardiansView dogs={dogs} refetch={refetch} />}
+                                {currentView === 'settings' && <SettingsView user={user} onUserUpdated={(u) => setUser(prev => ({ ...prev, ...u }))} />}
+                                {currentView === 'analytics' && (
+                                    <div className="text-center py-20">
+                                        <p className="text-slate-400 text-lg">Coming soon: Analytics</p>
+                                    </div>
+                                )}
+                            </div>
+                        </main>
+                    </div>
+
+                    {sidebarOpen && (
+                        <div className="fixed inset-0 bg-black/50 md:hidden z-30" onClick={() => setSidebarOpen(false)}></div>
+                    )}
+
+                    {/* Global toast host \u2014 success/error notifications fire via window event */}
+                    <ToastHost />
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<BreedIQDashboard />);
