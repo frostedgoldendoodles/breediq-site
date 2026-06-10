@@ -42,6 +42,14 @@
 
             useEffect(() => { fetchData(); }, [fetchData]);
 
+            // Refetch when the Ask BreedIQ widget reports it saved a change, so
+            // chat-driven updates show on the dashboard without a manual reload.
+            useEffect(() => {
+                const onChange = () => fetchData();
+                window.addEventListener('breediq:records-updated', onChange);
+                return () => window.removeEventListener('breediq:records-updated', onChange);
+            }, [fetchData]);
+
             return { dogs, litters, loading, error, refetch: fetchData };
         };
 

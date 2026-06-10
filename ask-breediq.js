@@ -20,6 +20,15 @@
     const LS_HISTORY_KEY = 'breediq_assistant_history';
     const MAX_HISTORY_CHARS = 40000; // stash the last ~40KB of history locally
 
+    // Tools that mutate records. When one of these succeeds we tell the host
+    // dashboard to refetch so the change shows without a manual reload.
+    const WRITE_TOOLS = new Set([
+        'create_dog', 'update_dog', 'delete_dog',
+        'create_litter', 'update_litter', 'delete_litter',
+        'create_guardian', 'update_guardian', 'delete_guardian',
+        'link_guardian_to_dog', 'log_heat', 'create_calendar_event'
+    ]);
+
     let state = {
         open: false,
         context: { page: location.pathname },
@@ -635,6 +644,14 @@
                     // distinguish "couldn't reach server" from "server did
                     // the work but stream tore mid-reply".
                     assistantMsg.toolSuccessCount = (assistantMsg.toolSuccessCount || 0) + 1;
+                    // If a WRITE tool succeeded, remember it so we can tell the
+                    // host dashboard to refresh its data when the turn ends.
+                    // (Read tools like search_records/get_* shouldn't trigger a
+                    // refetch.) The dashboard and this widget are separate, so
+                    // without this the dashboard keeps showing stale records
+                    // until a manual reload — which reads as "the update didn't
+                    // work" even though it saved.
+                    if (WRITE_TOOLS.has(evt.tool_name)) state.recordsChanged = true;
                 } else if (evt.requires_confirmation) {
                     message = describeDestructive(evt.tool_name, evt.target);
                 } else if (evt.error) {
@@ -657,6 +674,14 @@
                 assistantMsg.pending = false;
                 assistantMsg.usage = evt.usage;
                 renderMessages();
+                // A write landed during this turn — notify the host page so the
+                // dashboard refetches and shows the change immediately.
+                if (state.recordsChanged) {
+                    state.recordsChanged = false;
+                    try {
+                        window.dispatchEvent(new CustomEvent('breediq:records-updated'));
+                    } catch (e) { /* ignore */ }
+                }
                 break;
             case 'error':
                 assistantMsg.pending = false;
