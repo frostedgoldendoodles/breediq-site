@@ -108,7 +108,7 @@
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-slate-600">
-                                <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg aria-hidden="true" className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.5 12.75l6 6 9-13.5" />
                                 </svg>
                             </div>
@@ -183,8 +183,9 @@
 
             const field = (key, label, type = 'text', extra = {}) => (
                 <div>
-                    <label className="block text-xs text-slate-400 mb-1">{label}</label>
+                    <label htmlFor={`adddog-${key}`} className="block text-xs text-slate-400 mb-1">{label}</label>
                     <input
+                        id={`adddog-${key}`}
                         type={type}
                         value={form[key] || ''}
                         onChange={(e) => setForm({ ...form, [key]: e.target.value })}
@@ -195,26 +196,26 @@
             );
 
             return (
-                <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
-                    <div className="bg-slate-900 rounded-xl border border-slate-800 p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose} onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}>
+                    <div role="dialog" aria-modal="true" aria-labelledby="adddog-title" className="bg-slate-900 rounded-xl border border-slate-800 p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-bold">Add Dog</h2>
-                            <button onClick={onClose} className="text-slate-400 hover:text-slate-100">✕</button>
+                            <h2 id="adddog-title" className="text-xl font-bold">Add Dog</h2>
+                            <button onClick={onClose} aria-label="Close dialog" className="text-slate-400 hover:text-slate-100">✕</button>
                         </div>
                         <form onSubmit={submit} className="space-y-3">
                             {field('name', 'Name *')}
                             {field('call_name', 'Call Name')}
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-xs text-slate-400 mb-1">Sex</label>
-                                    <select value={form.sex} onChange={(e) => setForm({...form, sex: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-100">
+                                    <label htmlFor="adddog-sex" className="block text-xs text-slate-400 mb-1">Sex</label>
+                                    <select id="adddog-sex" value={form.sex} onChange={(e) => setForm({...form, sex: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-100">
                                         <option value="female">Female</option>
                                         <option value="male">Male</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs text-slate-400 mb-1">Role</label>
-                                    <select value={form.role} onChange={(e) => setForm({...form, role: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-100">
+                                    <label htmlFor="adddog-role" className="block text-xs text-slate-400 mb-1">Role</label>
+                                    <select id="adddog-role" value={form.role} onChange={(e) => setForm({...form, role: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-100">
                                         <option value="dam">Dam</option>
                                         <option value="stud">Stud</option>
                                         <option value="prospect">Prospect</option>
@@ -224,8 +225,8 @@
                             {field('date_of_birth', 'Date of Birth', 'date')}
                             {field('breed', 'Breed')}
                             <div>
-                                <label className="block text-xs text-slate-400 mb-1">Status</label>
-                                <select value={form.status} onChange={(e) => setForm({...form, status: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-100">
+                                <label htmlFor="adddog-status" className="block text-xs text-slate-400 mb-1">Status</label>
+                                <select id="adddog-status" value={form.status} onChange={(e) => setForm({...form, status: e.target.value})} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-100">
                                     <option value="active">Active</option>
                                     <option value="guardian">Guardian</option>
                                     <option value="retired">Retired</option>
@@ -233,8 +234,9 @@
                             </div>
                             {field('photo_url', 'Photo URL')}
                             <div>
-                                <label className="block text-xs text-slate-400 mb-1">Notes</label>
+                                <label htmlFor="adddog-notes" className="block text-xs text-slate-400 mb-1">Notes</label>
                                 <textarea
+                                    id="adddog-notes"
                                     value={form.notes}
                                     onChange={(e) => setForm({...form, notes: e.target.value})}
                                     rows="3"
@@ -363,6 +365,7 @@
                             <input
                                 type="text"
                                 placeholder="Search by name..."
+                                aria-label="Search dogs by name"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="flex-1 px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
@@ -370,6 +373,7 @@
                             <select
                                 value={filterRole}
                                 onChange={(e) => setFilterRole(e.target.value)}
+                                aria-label="Filter by role"
                                 className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500"
                             >
                                 <option value="all">All Roles</option>
@@ -380,6 +384,7 @@
                             <select
                                 value={filterStatus}
                                 onChange={(e) => setFilterStatus(e.target.value)}
+                                aria-label="Filter by status"
                                 className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-500"
                             >
                                 <option value="all">All Statuses</option>

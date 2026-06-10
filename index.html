@@ -474,8 +474,10 @@
                             <button
                                 className="md:hidden text-white"
                                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                                aria-expanded={mobileMenuOpen}
                             >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg aria-hidden="true" className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                                 </svg>
                             </button>
@@ -817,10 +819,11 @@
                                 <div key={faq.id} className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
                                     <button
                                         onClick={() => toggleFAQ(faq.id)}
+                                        aria-expanded={expandedFAQ === faq.id}
                                         className="accordion-header w-full px-6 py-4 text-left font-semibold flex justify-between items-center hover:bg-slate-800/50 transition"
                                     >
                                         <span>{faq.question}</span>
-                                        <svg className={`w-5 h-5 text-slate-400 transition-transform ${expandedFAQ === faq.id ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                                        <svg aria-hidden="true" className={`w-5 h-5 text-slate-400 transition-transform ${expandedFAQ === faq.id ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                                     </button>
                                     {expandedFAQ === faq.id && (
                                         <div className="px-6 py-4 bg-slate-800/30 border-t border-slate-800 text-slate-300">
@@ -840,6 +843,7 @@
                                 <input
                                     type="email"
                                     placeholder="Enter your email"
+                                    aria-label="Email address"
                                     className="px-6 py-3 rounded-lg w-full sm:w-auto text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-white"
                                 />
                                 <a
@@ -865,7 +869,7 @@
                                     <p className="text-slate-400 text-sm">AI-powered breeding program management for modern breeders.</p>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold mb-4">Product</h4>
+                                    <h3 className="font-semibold mb-4">Product</h3>
                                     <ul className="space-y-2 text-slate-400 text-sm">
                                         <li><a href="#features" className="hover:text-white transition">Features</a></li>
                                         <li><a href="#pricing" className="hover:text-white transition">Pricing</a></li>
@@ -873,7 +877,7 @@
                                     </ul>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold mb-4">Company</h4>
+                                    <h3 className="font-semibold mb-4">Company</h3>
                                     <ul className="space-y-2 text-slate-400 text-sm">
                                         <li><a href="/contact" className="hover:text-white transition">Contact</a></li>
                                         <li><a href="/privacy" className="hover:text-white transition">Privacy Policy</a></li>
@@ -881,7 +885,7 @@
                                     </ul>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold mb-4">Connect</h4>
+                                    <h3 className="font-semibold mb-4">Connect</h3>
                                     <p className="text-slate-400 text-sm">Social channels coming soon.</p>
                                     <a href="/contact" className="text-emerald-400 hover:text-emerald-300 transition text-sm mt-2 inline-block">Contact us</a>
                                 </div>
