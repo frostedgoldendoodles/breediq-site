@@ -23,6 +23,16 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="BreedIQ">
     <link rel="canonical" href="https://breediq.ai/dashboard">
+    <!-- Resource hints: warm up TCP+TLS to the CDNs used below. -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    <!-- Preload the precompiled dashboard app: it's the critical above-the-fold
+         render and is same-origin, so fetch it in parallel with the CDN scripts. -->
+    <link rel="preload" href="/dashboard.bundle.js" as="script">
     <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>

@@ -27,6 +27,18 @@
     <meta name="apple-mobile-web-app-title" content="BreedIQ">
     <link rel="canonical" href="https://breediq.ai/">
 
+    <!-- Resource hints: warm up TCP+TLS to the CDNs and origins used below.
+         preconnect for render-critical origins; dns-prefetch as a fallback. -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://img1.wsimg.com">
+
     <!-- Tailwind CSS from CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -546,7 +558,7 @@
                             <p className="text-center text-slate-400 mb-8">Built and trusted by real breeders</p>
                             <div className="flex flex-wrap justify-center items-center gap-12">
                                 <div className="flex flex-col items-center gap-2">
-                                    <img src="https://img1.wsimg.com/isteam/ip/483ef3c6-7986-44d1-992f-2c08d17f6202/001frostedlogo.png" alt="Frosted Goldendoodles" className="h-16 w-auto rounded-full" />
+                                    <img src="https://img1.wsimg.com/isteam/ip/483ef3c6-7986-44d1-992f-2c08d17f6202/001frostedlogo.png" alt="Frosted Goldendoodles" width="64" height="64" className="h-16 w-auto rounded-full" />
                                     <span className="text-xs text-slate-500">Frosted Goldendoodles</span>
                                 </div>
                                 <div className="flex flex-col items-center gap-2 opacity-40">
