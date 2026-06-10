@@ -13,12 +13,20 @@
 //   4. Bump CACHE_VERSION when we ship a new build to force
 //      old caches to be cleaned up.
 
-// Bump this any time we ship a code fix that needs PWA users to drop
-// their cached client bundle (e.g. ask-breediq.js after a chat fix).
-// Old caches under different versions are deleted on `activate`.
-const CACHE_VERSION = 'breediq-v4';
-const SHELL_CACHE = `${CACHE_VERSION}-shell`;
-const ASSET_CACHE = `${CACHE_VERSION}-assets`;
+// Two independently-versioned caches:
+//   SHELL  — HTML/JS that changes on most deploys. Bump SHELL_VERSION any
+//            time PWA users need to drop their cached client bundle (e.g.
+//            ask-breediq.js after a chat fix).
+//   ASSET  — icons/fonts/immutable static files that rarely change. Bump
+//            ASSET_VERSION only when those actually change. Keeping it
+//            separate means a routine JS deploy no longer evicts the asset
+//            cache, so icons/css don't re-download for every returning user
+//            after every deploy.
+const SHELL_VERSION = 'breediq-shell-v5';
+const ASSET_VERSION = 'breediq-asset-v1';
+const SHELL_CACHE = SHELL_VERSION;
+const ASSET_CACHE = ASSET_VERSION;
+const CURRENT_CACHES = [SHELL_CACHE, ASSET_CACHE];
 
 // Pre-cached so the home screen icon → first paint works offline.
 // Keep this list small — these load on install for everyone.
@@ -49,7 +57,9 @@ self.addEventListener('activate', (event) => {
         caches.keys().then((keys) =>
             Promise.all(
                 keys
-                    .filter((k) => !k.startsWith(CACHE_VERSION))
+                    // Delete only caches we no longer reference. A shell-version
+                    // bump leaves the current asset cache intact and vice-versa.
+                    .filter((k) => !CURRENT_CACHES.includes(k))
                     .map((k) => caches.delete(k))
             )
         ).then(() => self.clients.claim())
