@@ -11,8 +11,8 @@
 // source does NOT import React, so esbuild's classic JSX transform emits
 // React.createElement calls that resolve to window.React at runtime.
 //
-// Usage:  npm run build        (one-off)
-//         npm run build:watch  (rebuild on save while editing src/dashboard.jsx)
+// Usage:  npm run compile        (one-off)
+//         npm run compile:watch  (rebuild on save while editing src/dashboard.jsx)
 
 import { build, context } from 'esbuild';
 

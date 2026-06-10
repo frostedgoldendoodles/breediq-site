@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "node build.mjs",
-    "build:watch": "node build.mjs --watch"
+    "comment": "Named 'compile', NOT 'build', on purpose: Vercel auto-runs a 'build' script and then expects a public/ output dir, which flips this static site into build-deploy mode and fails. 'compile' is local-only; the committed dashboard.bundle.js is what Vercel serves.",
+    "compile": "node build.mjs",
+    "compile:watch": "node build.mjs --watch"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.65.0",
