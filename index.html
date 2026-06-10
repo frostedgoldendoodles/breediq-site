@@ -27,6 +27,64 @@
     <meta name="apple-mobile-web-app-title" content="BreedIQ">
     <link rel="canonical" href="https://breediq.ai/">
 
+    <!-- Resource hints: warm up TCP+TLS to the CDNs and origins used below.
+         preconnect for render-critical origins; dns-prefetch as a fallback. -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://img1.wsimg.com">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="BreedIQ">
+    <meta property="og:url" content="https://breediq.ai/">
+    <meta property="og:title" content="BreedIQ — AI-Powered Breeding Program Management">
+    <meta property="og:description" content="Organize your breeding records, track heat cycles, sync with Google Calendar, and manage guardians — all in one AI-powered platform for professional dog breeders.">
+    <meta property="og:image" content="https://breediq.ai/icons/icon-512.png">
+    <meta property="og:locale" content="en_US">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="BreedIQ — AI-Powered Breeding Program Management">
+    <meta name="twitter:description" content="Organize your breeding records, track heat cycles, sync with Google Calendar, and manage guardians — all in one AI-powered platform for professional dog breeders.">
+    <meta name="twitter:image" content="https://breediq.ai/icons/icon-512.png">
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "BreedIQ",
+      "url": "https://breediq.ai/",
+      "logo": "https://breediq.ai/icons/icon-512.png",
+      "description": "AI-powered breeding program management platform for professional dog breeders.",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "url": "https://breediq.ai/contact"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "BreedIQ",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "url": "https://breediq.ai/",
+      "description": "AI-powered breeding program management platform. Organize breeding records, track heat cycles, sync with Google Calendar, and manage guardians all in one place.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
+
     <!-- Tailwind CSS from CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -474,8 +532,10 @@
                             <button
                                 className="md:hidden text-white"
                                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                                aria-expanded={mobileMenuOpen}
                             >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg aria-hidden="true" className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                                 </svg>
                             </button>
@@ -546,7 +606,7 @@
                             <p className="text-center text-slate-400 mb-8">Built and trusted by real breeders</p>
                             <div className="flex flex-wrap justify-center items-center gap-12">
                                 <div className="flex flex-col items-center gap-2">
-                                    <img src="https://img1.wsimg.com/isteam/ip/483ef3c6-7986-44d1-992f-2c08d17f6202/001frostedlogo.png" alt="Frosted Goldendoodles" className="h-16 w-auto rounded-full" />
+                                    <img src="https://img1.wsimg.com/isteam/ip/483ef3c6-7986-44d1-992f-2c08d17f6202/001frostedlogo.png" alt="Frosted Goldendoodles" width="64" height="64" className="h-16 w-auto rounded-full" />
                                     <span className="text-xs text-slate-500">Frosted Goldendoodles</span>
                                 </div>
                                 <div className="flex flex-col items-center gap-2 opacity-40">
@@ -817,10 +877,11 @@
                                 <div key={faq.id} className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
                                     <button
                                         onClick={() => toggleFAQ(faq.id)}
+                                        aria-expanded={expandedFAQ === faq.id}
                                         className="accordion-header w-full px-6 py-4 text-left font-semibold flex justify-between items-center hover:bg-slate-800/50 transition"
                                     >
                                         <span>{faq.question}</span>
-                                        <svg className={`w-5 h-5 text-slate-400 transition-transform ${expandedFAQ === faq.id ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                                        <svg aria-hidden="true" className={`w-5 h-5 text-slate-400 transition-transform ${expandedFAQ === faq.id ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                                     </button>
                                     {expandedFAQ === faq.id && (
                                         <div className="px-6 py-4 bg-slate-800/30 border-t border-slate-800 text-slate-300">
@@ -840,6 +901,7 @@
                                 <input
                                     type="email"
                                     placeholder="Enter your email"
+                                    aria-label="Email address"
                                     className="px-6 py-3 rounded-lg w-full sm:w-auto text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-white"
                                 />
                                 <a
@@ -865,7 +927,7 @@
                                     <p className="text-slate-400 text-sm">AI-powered breeding program management for modern breeders.</p>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold mb-4">Product</h4>
+                                    <h3 className="font-semibold mb-4">Product</h3>
                                     <ul className="space-y-2 text-slate-400 text-sm">
                                         <li><a href="#features" className="hover:text-white transition">Features</a></li>
                                         <li><a href="#pricing" className="hover:text-white transition">Pricing</a></li>
@@ -873,7 +935,7 @@
                                     </ul>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold mb-4">Company</h4>
+                                    <h3 className="font-semibold mb-4">Company</h3>
                                     <ul className="space-y-2 text-slate-400 text-sm">
                                         <li><a href="/contact" className="hover:text-white transition">Contact</a></li>
                                         <li><a href="/privacy" className="hover:text-white transition">Privacy Policy</a></li>
@@ -881,7 +943,7 @@
                                     </ul>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold mb-4">Connect</h4>
+                                    <h3 className="font-semibold mb-4">Connect</h3>
                                     <p className="text-slate-400 text-sm">Social channels coming soon.</p>
                                     <a href="/contact" className="text-emerald-400 hover:text-emerald-300 transition text-sm mt-2 inline-block">Contact us</a>
                                 </div>

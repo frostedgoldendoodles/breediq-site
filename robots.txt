@@ -1,5 +1,10 @@
 User-agent: *
 Allow: /
 Disallow: /dashboard
+Disallow: /dogs
+Disallow: /dog
+Disallow: /onboarding
+Disallow: /reset-password
+Disallow: /settings
 Disallow: /api/
 Sitemap: https://breediq.ai/sitemap.xml
