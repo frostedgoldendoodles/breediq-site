@@ -6,12 +6,16 @@
 // plain static file — so Vercel's deploy flow is unchanged (there is NO build
 // step on Vercel; this runs locally / in CI when a page source changes).
 //
-// React/ReactDOM/Tailwind are loaded as self-hosted UMD <script> tags in each
-// HTML page (/vendor/*). The sources do NOT import React, so esbuild's classic
-// JSX transform emits React.createElement calls that resolve to window.React.
+// React/ReactDOM are loaded as self-hosted UMD <script> tags in each HTML page
+// (/vendor/*). The sources do NOT import React, so esbuild's classic JSX
+// transform emits React.createElement calls that resolve to window.React.
 //
-// Usage:  npm run compile        (build all pages once)
-//         npm run compile:watch  (rebuild on save)
+// Tailwind is NOT bundled here — `npm run compile` runs the Tailwind CLI after
+// this to produce a static styles.css (see package.json). This file only builds
+// the JS bundles; the two together are what `compile` ships.
+//
+// Usage:  npm run compile        (build all page bundles + styles.css)
+//         npm run compile:watch  (rebuild JS bundles on save)
 
 import { build, context } from 'esbuild';
 import { readdirSync } from 'fs';

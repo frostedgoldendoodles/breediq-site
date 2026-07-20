@@ -22,7 +22,7 @@
 //            separate means a routine JS deploy no longer evicts the asset
 //            cache, so icons/css don't re-download for every returning user
 //            after every deploy.
-const SHELL_VERSION = 'breediq-shell-v7';
+const SHELL_VERSION = 'breediq-shell-v8';
 const ASSET_VERSION = 'breediq-asset-v1';
 const SHELL_CACHE = SHELL_VERSION;
 const ASSET_CACHE = ASSET_VERSION;
