@@ -1,0 +1,710 @@
+// BreedIQ onboarding page — source. Compiled to /onboarding.bundle.js by
+// `npm run compile` (esbuild, classic JSX transform against global React).
+// Edit this file, not the bundle.
+
+        const { useState, useEffect, useRef, useCallback } = React;
+
+        // ────────────────────────────────────────────────────────
+        // Helpers
+        // ────────────────────────────────────────────────────────
+
+        const TOOL_LABELS = {
+            create_dog: 'Dog',
+            create_litter: 'Litter',
+            create_guardian: 'Guardian',
+            link_guardian_to_dog: 'Guardian link',
+            ask_user: 'Question',
+            finish: 'Finish'
+        };
+
+        function formatDog(d) {
+            const bits = [];
+            if (d.breed) bits.push(d.breed);
+            if (d.sex) bits.push(d.sex === 'female' ? 'F' : 'M');
+            if (d.date_of_birth) bits.push(`DOB ${d.date_of_birth}`);
+            if (d.role) bits.push(d.role);
+            return bits.join(' • ') || 'details pending';
+        }
+
+        function formatLitter(l) {
+            const parts = [];
+            if (l.dam_name) parts.push(`dam: ${l.dam_name}`);
+            if (l.sire_name) parts.push(`sire: ${l.sire_name}`);
+            if (l.whelp_date) parts.push(`born ${l.whelp_date}`);
+            else if (l.due_date) parts.push(`due ${l.due_date}`);
+            else if (l.breed_date) parts.push(`bred ${l.breed_date}`);
+            if (l.puppy_count) parts.push(`${l.puppy_count} pups`);
+            return parts.join(' • ') || 'details pending';
+        }
+
+        function formatGuardian(g) {
+            const parts = [];
+            if (g.contact_name) parts.push(g.contact_name);
+            if (g.email) parts.push(g.email);
+            if (g.dog_name_if_known) parts.push(`guards ${g.dog_name_if_known}`);
+            return parts.join(' • ') || 'contact details pending';
+        }
+
+        // Parse NDJSON stream: onEvent called per message
+        async function readNdjson(response, onEvent) {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                let idx;
+                while ((idx = buffer.indexOf('\n')) >= 0) {
+                    const line = buffer.slice(0, idx).trim();
+                    buffer = buffer.slice(idx + 1);
+                    if (!line) continue;
+                    try {
+                        onEvent(JSON.parse(line));
+                    } catch (e) {
+                        console.warn('Failed to parse NDJSON line:', line);
+                    }
+                }
+            }
+            if (buffer.trim()) {
+                try { onEvent(JSON.parse(buffer.trim())); } catch {}
+            }
+        }
+
+        // ────────────────────────────────────────────────────────
+        // Main App
+        // ────────────────────────────────────────────────────────
+
+        function BreedIQOnboarding() {
+            const [authState, setAuthState] = useState('loading');
+            const [step, setStep] = useState(1);
+            const [pastedText, setPastedText] = useState('');
+            const [files, setFiles] = useState([]); // { file, uploaded: boolean, id: string }
+            const [uploading, setUploading] = useState(false);
+            const [uploadError, setUploadError] = useState(null);
+
+            // Streaming state
+            const [streamEvents, setStreamEvents] = useState([]);
+            const [streamError, setStreamError] = useState(null);
+            const [streamDone, setStreamDone] = useState(false);
+            const [streamThinking, setStreamThinking] = useState(false);
+
+            // Confirm-step state (editable)
+            const [dogs, setDogs] = useState([]);
+            const [litters, setLitters] = useState([]);
+            const [guardians, setGuardians] = useState([]);
+            const [questions, setQuestions] = useState([]);
+            const [confirming, setConfirming] = useState(false);
+            const [confirmError, setConfirmError] = useState(null);
+            const [confirmResult, setConfirmResult] = useState(null);
+
+            const dropzoneRef = useRef(null);
+
+            useEffect(() => {
+                fetch('/api/auth/me', { credentials: 'include' })
+                    .then(res => {
+                        if (!res.ok) throw new Error('Not authenticated');
+                        return res.json();
+                    })
+                    .then(() => setAuthState('authenticated'))
+                    .catch(() => {
+                        setAuthState('unauthenticated');
+                        window.location.href = '/login';
+                    });
+            }, []);
+
+            // ── File handling ───────────────────────────────────
+            const handleFiles = useCallback((newFileList) => {
+                const added = Array.from(newFileList).map(f => ({
+                    file: f, uploaded: false, id: null, uploading: false, error: null
+                }));
+                setFiles(prev => [...prev, ...added]);
+            }, []);
+
+            const handleDragOver = (e) => { e.preventDefault(); dropzoneRef.current?.classList.add('dragover'); };
+            const handleDragLeave = () => { dropzoneRef.current?.classList.remove('dragover'); };
+            const handleDrop = (e) => {
+                e.preventDefault();
+                dropzoneRef.current?.classList.remove('dragover');
+                if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files);
+            };
+            const removeFile = (idx) => setFiles(prev => prev.filter((_, i) => i !== idx));
+
+            // Upload a single file to /api/onboarding/upload, return file_id
+            async function uploadFile(fileEntry) {
+                const file = fileEntry.file;
+                const buf = await file.arrayBuffer();
+                // Convert to base64 without stack blowup
+                let binary = '';
+                const bytes = new Uint8Array(buf);
+                const chunk = 0x8000;
+                for (let i = 0; i < bytes.length; i += chunk) {
+                    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+                }
+                const b64 = btoa(binary);
+                const resp = await fetch('/api/onboarding/upload', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        filename: file.name,
+                        contentType: file.type || 'application/octet-stream',
+                        content: b64
+                    })
+                });
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || 'Upload failed');
+                return data.file.id;
+            }
+
+            // ── Kick off processing ─────────────────────────────
+            const canAnalyze = (pastedText.trim().length > 0 || files.length > 0) && !uploading;
+
+            async function runAnalysis() {
+                setUploadError(null);
+                setStreamError(null);
+                setStreamEvents([]);
+                setDogs([]); setLitters([]); setGuardians([]); setQuestions([]);
+                setStreamDone(false);
+                setStreamThinking(false);
+                setStep(2);
+
+                // Upload files if any
+                let fileIds = [];
+                if (files.length > 0) {
+                    setUploading(true);
+                    try {
+                        for (let i = 0; i < files.length; i++) {
+                            if (files[i].id) { fileIds.push(files[i].id); continue; }
+                            const id = await uploadFile(files[i]);
+                            fileIds.push(id);
+                            setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, uploaded: true, id } : f));
+                        }
+                    } catch (err) {
+                        setUploadError(err.message);
+                        setUploading(false);
+                        setStep(1);
+                        return;
+                    }
+                    setUploading(false);
+                }
+
+                // Stream from /api/onboarding/process
+                try {
+                    const resp = await fetch('/api/onboarding/process', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: pastedText, file_ids: fileIds })
+                    });
+                    if (!resp.ok || !resp.body) {
+                        const errText = await resp.text().catch(() => '');
+                        throw new Error(errText || `Processing failed (${resp.status})`);
+                    }
+
+                    await readNdjson(resp, (ev) => {
+                        if (ev.type === 'start') {
+                            setStreamEvents(e => [...e, { ...ev, key: `start-${Date.now()}` }]);
+                        } else if (ev.type === 'thinking_start') {
+                            setStreamThinking(true);
+                        } else if (ev.type === 'tool_call') {
+                            setStreamEvents(e => [...e, { ...ev, key: `tc-${ev.tool_use_id}` }]);
+                            // also populate the confirm-step collections
+                            if (ev.tool_name === 'create_dog') {
+                                setDogs(prev => [...prev, { _key: ev.tool_use_id, ...ev.input }]);
+                            } else if (ev.tool_name === 'create_litter') {
+                                setLitters(prev => [...prev, { _key: ev.tool_use_id, ...ev.input }]);
+                            } else if (ev.tool_name === 'create_guardian') {
+                                setGuardians(prev => [...prev, { _key: ev.tool_use_id, ...ev.input }]);
+                            } else if (ev.tool_name === 'link_guardian_to_dog') {
+                                setGuardians(prev => prev.map(g =>
+                                    (g.family_name || '').toLowerCase() === (ev.input.guardian_name || '').toLowerCase()
+                                        ? { ...g, dog_name_if_known: g.dog_name_if_known || ev.input.dog_name }
+                                        : g
+                                ));
+                            } else if (ev.tool_name === 'ask_user') {
+                                setQuestions(prev => [...prev, { _key: ev.tool_use_id, ...ev.input, answer: '' }]);
+                            }
+                        } else if (ev.type === 'done') {
+                            setStreamDone(true);
+                            setStreamEvents(e => [...e, { ...ev, key: `done-${Date.now()}` }]);
+                        } else if (ev.type === 'error') {
+                            setStreamError(ev.error);
+                        }
+                    });
+                } catch (err) {
+                    console.error(err);
+                    setStreamError(err.message || 'Stream failed');
+                }
+            }
+
+            // Auto-advance to step 3 when stream completes and has results
+            useEffect(() => {
+                if (streamDone && !streamError) {
+                    // Delay so user sees the "done" check
+                    const t = setTimeout(() => setStep(3), 600);
+                    return () => clearTimeout(t);
+                }
+            }, [streamDone, streamError]);
+
+            // ── Confirm ─────────────────────────────────────────
+            async function handleConfirm() {
+                setConfirming(true);
+                setConfirmError(null);
+                try {
+                    // Build tool_calls payload from current (possibly edited) state
+                    const tool_calls = [];
+                    for (const d of dogs) {
+                        const { _key, ...input } = d;
+                        tool_calls.push({ tool_name: 'create_dog', input });
+                    }
+                    for (const l of litters) {
+                        const { _key, ...input } = l;
+                        tool_calls.push({ tool_name: 'create_litter', input });
+                    }
+                    for (const g of guardians) {
+                        const { _key, ...input } = g;
+                        // Fold question answers into notes if provided
+                        tool_calls.push({ tool_name: 'create_guardian', input });
+                    }
+                    // Fold unanswered questions' answers into first dog's notes if any provided
+                    const answered = questions.filter(q => q.answer && q.answer.trim());
+                    const file_ids = files.filter(f => f.id).map(f => f.id);
+
+                    // If user answered any questions, append them as context to the last dog's notes
+                    if (answered.length > 0 && tool_calls.length > 0) {
+                        const noteBlob = answered.map(q => `Q: ${q.question} A: ${q.answer}`).join(' | ');
+                        const firstDog = tool_calls.find(tc => tc.tool_name === 'create_dog');
+                        if (firstDog) {
+                            firstDog.input.notes = [firstDog.input.notes, noteBlob].filter(Boolean).join(' | ');
+                        }
+                    }
+
+                    const resp = await fetch('/api/onboarding/confirm', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ tool_calls, file_ids })
+                    });
+                    const data = await resp.json();
+                    if (!resp.ok) throw new Error(data.error || data.message || 'Save failed');
+                    setConfirmResult(data);
+                    setStep(4);
+                } catch (err) {
+                    setConfirmError(err.message);
+                } finally {
+                    setConfirming(false);
+                }
+            }
+
+            // ────────────────────────────────────────────────────
+            // Render
+            // ────────────────────────────────────────────────────
+
+            if (authState === 'loading') {
+                return (
+                    <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                        <div className="text-center space-y-4">
+                            <div className="text-4xl">🧬</div>
+                            <p className="text-gray-400">Loading...</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen bg-slate-950 gradient-bg">
+                    {/* Header */}
+                    <div className="border-b border-slate-800 bg-slate-900/50 backdrop-blur">
+                        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+                            <a href="/" className="flex items-center gap-2 hover:opacity-80 transition">
+                                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center">
+                                    <span className="text-white font-bold text-lg">ℬ</span>
+                                </div>
+                                <span className="font-bold text-lg text-gray-100">BreedIQ</span>
+                            </a>
+                            <div className="text-sm text-gray-400">Step {step} of 4</div>
+                        </div>
+                    </div>
+
+                    {/* Progress bar */}
+                    <div className="bg-slate-900 border-b border-slate-800">
+                        <div className="max-w-4xl mx-auto px-6 py-3">
+                            <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                                <div
+                                    className="bg-gradient-to-r from-blue-500 to-green-500 h-full transition-all duration-500"
+                                    style={{ width: `${(step / 4) * 100}%` }}
+                                ></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="max-w-4xl mx-auto px-6 py-10">
+                        {/* STEP 1: Paste */}
+                        {step === 1 && (
+                            <div className="space-y-6">
+                                <div>
+                                    <h1 className="text-4xl font-bold text-gray-100 mb-2">Tell us about your program</h1>
+                                    <p className="text-lg text-gray-400">Paste anything — our AI extracts the dogs, litters, and guardians. You review before we save a thing.</p>
+                                </div>
+
+                                {/* The flagship paste box */}
+                                <textarea
+                                    value={pastedText}
+                                    onChange={(e) => setPastedText(e.target.value)}
+                                    placeholder="Paste anything — Apple Notes, a spreadsheet copy-paste, text messages with your vet, a breeding log, whatever you've got. We'll sort it."
+                                    aria-label="Paste your breeding records here"
+                                    className="paste-box w-full min-h-[280px] rounded-xl px-5 py-4 text-base text-gray-100 placeholder-gray-500 resize-y"
+                                />
+
+                                {/* Drag-drop / file add */}
+                                <div
+                                    ref={dropzoneRef}
+                                    onDragOver={handleDragOver}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={handleDrop}
+                                    className="border-2 border-dashed border-slate-700 rounded-lg px-5 py-4 transition hover:border-blue-500 hover:bg-blue-500/5"
+                                >
+                                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                                        <div className="flex items-center gap-3">
+                                            <svg aria-hidden="true" className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                            </svg>
+                                            <div>
+                                                <p className="text-gray-300 text-sm font-medium">Or drop files here (optional)</p>
+                                                <p className="text-xs text-gray-500">Images, PDFs, spreadsheets, notes — we read them all.</p>
+                                            </div>
+                                        </div>
+                                        <label className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm text-gray-300 cursor-pointer transition">
+                                            Choose files
+                                            <input type="file" multiple onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }} className="hidden" />
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {files.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {files.map((f, idx) => (
+                                            <div key={idx} className="file-chip">
+                                                <span>📄 {f.file.name}</span>
+                                                <button
+                                                    onClick={() => removeFile(idx)}
+                                                    className="text-gray-500 hover:text-red-400 ml-1"
+                                                    aria-label="Remove file"
+                                                >×</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {(uploadError || streamError) && (
+                                    <div className="bg-red-900/20 border border-red-700/50 rounded-lg p-4 text-sm text-red-200">
+                                        <span className="font-semibold">Something went wrong:</span> {uploadError || streamError}
+                                    </div>
+                                )}
+
+                                <button
+                                    onClick={runAnalysis}
+                                    disabled={!canAnalyze}
+                                    className="w-full py-3.5 rounded-lg font-semibold text-white gradient-button"
+                                >
+                                    {uploading ? 'Uploading files...' : 'Extract my program'}
+                                </button>
+
+                                <p className="text-xs text-gray-500 text-center">Nothing gets saved to your account until you review and confirm.</p>
+                            </div>
+                        )}
+
+                        {/* STEP 2: Streaming extractions */}
+                        {step === 2 && (
+                            <div className="space-y-6">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-gray-100 mb-2">Reading your records</h1>
+                                    <p className="text-gray-400">
+                                        {streamDone ? 'Done — review your extractions next.' : (streamThinking ? 'Thinking through your records...' : 'Extracting live — each item appears as our AI finds it.')}
+                                    </p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    {streamEvents.filter(e => e.type === 'tool_call').length === 0 && !streamError && (
+                                        <div className="text-gray-500 text-sm flex items-center">
+                                            <span className="pulse-dot"></span>
+                                            Working...
+                                        </div>
+                                    )}
+
+                                    {streamEvents.filter(e => e.type === 'tool_call').map(ev => {
+                                        if (ev.tool_name === 'finish') {
+                                            return (
+                                                <div key={ev.key} className="extraction-row bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-sm text-green-200">
+                                                    <span className="font-semibold">Done.</span> {ev.input.summary}
+                                                </div>
+                                            );
+                                        }
+                                        let label = '';
+                                        if (ev.tool_name === 'create_dog') {
+                                            label = `Found dog: ${ev.input.name || 'unnamed'} (${formatDog(ev.input)})`;
+                                        } else if (ev.tool_name === 'create_litter') {
+                                            label = `Found litter: ${formatLitter(ev.input)}`;
+                                        } else if (ev.tool_name === 'create_guardian') {
+                                            label = `Found guardian: ${ev.input.family_name} ${ev.input.contact_name ? `(${ev.input.contact_name})` : ''}`;
+                                        } else if (ev.tool_name === 'link_guardian_to_dog') {
+                                            label = `Linked: ${ev.input.guardian_name} → ${ev.input.dog_name}`;
+                                        } else if (ev.tool_name === 'ask_user') {
+                                            return (
+                                                <div key={ev.key} className="extraction-row bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 text-sm">
+                                                    <span className="text-amber-300 font-semibold">Question for you:</span>{' '}
+                                                    <span className="text-amber-100">{ev.input.question}</span>
+                                                    {ev.input.context && <div className="text-amber-200/60 text-xs mt-1">{ev.input.context}</div>}
+                                                </div>
+                                            );
+                                        }
+                                        return (
+                                            <div key={ev.key} className="extraction-row bg-slate-900/60 border border-slate-700 rounded-lg p-3 text-sm text-gray-200 flex items-start gap-2">
+                                                <span className="text-green-400 mt-0.5">✓</span>
+                                                <span>{label}</span>
+                                            </div>
+                                        );
+                                    })}
+
+                                    {streamError && (
+                                        <div className="bg-red-900/20 border border-red-700/50 rounded-lg p-4 text-sm text-red-200">
+                                            <span className="font-semibold">Extraction error:</span> {streamError}
+                                            <button
+                                                onClick={() => setStep(1)}
+                                                className="ml-3 underline text-red-300"
+                                            >Back</button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* STEP 3: Review & Confirm */}
+                        {step === 3 && (
+                            <div className="space-y-6">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-gray-100 mb-2">Review before we save</h1>
+                                    <p className="text-gray-400">Edit anything that's wrong. Click × to remove a row. When you're ready, confirm to save to your BreedIQ account.</p>
+                                </div>
+
+                                {/* Questions from ask_user */}
+                                {questions.length > 0 && (
+                                    <div className="ask-box space-y-3">
+                                        <div className="text-sm text-amber-200 font-semibold">A few questions we ran into:</div>
+                                        {questions.map((q, idx) => (
+                                            <div key={q._key} className="space-y-1">
+                                                <div className="text-sm text-amber-100">{q.question}</div>
+                                                {q.context && <div className="text-xs text-amber-200/60">{q.context}</div>}
+                                                <input
+                                                    type="text"
+                                                    value={q.answer}
+                                                    onChange={(e) => setQuestions(prev => prev.map((x, i) => i === idx ? { ...x, answer: e.target.value } : x))}
+                                                    placeholder="Your answer (we'll append this as a note)"
+                                                    aria-label={q.question}
+                                                    className="w-full bg-slate-900/60 border border-slate-700 rounded px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-amber-400"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Dogs */}
+                                <EntityGroup
+                                    title="Dogs"
+                                    emoji="🐕"
+                                    items={dogs}
+                                    onRemove={(idx) => setDogs(prev => prev.filter((_, i) => i !== idx))}
+                                    render={(dog, idx) => (
+                                        <DogRow
+                                            dog={dog}
+                                            onChange={(field, val) => setDogs(prev => prev.map((d, i) => i === idx ? { ...d, [field]: val } : d))}
+                                        />
+                                    )}
+                                />
+
+                                {/* Litters */}
+                                <EntityGroup
+                                    title="Litters"
+                                    emoji="🍼"
+                                    items={litters}
+                                    onRemove={(idx) => setLitters(prev => prev.filter((_, i) => i !== idx))}
+                                    render={(litter, idx) => (
+                                        <LitterRow
+                                            litter={litter}
+                                            onChange={(field, val) => setLitters(prev => prev.map((l, i) => i === idx ? { ...l, [field]: val } : l))}
+                                        />
+                                    )}
+                                />
+
+                                {/* Guardians */}
+                                <EntityGroup
+                                    title="Guardian families"
+                                    emoji="🏡"
+                                    items={guardians}
+                                    onRemove={(idx) => setGuardians(prev => prev.filter((_, i) => i !== idx))}
+                                    render={(g, idx) => (
+                                        <GuardianRow
+                                            guardian={g}
+                                            onChange={(field, val) => setGuardians(prev => prev.map((x, i) => i === idx ? { ...x, [field]: val } : x))}
+                                        />
+                                    )}
+                                />
+
+                                {dogs.length === 0 && litters.length === 0 && guardians.length === 0 && (
+                                    <div className="bg-slate-900/60 border border-slate-700 rounded-lg p-6 text-center text-gray-400">
+                                        We didn't pull anything out. Try adding more details and run it again.
+                                    </div>
+                                )}
+
+                                {confirmError && (
+                                    <div className="bg-red-900/20 border border-red-700/50 rounded-lg p-4 text-sm text-red-200">
+                                        <span className="font-semibold">Save failed:</span> {confirmError}
+                                    </div>
+                                )}
+
+                                <div className="flex gap-3 pt-2">
+                                    <button
+                                        onClick={() => setStep(1)}
+                                        disabled={confirming}
+                                        className="flex-1 py-3 rounded-lg font-semibold text-gray-300 border border-slate-700 hover:bg-slate-800 transition disabled:opacity-50"
+                                    >
+                                        Back
+                                    </button>
+                                    <button
+                                        onClick={handleConfirm}
+                                        disabled={confirming || (dogs.length === 0 && litters.length === 0 && guardians.length === 0)}
+                                        className="flex-1 py-3 rounded-lg font-semibold text-white gradient-button"
+                                    >
+                                        {confirming ? 'Saving...' : 'Confirm & launch'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* STEP 4: Success */}
+                        {step === 4 && confirmResult && (
+                            <div className="flex flex-col items-center justify-center py-12 space-y-6 text-center">
+                                <div className="w-20 h-20 rounded-full bg-green-500/20 border border-green-500/40 flex items-center justify-center">
+                                    <svg aria-hidden="true" className="w-12 h-12 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h1 className="text-3xl font-bold text-gray-100 mb-2">Your program is live</h1>
+                                    <p className="text-gray-400">{confirmResult.message}</p>
+                                </div>
+                                <div className="bg-slate-900/70 border border-slate-800 rounded-lg p-5 w-full max-w-md space-y-2 text-sm text-left">
+                                    <div className="flex justify-between"><span>Dogs added</span><span className="font-semibold text-green-400">{confirmResult.summary.dogs_created}</span></div>
+                                    <div className="flex justify-between"><span>Litters added</span><span className="font-semibold text-blue-400">{confirmResult.summary.litters_created}</span></div>
+                                    <div className="flex justify-between"><span>Guardian families</span><span className="font-semibold text-cyan-400">{confirmResult.summary.guardians_created}</span></div>
+                                    {confirmResult.summary.errors?.length > 0 && (
+                                        <div className="pt-2 border-t border-slate-700 text-xs text-amber-300">
+                                            {confirmResult.summary.errors.length} item(s) had issues — check the dashboard.
+                                        </div>
+                                    )}
+                                </div>
+                                <a
+                                    href="/dashboard"
+                                    className="inline-block w-full max-w-xs py-3 rounded-lg font-semibold text-white gradient-button"
+                                >
+                                    Go to dashboard
+                                </a>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // ────────────────────────────────────────────────────────
+        // Sub-components
+        // ────────────────────────────────────────────────────────
+
+        function EntityGroup({ title, emoji, items, render, onRemove }) {
+            if (!items || items.length === 0) return null;
+            return (
+                <div className="group-card p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                        <span>{emoji}</span>
+                        <h3 className="text-gray-100 font-semibold">{title} <span className="text-gray-500 font-normal">({items.length})</span></h3>
+                    </div>
+                    <div className="space-y-2">
+                        {items.map((item, idx) => (
+                            <div key={item._key || idx} className="entity-row">
+                                <div className="text-green-400 text-sm pt-1">+</div>
+                                <div>{render(item, idx)}</div>
+                                <button
+                                    onClick={() => onRemove(idx)}
+                                    className="icon-btn danger"
+                                    title="Remove"
+                                    aria-label="Remove this row"
+                                >×</button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function DogRow({ dog, onChange }) {
+            return (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <input aria-label="Dog name" placeholder="Name" value={dog.name || ''} onChange={e => onChange('name', e.target.value)} />
+                    <select aria-label="Dog sex" value={dog.sex || ''} onChange={e => onChange('sex', e.target.value || undefined)}>
+                        <option value="">Sex</option>
+                        <option value="female">Female</option>
+                        <option value="male">Male</option>
+                    </select>
+                    <input aria-label="Dog breed" placeholder="Breed" value={dog.breed || ''} onChange={e => onChange('breed', e.target.value)} />
+                    <input aria-label="Dog date of birth (YYYY-MM-DD)" placeholder="DOB (YYYY-MM-DD)" value={dog.date_of_birth || ''} onChange={e => onChange('date_of_birth', e.target.value)} />
+                    <select aria-label="Dog role" value={dog.role || ''} onChange={e => onChange('role', e.target.value || undefined)}>
+                        <option value="">Role</option>
+                        <option value="dam">Dam</option>
+                        <option value="stud">Stud</option>
+                        <option value="prospect">Prospect</option>
+                    </select>
+                    <input aria-label="Dog color" placeholder="Color" value={dog.color || ''} onChange={e => onChange('color', e.target.value)} />
+                    <input aria-label="Dog weight in pounds" placeholder="Weight (lbs)" type="number" value={dog.weight_lbs || ''} onChange={e => onChange('weight_lbs', e.target.value ? Number(e.target.value) : undefined)} />
+                    <input aria-label="Dog notes" placeholder="Notes" value={dog.notes || ''} onChange={e => onChange('notes', e.target.value)} />
+                </div>
+            );
+        }
+
+        function LitterRow({ litter, onChange }) {
+            return (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <input aria-label="Litter dam name" placeholder="Dam name" value={litter.dam_name || ''} onChange={e => onChange('dam_name', e.target.value)} />
+                    <input aria-label="Litter sire name" placeholder="Sire name" value={litter.sire_name || ''} onChange={e => onChange('sire_name', e.target.value)} />
+                    <input aria-label="Litter breed date" placeholder="Breed date" value={litter.breed_date || ''} onChange={e => onChange('breed_date', e.target.value)} />
+                    <input aria-label="Litter due date" placeholder="Due date" value={litter.due_date || ''} onChange={e => onChange('due_date', e.target.value)} />
+                    <input aria-label="Litter whelp date" placeholder="Whelp date" value={litter.whelp_date || ''} onChange={e => onChange('whelp_date', e.target.value)} />
+                    <input aria-label="Litter puppy count" placeholder="Puppy count" type="number" value={litter.puppy_count || ''} onChange={e => onChange('puppy_count', e.target.value ? Number(e.target.value) : undefined)} />
+                    <select aria-label="Litter status" value={litter.status || ''} onChange={e => onChange('status', e.target.value || undefined)}>
+                        <option value="">Status</option>
+                        <option value="planned">Planned</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="born">Born</option>
+                        <option value="available">Available</option>
+                        <option value="placed">Placed</option>
+                        <option value="archived">Archived</option>
+                    </select>
+                    <input aria-label="Litter notes" placeholder="Notes" value={litter.notes || ''} onChange={e => onChange('notes', e.target.value)} />
+                </div>
+            );
+        }
+
+        function GuardianRow({ guardian, onChange }) {
+            return (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <input aria-label="Guardian family name" placeholder="Family name" value={guardian.family_name || ''} onChange={e => onChange('family_name', e.target.value)} />
+                    <input aria-label="Guardian contact name" placeholder="Contact name" value={guardian.contact_name || ''} onChange={e => onChange('contact_name', e.target.value)} />
+                    <input aria-label="Guardian email" placeholder="Email" value={guardian.email || ''} onChange={e => onChange('email', e.target.value)} />
+                    <input aria-label="Guardian phone" placeholder="Phone" value={guardian.phone || ''} onChange={e => onChange('phone', e.target.value)} />
+                    <input aria-label="Dog the guardian cares for" placeholder="Dog they guard" value={guardian.dog_name_if_known || ''} onChange={e => onChange('dog_name_if_known', e.target.value)} />
+                    <input aria-label="Guardian notes" placeholder="Notes" className="md:col-span-3" value={guardian.notes || ''} onChange={e => onChange('notes', e.target.value)} />
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<BreedIQOnboarding />);

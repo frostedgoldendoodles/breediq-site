@@ -1,24 +1,30 @@
-// BreedIQ build — precompile the dashboard's JSX to a static bundle.
+// BreedIQ build — precompile every page's JSX to a static bundle.
 //
-// Why: dashboard.html used to ship Babel-standalone (~300KB gzipped) and
-// compile ~178KB of JSX in the browser on every load. This moves that to
-// build time. The output (dashboard.bundle.js) is committed and served as a
-// plain static file, so Vercel's deploy flow is unchanged — there is no
-// required build step on Vercel; this script runs locally / in CI when the
-// dashboard source changes.
+// Why: the pages used to ship Babel-standalone (~450KB) and transpile JSX in
+// the browser on every load. This moves that to build time. Each src/<page>.jsx
+// compiles to <page>.bundle.js at the repo root, committed and served as a
+// plain static file — so Vercel's deploy flow is unchanged (there is NO build
+// step on Vercel; this runs locally / in CI when a page source changes).
 //
-// React/ReactDOM stay as global UMD <script> tags in dashboard.html. The
-// source does NOT import React, so esbuild's classic JSX transform emits
-// React.createElement calls that resolve to window.React at runtime.
+// React/ReactDOM/Tailwind are loaded as self-hosted UMD <script> tags in each
+// HTML page (/vendor/*). The sources do NOT import React, so esbuild's classic
+// JSX transform emits React.createElement calls that resolve to window.React.
 //
-// Usage:  npm run compile        (one-off)
-//         npm run compile:watch  (rebuild on save while editing src/dashboard.jsx)
+// Usage:  npm run compile        (build all pages once)
+//         npm run compile:watch  (rebuild on save)
 
 import { build, context } from 'esbuild';
+import { readdirSync } from 'fs';
+
+// Every src/*.jsx is a page entry point → <page>.bundle.js at the repo root.
+const entryPoints = readdirSync('src')
+    .filter((f) => f.endsWith('.jsx'))
+    .map((f) => `src/${f}`);
 
 const options = {
-    entryPoints: ['src/dashboard.jsx'],
-    outfile: 'dashboard.bundle.js',
+    entryPoints,
+    outdir: '.',
+    entryNames: '[name].bundle',
     loader: { '.jsx': 'jsx' },
     jsx: 'transform',
     jsxFactory: 'React.createElement',
@@ -35,8 +41,8 @@ const watch = process.argv.includes('--watch');
 if (watch) {
     const ctx = await context(options);
     await ctx.watch();
-    console.log('[build] watching src/dashboard.jsx …');
+    console.log(`[build] watching ${entryPoints.length} page source(s) …`);
 } else {
     await build(options);
-    console.log('[build] wrote dashboard.bundle.js');
+    console.log(`[build] compiled ${entryPoints.length} page bundle(s)`);
 }
