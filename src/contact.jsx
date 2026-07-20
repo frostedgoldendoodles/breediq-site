@@ -1,0 +1,140 @@
+// BreedIQ contact page — source. Compiled to /contact.bundle.js by
+// `npm run compile` (esbuild, classic JSX transform against global React).
+// Edit this file, not the bundle.
+
+        const { useState } = React;
+
+        function ContactPage() {
+            const [name, setName] = useState('');
+            const [email, setEmail] = useState('');
+            const [message, setMessage] = useState('');
+            const [error, setError] = useState(null);
+            const [success, setSuccess] = useState(false);
+            const [loading, setLoading] = useState(false);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError(null);
+                setSuccess(false);
+                setLoading(true);
+
+                try {
+                    const resp = await fetch('/api/contact', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, email, message })
+                    });
+                    const data = await resp.json();
+                    if (!resp.ok) throw new Error(data.error || 'Failed to send message');
+
+                    setSuccess(true);
+                    setName('');
+                    setEmail('');
+                    setMessage('');
+                } catch (err) {
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
+                    {/* Background glow */}
+                    <div className="fixed inset-0 overflow-hidden pointer-events-none">
+                        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
+                        <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-green-500/5 rounded-full blur-3xl"></div>
+                    </div>
+
+                    <div className="w-full max-w-md relative z-10">
+                        {/* Logo */}
+                        <div className="text-center mb-8">
+                            <a href="/" className="inline-flex items-center gap-2">
+                                <span className="text-3xl">&#x1F43E;</span>
+                                <span className="text-2xl font-bold gradient-text">BreedIQ</span>
+                            </a>
+                        </div>
+
+                        {/* Card */}
+                        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
+                            <h1 className="text-2xl font-bold text-gray-100 mb-2">Get in touch</h1>
+                            <p className="text-gray-400 mb-6">We'd love to hear from you</p>
+
+                            {error && (
+                                <div className="bg-red-900/20 border border-red-700/50 rounded-lg p-3 mb-4">
+                                    <p className="text-sm text-red-300">{error}</p>
+                                </div>
+                            )}
+
+                            {success && (
+                                <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-3 mb-4">
+                                    <p className="text-sm text-green-300">Message sent! We'll get back to you soon.</p>
+                                </div>
+                            )}
+
+                            <form onSubmit={handleSubmit} method="post" className="space-y-4">
+                                <div>
+                                    <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">Name</label>
+                                    <input
+                                        id="name"
+                                        name="name"
+                                        type="text"
+                                        autoComplete="name"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition"
+                                        placeholder="Your name"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                                    <input
+                                        id="email"
+                                        name="email"
+                                        type="email"
+                                        autoComplete="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition"
+                                        placeholder="you@example.com"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-1">Message</label>
+                                    <textarea
+                                        id="message"
+                                        name="message"
+                                        value={message}
+                                        onChange={(e) => setMessage(e.target.value)}
+                                        className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition resize-none"
+                                        placeholder="Your message here..."
+                                        rows="5"
+                                        required
+                                    ></textarea>
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full py-3 rounded-lg font-semibold text-white gradient-button disabled:opacity-50"
+                                >
+                                    {loading ? 'Sending...' : 'Send Message'}
+                                </button>
+                            </form>
+
+                            <div className="mt-6 pt-6 border-t border-slate-700">
+                                <p className="text-center text-gray-400 text-sm mb-4">
+                                    Or reach us directly at <span className="text-gray-300 font-medium">spencer@breediq.ai</span>
+                                </p>
+                                <div className="text-center">
+                                    <a href="/" className="text-blue-400 hover:text-blue-300 transition text-sm">Back to home</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<ContactPage />);
