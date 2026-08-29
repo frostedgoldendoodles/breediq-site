@@ -21,14 +21,24 @@ import { enforce, LIMITS } from '../../lib/rate-limit.js';
 import { SYSTEM_PROMPT, formatPageContext } from '../../lib/assistant/system-prompt.js';
 import { TOOL_SCHEMAS, DESTRUCTIVE_TOOLS, executeTool, isDestructiveCallConfirmed } from '../../lib/assistant/tools.js';
 
-const MODEL = 'claude-sonnet-4-6';
+// Opus 5 — Anthropic's top generally-available model. The assistant is the
+// product's flagship feature, so it runs the flagship model. Thinking is on
+// by default (adaptive) on Opus 5; do NOT send a `thinking` param — explicit
+// configs are restricted on this model family. Depth is controlled with
+// output_config.effort instead. If API spend ever needs trimming, the
+// step-down is claude-sonnet-5 ($2/$10 per MTok vs $5/$25) — one line here.
+const MODEL = 'claude-opus-5';
+const EFFORT = 'high';
+// Refusal fallbacks: if a safety classifier declines a request, the API
+// re-runs it on a fallback model inside the same call instead of surfacing
+// a refusal to the breeder. Exact header + scalar form per current API docs.
+const FALLBACK_BETA = 'server-side-fallback-2026-07-01';
 const MAX_TOOL_TURNS = 10;
-// Soft time budget — must be a few seconds shorter than vercel.json's
-// maxDuration for this function (60s) so we can close the stream cleanly
-// before Vercel kills the process. A killed process produces 500 +
-// "(node:4) Warning: Failed to..." in the logs and a FUNCTION_INVOCATION_FAILED
+// Soft time budget — must stay comfortably under vercel.json's maxDuration
+// for this function (120s) so we can close the stream cleanly before Vercel
+// kills the process. A killed process produces FUNCTION_INVOCATION_FAILED
 // for the client; this budget lets us emit a graceful timeout event instead.
-const SOFT_TIME_BUDGET_MS = 40_000;
+const SOFT_TIME_BUDGET_MS = 100_000;
 
 // Request-shape ceilings. `messages` is whatever the client posts and every
 // token of it is billed to us on each of up to MAX_TOOL_TURNS calls, so an
@@ -105,16 +115,6 @@ export default async function handler(req, res) {
             return res.status(413).json({ error: 'Conversation is too large to process. Start a new chat.' });
         }
 
-        // Determine if thinking should be enabled — longer user input benefits from it
-        const lastUser = [...normalizedMessages].reverse().find(m => m.role === 'user');
-        let userLen = 0;
-        if (lastUser) {
-            for (const b of (lastUser.content || [])) {
-                if (b.type === 'text') userLen += (b.text || '').length;
-            }
-        }
-        const enableThinking = userLen > 1500;
-
         // Prepare NDJSON stream
         res.setHeader('Content-Type', 'application/x-ndjson');
         res.setHeader('Cache-Control', 'no-cache, no-transform');
@@ -143,7 +143,7 @@ export default async function handler(req, res) {
     let stopReason = null;
     const startedAt = Date.now();
 
-    emit({ type: 'start', model: MODEL, thinking: enableThinking });
+    emit({ type: 'start', model: MODEL, thinking: true });
 
     try {
         while (turns < MAX_TOOL_TURNS) {
@@ -166,13 +166,21 @@ export default async function handler(req, res) {
             const requestParams = {
                 model: MODEL,
                 max_tokens: 4096,
+                betas: [FALLBACK_BETA],
+                fallbacks: 'default',
+                output_config: { effort: EFFORT },
                 system: systemBlocks,
                 tools: TOOL_SCHEMAS,
-                messages: conversation
+                messages: conversation,
+                // Top-level cache_control auto-caches the last cacheable block,
+                // i.e. the conversation tail. In a tool loop the whole prior
+                // conversation is re-sent every iteration; without this each
+                // turn re-bills it all at full input price. With it, turns 2+
+                // read the prefix from cache (~10% of the cost, much faster).
+                cache_control: { type: 'ephemeral' }
             };
-            if (enableThinking) requestParams.thinking = { type: 'adaptive' };
 
-            const stream = client.messages.stream(requestParams);
+            const stream = client.beta.messages.stream(requestParams);
 
             // Track incremental tool use input (partial_json) and assistant text
             const toolUsesByIndex = {};
@@ -298,6 +306,14 @@ export default async function handler(req, res) {
 
             // Feed tool results back as the next user turn and loop
             conversation.push({ role: 'user', content: toolResultsContent });
+        }
+
+        // Opus-family models can end a turn with stop_reason 'refusal' (a
+        // safety classifier declined). fallbacks:'default' reroutes most of
+        // these server-side; if the whole chain declined, say so plainly
+        // instead of ending on a blank bubble.
+        if (stopReason === 'refusal') {
+            emit({ type: 'text_delta', text: "I can't help with that request. If this seems wrong, try rephrasing it." });
         }
 
         emit({

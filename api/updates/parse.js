@@ -10,6 +10,7 @@
 // POST: Parse natural language update requests into structured actions
 // Uses Anthropic Claude API to understand intent and map to dog/litter updates
 import { requireAuth, getServiceClient } from '../../lib/supabase.js';
+import { enforce, LIMITS } from '../../lib/rate-limit.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -18,6 +19,10 @@ export default async function handler(req, res) {
 
     const auth = await requireAuth(req, res);
     if (!auth) return;
+
+    // This endpoint was missed in the rate-limiting pass — it is the third
+    // Anthropic-backed route (dashboard Quick Update box).
+    if (enforce(req, res, { name: 'quick-update', userId: auth.user.id, ...LIMITS.quickUpdate })) return;
 
     const supabase = getServiceClient();
     const userId = auth.user.id;
@@ -125,8 +130,12 @@ ONLY output valid JSON. No markdown, no code fences, no explanation outside the 
                 'anthropic-version': '2023-06-01'
             },
             body: JSON.stringify({
-                model: 'claude-sonnet-4-6',
+                model: 'claude-opus-5',
                 max_tokens: 1024,
+                // Small, latency-sensitive intent parse — low effort keeps it
+                // snappy; adaptive thinking (the model default) still engages
+                // when a message is genuinely ambiguous.
+                output_config: { effort: 'low' },
                 system: systemPrompt,
                 messages: messages
             })

@@ -6,7 +6,12 @@ import Anthropic from '@anthropic-ai/sdk';
 import { requireAuth, getServiceClient } from '../../lib/supabase.js';
 import { enforce, LIMITS } from '../../lib/rate-limit.js';
 
-const MODEL = 'claude-sonnet-4-6';
+// Opus 5 — extraction accuracy IS this feature ("upload your mess"), so it
+// gets the flagship model at full effort. Thinking is adaptive by default on
+// Opus 5; no `thinking` param is sent. Step-down if spend demands it:
+// claude-sonnet-5. maxDuration for this route is 120s (vercel.json).
+const MODEL = 'claude-opus-5';
+const FALLBACK_BETA = 'server-side-fallback-2026-07-01';
 
 // Every byte of pasted text and every uploaded file is base64'd into an
 // Anthropic request billed to us. Unbounded, a signed-in account can point
@@ -271,17 +276,22 @@ export default async function handler(req, res) {
         }
     };
 
-    const enableThinking = inputLength > 2000;
 
     const client = new Anthropic({ apiKey });
 
     try {
-        emit({ type: 'start', model: MODEL, thinking: enableThinking });
+        emit({ type: 'start', model: MODEL, thinking: true });
 
         // Build the request. Prompt caching on system + tools via top-level cache_control.
         const requestParams = {
             model: MODEL,
-            max_tokens: 8192,
+            // A big kennel import can emit dozens of create_* tool calls;
+            // 8192 risked truncating mid-extraction. Streaming, so the larger
+            // ceiling costs nothing unless it is used.
+            max_tokens: 16000,
+            betas: [FALLBACK_BETA],
+            fallbacks: 'default',
+            output_config: { effort: 'high' },
             system: [
                 { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }
             ],
@@ -290,12 +300,9 @@ export default async function handler(req, res) {
             cache_control: { type: 'ephemeral' },
             messages: [{ role: 'user', content: userContent }]
         };
-        if (enableThinking) {
-            requestParams.thinking = { type: 'adaptive' };
-        }
 
         // Stream — emit tool_use blocks as they complete
-        const stream = client.messages.stream(requestParams);
+        const stream = client.beta.messages.stream(requestParams);
 
         // Track tool uses in progress by index, so we can emit them on stop
         const toolUsesByIndex = {};
