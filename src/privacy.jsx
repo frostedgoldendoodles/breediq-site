@@ -73,16 +73,16 @@
                                 <p>We work with the following third-party services:</p>
 
                                 <h3>Stripe (Payment Processing)</h3>
-                                <p>Payment information is processed by Stripe. We do not store your credit card details. Stripe's privacy policy governs payment data: <a href="https://stripe.com/privacy" className="text-emerald-400 hover:text-emerald-300">stripe.com/privacy</a></p>
+                                <p>Payment information is processed by Stripe. We do not store your credit card details. Stripe's privacy policy governs payment data: <a href="https://stripe.com/privacy" className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300">stripe.com/privacy</a></p>
 
                                 <h3>Google Calendar (Calendar Integration)</h3>
-                                <p>If you enable calendar sync, BreedIQ connects to your Google Calendar to auto-sync breeding events. You control this permission, and we only access the scopes you explicitly authorize. Google's privacy policy applies: <a href="https://policies.google.com/privacy" className="text-emerald-400 hover:text-emerald-300">policies.google.com/privacy</a></p>
+                                <p>If you enable calendar sync, BreedIQ connects to your Google Calendar to auto-sync breeding events. You control this permission, and we only access the scopes you explicitly authorize. Google's privacy policy applies: <a href="https://policies.google.com/privacy" className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300">policies.google.com/privacy</a></p>
 
                                 <h3>Anthropic Claude (AI Analysis)</h3>
-                                <p>We use Anthropic's Claude AI to analyze your breeding records and provide insights. Your breeding data is sent to Claude for processing but is not stored by Anthropic beyond the scope of your request. Anthropic's privacy policy applies: <a href="https://www.anthropic.com/privacy" className="text-emerald-400 hover:text-emerald-300">anthropic.com/privacy</a></p>
+                                <p>We use Anthropic's Claude AI to analyze your breeding records and provide insights. Your breeding data is sent to Claude for processing but is not stored by Anthropic beyond the scope of your request. Anthropic's privacy policy applies: <a href="https://www.anthropic.com/privacy" className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300">anthropic.com/privacy</a></p>
 
                                 <h3>Google Analytics (Usage Analytics)</h3>
-                                <p>We use Google Analytics to understand how visitors use BreedIQ &mdash; for example, which pages are viewed and general usage trends &mdash; so we can improve the product. Google Analytics sets cookies (such as <code>_ga</code>) and collects information like your approximate location, device type, and activity on our site. We do not use this data to identify you personally, and we do not sell it. You can opt out of Google Analytics using the <a href="https://tools.google.com/dlpage/gaoptout" className="text-emerald-400 hover:text-emerald-300">Google Analytics Opt-out Browser Add-on</a>. Google's privacy policy applies: <a href="https://policies.google.com/privacy" className="text-emerald-400 hover:text-emerald-300">policies.google.com/privacy</a></p>
+                                <p>We use Google Analytics to understand how visitors use BreedIQ &mdash; for example, which pages are viewed and general usage trends &mdash; so we can improve the product. Google Analytics sets cookies (such as <code>_ga</code>) and collects information like your approximate location, device type, and activity on our site. We do not use this data to identify you personally, and we do not sell it. You can opt out of Google Analytics using the <a href="https://tools.google.com/dlpage/gaoptout" className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300">Google Analytics Opt-out Browser Add-on</a>. Google's privacy policy applies: <a href="https://policies.google.com/privacy" className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300">policies.google.com/privacy</a></p>
                             </section>
 
                             <section>
@@ -112,7 +112,7 @@
                             <section>
                                 <h2>7. Cookies and Tracking</h2>
                                 <p><strong>Authentication Cookie:</strong> We use a single HttpOnly JWT token cookie for authentication. This cookie is essential for the service to function and cannot be disabled while using BreedIQ.</p>
-                                <p><strong>Analytics:</strong> We use Google Analytics to measure site usage and improve BreedIQ. It sets analytics cookies (such as <code>_ga</code>) and collects usage data as described in Section 4. We do not use advertising or cross-site tracking pixels, and we do not sell or share your data with advertisers. You can opt out of Google Analytics with the <a href="https://tools.google.com/dlpage/gaoptout" className="text-emerald-400 hover:text-emerald-300">Google Analytics Opt-out Browser Add-on</a>.</p>
+                                <p><strong>Analytics:</strong> We use Google Analytics to measure site usage and improve BreedIQ. It sets analytics cookies (such as <code>_ga</code>) and collects usage data as described in Section 4. We do not use advertising or cross-site tracking pixels, and we do not sell or share your data with advertisers. You can opt out of Google Analytics with the <a href="https://tools.google.com/dlpage/gaoptout" className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300">Google Analytics Opt-out Browser Add-on</a>.</p>
                             </section>
 
                             <section>
@@ -167,4 +167,4 @@
             );
         }
 
-        ReactDOM.render(<PrivacyPolicy />, document.getElementById('root'));
+        ReactDOM.createRoot(document.getElementById('root')).render(<PrivacyPolicy />);

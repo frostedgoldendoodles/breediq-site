@@ -1,3 +1,131 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ==========================================================================
+   BreedIQ brand primitives
+   --------------------------------------------------------------------------
+   These used to be copy-pasted into a <style> block on six separate pages,
+   which is how we ended up shipping two different "brand" gradients:
+   #3b82f6→#22c55e on login/signup/contact/onboarding and #2563eb→#10b981 on
+   index/404/reset-password. Same button, different colour depending on where
+   you were standing. One definition, one ramp, loaded from styles.css which
+   every page already links.
+   ========================================================================== */
+@layer base {
+  :root {
+    /* Display ramp — wordmarks, glows, tints. Bright end reads well as
+       coloured text on the dark ground. */
+    --bq-brand-from: #2563eb;  /* blue-600    */
+    --bq-brand-to:   #10b981;  /* emerald-500 */
+
+    /* Filled-button ramp. The display ramp cannot carry body-size label text:
+       white on emerald-500 is 2.54:1, so the right-hand half of every primary
+       CTA failed WCAG AA (contrast checkers miss it — they don't evaluate
+       gradients). Deepening the far end to emerald-700 keeps the same sweep
+       and holds >= 5.1:1 white across the whole button. */
+    --bq-btn-from:   #2563eb;  /* blue-600    */
+    --bq-btn-to:     #047857;  /* emerald-700 */
+
+    --bq-brand-ring: 16, 185, 129;
+    --bq-brand-glow: 37, 99, 235;
+  }
+
+  /* Anchor jumps (#features, #pricing, #faq) land under the sticky nav
+     without this — the heading scrolls up behind the bar. */
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
+  }
+
+  /* Keyboard focus was effectively invisible: most CTAs are <a> tags with
+     no focus style at all, and several inputs use focus:outline-none. */
+  :focus-visible {
+    outline: 2px solid rgb(var(--bq-brand-ring));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Respect the OS "reduce motion" setting. The landing page otherwise runs
+     two infinite pulse animations forever. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .gradient-blue-emerald,
+  .gradient-button {
+    background: linear-gradient(135deg, var(--bq-btn-from) 0%, var(--bq-btn-to) 100%);
+    color: #fff;
+    transition: box-shadow 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
+  }
+
+  .gradient-button:hover:not(:disabled),
+  a.gradient-blue-emerald:hover,
+  button.gradient-blue-emerald:hover {
+    filter: brightness(1.12);
+  }
+
+  .gradient-button:hover:not(:disabled) {
+    box-shadow: 0 0 20px rgba(var(--bq-brand-glow), 0.4),
+                0 0 40px rgba(var(--bq-brand-ring), 0.2);
+  }
+
+  .gradient-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .gradient-text,
+  .gradient-text-blue-emerald {
+    background: linear-gradient(135deg, var(--bq-brand-from) 0%, var(--bq-brand-to) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .gradient-bg {
+    background: linear-gradient(135deg,
+      rgba(var(--bq-brand-glow), 0.1) 0%,
+      rgba(var(--bq-brand-ring), 0.1) 100%);
+  }
+
+  .nav-link {
+    transition: color 0.3s ease;
+  }
+
+  .nav-link:hover {
+    color: var(--bq-brand-to);
+  }
+
+  /* Skip link — visually hidden until focused. */
+  .skip-link {
+    position: absolute;
+    left: 1rem;
+    top: -4rem;
+    z-index: 100;
+    padding: 0.625rem 1rem;
+    border-radius: 0.5rem;
+    background: #0f172a;
+    color: #f1f5f9;
+    font-weight: 600;
+    transition: top 0.2s ease;
+  }
+
+  .skip-link:focus {
+    top: 1rem;
+  }
+}
