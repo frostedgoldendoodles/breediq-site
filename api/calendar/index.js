@@ -27,7 +27,14 @@ const EVENT_META = {
     due:        { color: 'bg-amber-500',   label: 'Due date' },
     whelp:      { color: 'bg-red-500',     label: 'Whelp' },
     go_home:    { color: 'bg-emerald-500', label: 'Go home' },
-    vet_due:    { color: 'bg-blue-500',    label: 'Vet visit due' }
+    vet_due:    { color: 'bg-blue-500',    label: 'Vet visit due' },
+    // Custom events — see api/litters/calendar.js; kept identical.
+    vet:        { color: 'bg-blue-400',    label: 'Vet appointment' },
+    grooming:   { color: 'bg-fuchsia-500', label: 'Grooming' },
+    training:   { color: 'bg-lime-500',    label: 'Training' },
+    travel:     { color: 'bg-orange-500',  label: 'Travel' },
+    custom:     { color: 'bg-slate-400',   label: 'Event' },
+    other:      { color: 'bg-slate-400',   label: 'Event' }
 };
 
 // Format YYYY-MM-DD
@@ -184,6 +191,26 @@ export default async function handler(req, res) {
                     dogId: litter.dam_id,
                     litterId
                 });
+            });
+        });
+
+        // Custom calendar_events rows within the window.
+        const { data: customEvents } = await supabase
+            .from('calendar_events')
+            .select('id, title, event_date, event_type, dog_id, litter_id, dog:dogs(name)')
+            .in('user_id', programUserIds)
+            .gte('event_date', isoDate(new Date(windowStart)))
+            .lte('event_date', isoDate(new Date(windowEnd)));
+
+        (customEvents || []).forEach(ev => {
+            pushEvent(events, {
+                id: `custom-${ev.id}`,
+                type: EVENT_META[ev.event_type] ? ev.event_type : 'custom',
+                date: isoDate(ev.event_date),
+                title: ev.dog?.name ? `${ev.dog.name} — ${ev.title}` : ev.title,
+                dogName: ev.dog?.name || null,
+                dogId: ev.dog_id || null,
+                litterId: ev.litter_id || null
             });
         });
 

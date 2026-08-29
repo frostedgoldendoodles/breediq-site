@@ -32,7 +32,15 @@ const EVENT_META = {
     due:        { label: 'Due date' },
     whelp:      { label: 'Whelp' },
     go_home:    { label: 'Go home' },
-    vet_due:    { label: 'Vet visit due' }
+    vet_due:    { label: 'Vet visit due' },
+    // Custom events from the Ask BreedIQ assistant / manual entry — these
+    // were write-only before: created, confirmed to the user, never shown.
+    vet:        { label: 'Vet appointment' },
+    grooming:   { label: 'Grooming' },
+    training:   { label: 'Training' },
+    travel:     { label: 'Travel' },
+    custom:     { label: 'Event' },
+    other:      { label: 'Event' }
 };
 
 // How far forward/back to emit events. ICS feeds should include some past
@@ -114,7 +122,7 @@ function addDays(iso, n) {
 
 // ─── Event build ─────────────────────────────────────────────
 
-async function buildEvents(supabase, ownerId) {
+export async function buildEvents(supabase, ownerId) {
     const now = Date.now();
     const windowStart = now - WINDOW_PAST_DAYS * DAY_MS;
     const windowEnd = now + WINDOW_FUTURE_DAYS * DAY_MS;
@@ -139,6 +147,13 @@ async function buildEvents(supabase, ownerId) {
         .from('litters')
         .select('id, dam_id, breed_date, ultrasound_date, xray_date, due_date, whelp_date, go_home_date, status')
         .in('user_id', allUserIds);
+
+    const { data: customEvents } = await supabase
+        .from('calendar_events')
+        .select('id, title, event_date, event_type, dog_id, notes')
+        .in('user_id', allUserIds)
+        .gte('event_date', new Date(windowStart).toISOString().slice(0, 10))
+        .lte('event_date', new Date(windowEnd).toISOString().slice(0, 10));
 
     const dogById = {};
     (dogs || []).forEach(d => { dogById[d.id] = d; });
@@ -218,12 +233,27 @@ async function buildEvents(supabase, ownerId) {
         });
     });
 
+    // Custom events (vet appointments, grooming, travel, …).
+    (customEvents || []).forEach(ev => {
+        const evIso = isoDate(ev.event_date);
+        if (!evIso) return;
+        const dog = ev.dog_id ? dogById[ev.dog_id] : null;
+        const meta = EVENT_META[ev.event_type] || EVENT_META.custom;
+        events.push({
+            uid: `custom-${ev.id}@breediq.ai`,
+            type: ev.event_type || 'custom',
+            date: evIso,
+            summary: dog ? `${dog.name} — ${ev.title}` : ev.title,
+            description: ev.notes || `${meta.label} added in BreedIQ.`
+        });
+    });
+
     return events;
 }
 
 // ─── ICS serialisation ───────────────────────────────────────
 
-function renderIcs(events, { calendarName }) {
+export function renderIcs(events, { calendarName }) {
     const stamp = icsDateTimeUtc(new Date());
     const lines = [
         'BEGIN:VCALENDAR',
