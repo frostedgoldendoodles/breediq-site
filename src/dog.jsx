@@ -436,7 +436,7 @@
                         <button
                             onClick={() => fileRef.current?.click()}
                             disabled={uploading}
-                            className="w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded text-white text-sm font-semibold"
+                            className="w-full px-3 py-2 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 rounded text-slate-950 text-sm font-semibold"
                         >
                             {uploading ? (uploadStatus || 'Uploading…') : '📷 Upload Photo'}
                         </button>
@@ -452,7 +452,7 @@
                                 />
                                 <div className="flex gap-2">
                                     <button onClick={() => { setShowUrlInput(false); setUrlInput(''); }} className="flex-1 px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded text-xs">Cancel</button>
-                                    <button onClick={handleUrlSave} className="flex-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 rounded text-xs font-semibold">Save</button>
+                                    <button onClick={handleUrlSave} className="flex-1 px-3 py-1 bg-emerald-500 hover:bg-emerald-400 rounded text-xs font-semibold">Save</button>
                                 </div>
                             </div>
                         ) : (
@@ -625,7 +625,7 @@
 
                     {/* Toast */}
                     {toast && (
-                        <div className="fixed top-20 right-6 bg-emerald-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm font-semibold">
+                        <div className="fixed top-20 right-6 bg-emerald-500 text-slate-950 px-4 py-2 rounded-lg shadow-lg z-50 text-sm font-semibold">
                             {toast}
                         </div>
                     )}

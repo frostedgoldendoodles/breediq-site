@@ -1,11 +1,15 @@
 // BreedIQ Auth — Login (Supabase)
 // Authenticates user and sets session cookies
 import { getAnonClient, getServiceClient } from '../../lib/supabase.js';
+import { enforce, LIMITS } from '../../lib/rate-limit.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    const { email, password } = req.body;
+    // Unthrottled, this endpoint accepted unlimited password guesses.
+    if (enforce(req, res, { name: 'login', ...LIMITS.login })) return;
+
+    const { email, password } = req.body || {};
     if (!email || !password) return res.status(400).json({ error: 'Email and password are required' });
 
     try {
@@ -52,6 +56,6 @@ export default async function handler(req, res) {
         });
     } catch (err) {
         console.error('Login error:', err);
-        return res.status(500).json({ error: 'Internal server error', message: err.message });
+        return res.status(500).json({ error: 'Internal server error' });
     }
 }

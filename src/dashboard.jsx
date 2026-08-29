@@ -226,6 +226,49 @@
             </svg>
         );
 
+        /* ── Sidebar nav icons ── */
+        const svgProps = { 'aria-hidden': 'true', className: 'w-5 h-5', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', viewBox: '0 0 24 24' };
+
+        const IconGrid = () => (
+            <svg {...svgProps}><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+        );
+
+        const IconDog = () => (
+            <svg {...svgProps}><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="9.5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="9.5" r="1" fill="currentColor" stroke="none"/></svg>
+        );
+
+        const IconAlert = () => (
+            <svg {...svgProps}><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        );
+
+        const IconCalendarNav = () => (
+            <svg {...svgProps}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        );
+
+        const IconUsers = () => (
+            <svg {...svgProps}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        );
+
+        const IconChart = () => (
+            <svg {...svgProps}><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+        );
+
+        const IconCog = () => (
+            <svg {...svgProps}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        );
+
+        /* Brand mark — the same dog-face lockup the marketing site and the
+           auth pages use, instead of a DNA emoji. */
+        const BrandMark = ({ size = 'w-7 h-7' }) => (
+            <svg aria-hidden="true" className={size} viewBox="0 0 24 24" fill="none" stroke="url(#dashMarkGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <defs><linearGradient id="dashMarkGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#2563eb"/><stop offset="100%" stopColor="#10b981"/></linearGradient></defs>
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                <circle cx="9" cy="9" r="1" fill="url(#dashMarkGrad)" stroke="none"/>
+                <circle cx="15" cy="9" r="1" fill="url(#dashMarkGrad)" stroke="none"/>
+            </svg>
+        );
+
         const IconSparkle = () => (
             <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 2l1.5 4.5L16 8l-4.5 1.5L10 14l-1.5-4.5L4 8l4.5-1.5L10 2z" />
@@ -317,7 +360,7 @@
                             {item.actions.map((action, i) => (
                                 <button key={i} onClick={action.onClick} disabled={action.loading}
                                     className={`flex-1 sm:flex-none text-xs px-3 py-2 sm:py-1.5 rounded font-medium transition whitespace-nowrap ${action.primary
-                                        ? 'bg-emerald-600 text-white hover:bg-emerald-500'
+                                        ? 'bg-emerald-500 text-slate-950 hover:bg-emerald-400'
                                         : 'bg-slate-700 text-slate-300 hover:bg-slate-600'} disabled:opacity-50`}>
                                     {action.loading ? '\u23F3' : action.label}
                                 </button>
@@ -534,19 +577,19 @@
                                 <span className="text-sm font-semibold text-slate-400 self-center mr-1">Quick Update:</span>
                                 <button
                                     onClick={() => setActivePanel(activePanel === 'dogStatus' ? null : 'dogStatus')}
-                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${activePanel === 'dogStatus' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${activePanel === 'dogStatus' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
                                 >
                                     Dog Status
                                 </button>
                                 <button
                                     onClick={() => setActivePanel(activePanel === 'litterMilestone' ? null : 'litterMilestone')}
-                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${activePanel === 'litterMilestone' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${activePanel === 'litterMilestone' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
                                 >
                                     Litter Milestone
                                 </button>
                                 <button
                                     onClick={() => setActivePanel(activePanel === 'heatCycle' ? null : 'heatCycle')}
-                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${activePanel === 'heatCycle' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${activePanel === 'heatCycle' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
                                 >
                                     Heat Cycle
                                 </button>
@@ -576,7 +619,7 @@
                                         onClick={handleAiSend}
                                         disabled={!aiInput.trim() || aiLoading}
                                         aria-label="Send to AI"
-                                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg transition"
+                                        className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-700 disabled:text-slate-500 text-slate-950 rounded-lg transition"
                                     >
                                         <IconSend />
                                     </button>
@@ -619,7 +662,7 @@
                                         </select>
                                     </div>
                                     <button onClick={handleDogStatusUpdate} disabled={!selectedDogId || !newDogStatus || saving}
-                                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold rounded-lg transition">
+                                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-700 disabled:text-slate-500 text-slate-950 font-semibold rounded-lg transition">
                                         {saving ? 'Saving...' : 'Save'}
                                     </button>
                                 </div>
@@ -663,7 +706,7 @@
                                             className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100" />
                                     </div>
                                     <button onClick={handleLitterMilestoneUpdate} disabled={!selectedLitterId || !newLitterStatus || saving}
-                                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold rounded-lg transition">
+                                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-700 disabled:text-slate-500 text-slate-950 font-semibold rounded-lg transition">
                                         {saving ? 'Saving...' : 'Save'}
                                     </button>
                                 </div>
@@ -712,7 +755,7 @@
                                             className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-100" />
                                     </div>
                                     <button onClick={handleHeatCycleUpdate} disabled={!heatDogId || !heatDate || saving}
-                                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold rounded-lg transition">
+                                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-700 disabled:text-slate-500 text-slate-950 font-semibold rounded-lg transition">
                                         {saving ? 'Saving...' : 'Record Heat'}
                                     </button>
                                 </div>
@@ -751,7 +794,7 @@
                                             Cancel
                                         </button>
                                         <button onClick={handleAiConfirm} disabled={saving}
-                                            className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-500 transition font-semibold">
+                                            className="px-3 py-1.5 bg-emerald-500 text-slate-950 rounded-lg text-sm hover:bg-emerald-500 transition font-semibold">
                                             {saving ? 'Applying...' : 'Confirm Update'}
                                         </button>
                                     </div>
@@ -893,10 +936,10 @@
                                                         {litter.sire?.name ? ` \u2022 Sire: ${litter.sire.name}` : ''}
                                                     </p>
                                                 </div>
-                                                <span className="text-xs bg-teal-900 text-teal-200 px-2 py-1 rounded">{litter.status}</span>
+                                                <span className="text-xs bg-emerald-900 text-emerald-200 px-2 py-1 rounded">{litter.status}</span>
                                             </div>
                                             <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
-                                                <div className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all" style={{width: `${progress}%`}}></div>
+                                                <div className="bg-gradient-to-r from-blue-600 to-emerald-500 h-full transition-all" style={{width: `${progress}%`}}></div>
                                             </div>
                                             <p className="text-xs text-slate-400 mt-2">
                                                 {progress}% &bull; {litter.days_remaining !== undefined ? `${litter.days_remaining} days remaining` : `Day ${Math.round(progress * 61 / 100)} of 61`}
@@ -954,7 +997,7 @@
                                 <p className="text-slate-400 text-sm mt-1">Total Dogs</p>
                             </div>
                             <div className="bg-slate-900 rounded-lg p-4 border border-slate-800 text-center">
-                                <p className="text-3xl font-bold text-teal-400">{litters.filter(l => !['archived'].includes(l.status)).length}</p>
+                                <p className="text-3xl font-bold text-emerald-400">{litters.filter(l => !['archived'].includes(l.status)).length}</p>
                                 <p className="text-slate-400 text-sm mt-1">Active Litters</p>
                             </div>
                             <div className="bg-slate-900 rounded-lg p-4 border border-slate-800 text-center">
@@ -1172,7 +1215,7 @@
                             </select>
                         </div>
                         <button onClick={openAdd}
-                            className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-600 transition whitespace-nowrap">
+                            className="px-4 py-2 gradient-button font-semibold rounded-lg whitespace-nowrap">
                             + Add Guardian
                         </button>
                     </div>
@@ -1184,7 +1227,7 @@
                             <p className="text-xs text-slate-500 mt-1">Total Guardians</p>
                         </div>
                         <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 text-center">
-                            <p className="text-2xl font-bold text-teal-400">{guardians.reduce((s, g) => s + (g.dog_count || 0), 0)}</p>
+                            <p className="text-2xl font-bold text-emerald-400">{guardians.reduce((s, g) => s + (g.dog_count || 0), 0)}</p>
                             <p className="text-xs text-slate-500 mt-1">Dogs Placed</p>
                         </div>
                         <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 text-center">
@@ -1324,7 +1367,7 @@
                                 <div className="text-4xl mb-3">&#128101;</div>
                                 <p className="text-slate-400">{guardians.length === 0 ? 'No guardians yet. Add your first guardian family!' : 'No guardians match your search.'}</p>
                                 {guardians.length === 0 && (
-                                    <button onClick={openAdd} className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition">
+                                    <button onClick={openAdd} className="mt-4 px-4 py-2 bg-emerald-500 text-slate-950 rounded-lg hover:bg-emerald-500 transition">
                                         + Add Guardian
                                     </button>
                                 )}
@@ -1424,7 +1467,7 @@
                                 <div className="p-6 border-t border-slate-800 flex justify-end gap-3">
                                     <button onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-400 hover:text-slate-200 transition">Cancel</button>
                                     <button onClick={handleSave} disabled={saving}
-                                        className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-600 transition disabled:opacity-50">
+                                        className="px-4 py-2 gradient-button font-semibold rounded-lg disabled:opacity-50">
                                         {saving ? 'Saving...' : editingGuardian ? 'Update Guardian' : 'Add Guardian'}
                                     </button>
                                 </div>
@@ -1877,13 +1920,13 @@
             return (
                 <div className="space-y-6">
                     {/* Calendar subscription (ICS feed) — works with Google, Apple, Outlook */}
-                    <div className="bg-gradient-to-r from-emerald-950 to-teal-950 border border-emerald-800 rounded-lg p-4 flex items-center justify-between gap-3">
+                    <div className="bg-gradient-to-r from-blue-950 to-emerald-950 border border-emerald-800 rounded-lg p-4 flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3 min-w-0">
                             <span className="text-2xl">&#128260;</span>
                             <div className="min-w-0">
                                 <p className="font-semibold text-emerald-100 flex items-center gap-2 flex-wrap">
                                     Sync to your calendar
-                                    {subStatus.connected && <span className="px-2 py-0.5 text-[10px] bg-emerald-600 text-white font-bold rounded uppercase tracking-wide">Connected</span>}
+                                    {subStatus.connected && <span className="px-2 py-0.5 text-[10px] bg-emerald-500 text-slate-950 font-bold rounded uppercase tracking-wide">Connected</span>}
                                 </p>
                                 <p className="text-sm text-emerald-300/80">Subscribe from Google, Apple, or Outlook &mdash; heats, whelps, and go-home dates stay in sync.</p>
                             </div>
@@ -1894,7 +1937,7 @@
                                     View subscription
                                 </button>
                             ) : (
-                                <button onClick={openConnectModal} disabled={subActionLoading || subStatus.loading} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg transition whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
+                                <button onClick={openConnectModal} disabled={subActionLoading || subStatus.loading} className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold rounded-lg transition whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
                                     {subActionLoading ? 'Connecting\u2026' : 'Connect'}
                                 </button>
                             )}
@@ -1917,7 +1960,7 @@
                                         <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Subscription URL</label>
                                         <div className="flex gap-2 mt-1">
                                             <input readOnly aria-label="Subscription URL" value={subStatus.url || ''} onFocus={(e) => e.target.select()} className="flex-grow min-w-0 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono" />
-                                            <button onClick={() => copyToClipboard(subStatus.url)} className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-lg transition whitespace-nowrap">Copy</button>
+                                            <button onClick={() => copyToClipboard(subStatus.url)} className="px-3 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-sm font-semibold rounded-lg transition whitespace-nowrap">Copy</button>
                                         </div>
                                         <p className="text-xs text-slate-500 mt-1">webcal:// opens directly in Apple Calendar and Outlook.</p>
                                     </div>
@@ -1969,8 +2012,8 @@
                             <button onClick={nextMonth} className="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-100 transition">&rarr;</button>
                         </div>
                         <div className="flex items-center gap-2">
-                            <button onClick={() => setViewMode('month')} className={`px-3 py-1 rounded-lg text-sm transition ${viewMode === 'month' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}>Month</button>
-                            <button onClick={() => setViewMode('agenda')} className={`px-3 py-1 rounded-lg text-sm transition ${viewMode === 'agenda' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}>Agenda</button>
+                            <button onClick={() => setViewMode('month')} className={`px-3 py-1 rounded-lg text-sm transition ${viewMode === 'month' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}>Month</button>
+                            <button onClick={() => setViewMode('agenda')} className={`px-3 py-1 rounded-lg text-sm transition ${viewMode === 'agenda' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}>Agenda</button>
                         </div>
                     </div>
 
@@ -2270,7 +2313,7 @@
                                 <button
                                     onClick={handleProfileSave}
                                     disabled={profileSaving}
-                                    className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-600 transition disabled:opacity-50"
+                                    className="px-4 py-2 gradient-button font-semibold rounded-lg disabled:opacity-50"
                                 >
                                     {profileSaving ? 'Saving...' : 'Save changes'}
                                 </button>
@@ -2316,7 +2359,7 @@
                         title="Account"
                         description="Sign-in credentials. Email changes require re-verification."
                     >
-                        <Field label="Email" htmlFor="settings_email" hint="Contact support@breediq.ai to change your email.">
+                        <Field label="Email" htmlFor="settings_email" hint="Contact spencer@breediq.ai to change your email.">
                             <input id="settings_email" type="email" disabled className={textInputClass}
                                 value={user?.email || ''} readOnly />
                         </Field>
@@ -2358,7 +2401,7 @@
                             <div className="flex gap-2 flex-shrink-0">
                                 {plan === 'starter' ? (
                                     <a href="/#pricing"
-                                        className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-600 transition">
+                                        className="px-4 py-2 gradient-button font-semibold rounded-lg">
                                         Upgrade
                                     </a>
                                 ) : null}
@@ -2532,21 +2575,21 @@
                 return (
                     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
                         <div className="text-center space-y-4">
-                            <div className="text-4xl">&#129516;</div>
-                            <p className="text-slate-400">Loading your dashboard...</p>
+                            <div className="flex justify-center"><BrandMark size="w-10 h-10" /></div>
+                            <p className="text-slate-400">Loading your dashboard&hellip;</p>
                         </div>
                     </div>
                 );
             }
 
             const navItems = [
-                { id: 'dashboard', label: 'Dashboard', icon: '&#128202;' },
-                { id: 'dams', label: 'Dams', icon: '&#128021;' },
-                { id: 'alerts', label: 'Alerts', icon: '&#9888;&#65039;' },
-                { id: 'calendar', label: 'Calendar', icon: '&#128197;' },
-                { id: 'guardians', label: 'Guardians', icon: '&#128101;' },
-                { id: 'analytics', label: 'Analytics', icon: '&#128200;' },
-                { id: 'settings', label: 'Settings', icon: '&#9881;&#65039;' }
+                { id: 'dashboard', label: 'Dashboard', Icon: IconGrid },
+                { id: 'dams', label: 'Dams', Icon: IconDog },
+                { id: 'alerts', label: 'Alerts', Icon: IconAlert },
+                { id: 'calendar', label: 'Calendar', Icon: IconCalendarNav },
+                { id: 'guardians', label: 'Guardians', Icon: IconUsers },
+                { id: 'analytics', label: 'Analytics', Icon: IconChart },
+                { id: 'settings', label: 'Settings', Icon: IconCog }
             ];
 
             return (
@@ -2554,27 +2597,29 @@
                     {/* Sidebar */}
                     <div className={`fixed md:relative inset-y-0 left-0 z-40 transform transition duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-64 bg-slate-900 border-r border-slate-800 flex flex-col md:translate-x-0`}>
                         <div className="p-6 border-b border-slate-800">
-                            <a href="/" className="flex items-center gap-2 font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
-                                <span className="text-2xl">&#129516;</span> BreedIQ
+                            <a href="/" className="flex items-center gap-2 font-bold text-xl">
+                                <BrandMark />
+                                <span className="gradient-text">BreedIQ</span>
                             </a>
                         </div>
                         <nav className="flex-grow p-4 space-y-2">
                             {navItems.map(item => (
                                 <button key={item.id} onClick={() => handleViewChange(item.id)}
-                                    className={`w-full text-left px-4 py-3 rounded-lg transition ${currentView === item.id ? 'bg-emerald-900 text-emerald-100' : 'text-slate-400 hover:bg-slate-800'}`}>
-                                    <span className="mr-3" dangerouslySetInnerHTML={{__html: item.icon}}></span>
-                                    {item.label}
+                                    aria-current={currentView === item.id ? 'page' : undefined}
+                                    className={`w-full text-left px-4 py-3 rounded-lg transition flex items-center gap-3 ${currentView === item.id ? 'bg-emerald-500/15 text-emerald-300' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}>
+                                    <item.Icon />
+                                    <span>{item.label}</span>
                                 </button>
                             ))}
                         </nav>
                         <div className="p-4 border-t border-slate-800">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center font-bold text-slate-900">
+                                <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center font-bold text-slate-950">
                                     {user?.email ? user.email[0].toUpperCase() : 'U'}
                                 </div>
                                 <div>
                                     <p className="text-sm font-semibold text-slate-100">{user?.email || 'User'}</p>
-                                    <p className="text-xs text-slate-500">{user?.plan || 'Starter'} plan</p>
+                                    <p className="text-xs text-slate-400">{user?.plan || 'Starter'} plan</p>
                                 </div>
                             </div>
                         </div>
@@ -2595,9 +2640,9 @@
                                         since the sidebar is collapsed by default. */}
                                     <button onClick={() => handleViewChange('dashboard')}
                                         aria-label="Go to dashboard"
-                                        className="flex items-center gap-1.5 font-bold text-base text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400 hover:opacity-80 transition">
-                                        <span className="text-lg" aria-hidden="true">&#129516;</span>
-                                        <span>BreedIQ</span>
+                                        className="flex items-center gap-1.5 font-bold text-base hover:opacity-80 transition">
+                                        <BrandMark size="w-5 h-5" />
+                                        <span className="gradient-text">BreedIQ</span>
                                     </button>
                                 </div>
                                 <div className="flex-grow mx-4 hidden md:block">
@@ -2613,7 +2658,7 @@
                                         <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                                     </button>
                                     <button onClick={() => { window.location.href = '/dogs?add=1'; }}
-                                        className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-lg hover:from-emerald-600 hover:to-teal-600 transition">
+                                        className="px-4 py-2 gradient-button font-semibold rounded-lg">
                                         + Add Dog
                                     </button>
                                     <button onClick={handleSignOut} className="px-3 py-2 text-slate-400 hover:text-white border border-slate-700 rounded-lg text-sm hover:border-slate-500 transition">

@@ -216,7 +216,7 @@
                             {error && <p className="text-red-400 text-sm">{error}</p>}
                             <div className="flex gap-2 pt-2">
                                 <button type="button" onClick={onClose} className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded text-slate-100">Cancel</button>
-                                <button type="submit" disabled={saving || !form.name} className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded text-white font-semibold">
+                                <button type="submit" disabled={saving || !form.name} className="flex-1 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 rounded text-slate-950 font-semibold">
                                     {saving ? 'Adding...' : 'Add Dog'}
                                 </button>
                             </div>
@@ -311,7 +311,7 @@
                             </div>
                             <button
                                 onClick={() => setShowAdd(true)}
-                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-white text-sm font-semibold"
+                                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 rounded-lg text-slate-950 text-sm font-semibold"
                             >
                                 + Add Dog
                             </button>
@@ -373,7 +373,7 @@
                                 {dogs.length === 0 && (
                                     <button
                                         onClick={() => setShowAdd(true)}
-                                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-white font-semibold"
+                                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 rounded-lg text-slate-950 font-semibold"
                                     >
                                         Add Your First Dog
                                     </button>

@@ -1,11 +1,15 @@
 // BreedIQ Auth — Password Reset Request (Supabase)
 // Sends a password reset email via Supabase Auth
 import { getAnonClient } from '../../lib/supabase.js';
+import { enforce, LIMITS } from '../../lib/rate-limit.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    const { email } = req.body;
+    // Without a throttle this is a free mail-bomb aimed at any address.
+    if (enforce(req, res, { name: 'password-reset', ...LIMITS.passwordReset })) return;
+
+    const { email } = req.body || {};
     if (!email) return res.status(400).json({ error: 'Email is required' });
 
     try {

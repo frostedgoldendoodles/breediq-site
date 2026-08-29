@@ -164,7 +164,8 @@
             role: 'dialog',
             'aria-modal': 'true',
             'aria-label': 'BreedIQ assistant',
-            'aria-hidden': 'true'
+            'aria-hidden': 'true',
+            inert: ''
         }, [header, contextPillEl, messagesEl, composer]);
 
         // Backdrop scrim — tapping anywhere outside the panel closes it. This
@@ -224,13 +225,13 @@
             position: fixed; bottom: 24px; right: 24px; z-index: 2147483000;
             display: inline-flex; align-items: center; gap: 8px;
             padding: 14px 16px; border-radius: 9999px;
-            background: #059669; color: #fff; border: none;
+            background: #10b981; color: #020617; border: none;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-size: 14px; font-weight: 600;
             cursor: pointer; box-shadow: 0 8px 24px rgba(5, 150, 105, 0.35), 0 4px 8px rgba(0,0,0,0.25);
             transition: transform 120ms ease, background 120ms ease;
           }
-          .askbreediq-btn:hover { background: #047857; transform: translateY(-1px); }
+          .askbreediq-btn:hover { background: #34d399; transform: translateY(-1px); }
           .askbreediq-btn-icon { display: inline-flex; }
           .askbreediq-btn-label { white-space: nowrap; }
           @media (max-width: 640px) {
@@ -370,10 +371,10 @@
           }
           .askbreediq-send-btn {
             padding: 6px 16px; font-size: 13px; font-weight: 600;
-            background: #059669; color: #fff; border: none; border-radius: 8px; cursor: pointer;
+            background: #10b981; color: #020617; border: none; border-radius: 8px; cursor: pointer;
             flex: 0 0 auto;
           }
-          .askbreediq-send-btn:hover { background: #047857; }
+          .askbreediq-send-btn:hover { background: #34d399; }
           .askbreediq-send-btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
           .askbreediq-typing { display: inline-flex; gap: 3px; padding-left: 4px; align-items: center; }
           .askbreediq-typing span { width: 4px; height: 4px; border-radius: 9999px; background: #64748b; animation: askbreediq-blink 1.2s infinite; }
@@ -479,7 +480,11 @@
     }
 
     // ── Networking ────────────────────────────────────────
-    async function sendMessage(extraUserBlocks) {
+    // `confirm` (optional) is the structured approval for a destructive tool:
+    // { tool_name, target_id }, taken from the target the server returned on
+    // the preceding requires_confirmation result. It travels outside the
+    // conversation so the model can neither read nor forge it.
+    async function sendMessage(extraUserBlocks, confirm) {
         if (state.sending) return;
         const text = (textareaEl?.value || '').trim();
         if (!text && !extraUserBlocks) return;
@@ -563,7 +568,8 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     messages: apiMessages,
-                    page_context: state.context || { page: location.pathname }
+                    page_context: state.context || { page: location.pathname },
+                    ...(confirm ? { confirm } : {})
                 })
             });
             if (!resp.ok) {
@@ -744,11 +750,24 @@
     }
 
     function confirmDestructive(te) {
-        // Resubmit with an explicit confirm message so the model will call the tool again with confirm_delete
-        const hint = `Yes, confirm — proceed with ${te.tool_name}${te.target?.id ? ' for id ' + te.target.id : ''} (confirm_delete:true).`;
+        const targetId = te.target?.id;
+        if (!targetId) {
+            // Without a server-resolved id there is nothing to authorize
+            // against, so don't pretend the click did something.
+            state.messages.push({
+                role: 'assistant',
+                text: "I couldn't identify that record well enough to delete it safely. Try naming it again."
+            });
+            renderMessages();
+            persistHistory();
+            return;
+        }
+        // Two separate things go up: a plain-language turn for the model, and
+        // the approval itself as a structured field the model never sees.
+        const hint = `Yes — go ahead with ${te.tool_name} for id ${targetId}.`;
         if (textareaEl) { textareaEl.value = ''; }
         state.messages.push({ role: 'user', text: hint });
-        sendMessage([{ type: 'text', text: hint }]);
+        sendMessage([{ type: 'text', text: hint }], { tool_name: te.tool_name, target_id: targetId });
     }
 
     function cancelDestructive(te) {
@@ -770,6 +789,7 @@
         if (panelEl) {
             panelEl.setAttribute('data-open', 'true');
             panelEl.setAttribute('aria-hidden', 'false');
+            panelEl.removeAttribute('inert');
             setTimeout(() => textareaEl?.focus(), 120);
         }
         if (backdropEl) backdropEl.setAttribute('data-open', 'true');
@@ -783,6 +803,7 @@
         if (panelEl) {
             panelEl.setAttribute('data-open', 'false');
             panelEl.setAttribute('aria-hidden', 'true');
+            panelEl.setAttribute('inert', '');
         }
         if (backdropEl) backdropEl.setAttribute('data-open', 'false');
         try { document.body.style.overflow = ''; } catch (e) { }

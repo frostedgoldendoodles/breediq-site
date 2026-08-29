@@ -14,7 +14,8 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="description" content="View detailed dog profile, health records, heat cycle history, and breeding information on BreedIQ.">
     <title>Dog Profile &mdash; BreedIQ</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%230F766E'>&#x1F43E;</text></svg>">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
     <!-- PWA: installable app, iOS + Android home screen -->
     <link rel="manifest" href="/manifest.webmanifest">
     <meta name="theme-color" content="#0f172a">
@@ -25,20 +26,27 @@
     <meta name="apple-mobile-web-app-title" content="BreedIQ">
     <link rel="canonical" href="https://breediq.ai/dog">
     <!-- Resource hints -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://www.googletagmanager.com">
-    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="https://www.googletagmanager.com">
     <!-- Dog photo loads from a Supabase Storage signed URL. Add a preconnect to
          your Supabase project origin here for faster image fetch, e.g.:
          <link rel="preconnect" href="https://<project-ref>.supabase.co" crossorigin> -->
-    <script src="/vendor/react-18.2.0.production.min.js"></script>
-    <script src="/vendor/react-dom-18.2.0.production.min.js"></script>
+    <script src="/vendor/react-18.2.0.production.min.js" defer></script>
+    <script src="/vendor/react-dom-18.2.0.production.min.js" defer></script>
     <link rel="stylesheet" href="/styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-950 text-slate-100">
+<body class="bg-slate-950 text-slate-100 font-sans antialiased">
     <div id="root"></div>
+    <noscript>
+      <div style="max-width:34rem;margin:4rem auto;padding:0 1.5rem;font-family:system-ui,sans-serif;color:#e2e8f0;text-align:center">
+        <h1 style="font-size:1.5rem;margin:0 0 .75rem">BreedIQ needs JavaScript</h1>
+        <p style="color:#94a3b8;line-height:1.6;margin:0 0 1.5rem">
+          This page is rendered in the browser, so it needs JavaScript enabled.
+          Turn it on and reload, or email us and we'll help.
+        </p>
+        <a href="mailto:spencer@breediq.ai" style="color:#10b981">spencer@breediq.ai</a>
+      </div>
+    </noscript>
 
     <!-- dog app. Source: src/dog.jsx (npm run compile). -->
     <script src="/dog.bundle.js" defer></script>

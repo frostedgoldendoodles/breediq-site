@@ -1,11 +1,14 @@
 // BreedIQ Auth — Update Password (Supabase)
 // Called from the reset-password page after user clicks the email link
 import { getAnonClient } from '../../lib/supabase.js';
+import { enforce, LIMITS } from '../../lib/rate-limit.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    const { access_token, password } = req.body;
+    if (enforce(req, res, { name: 'password-update', ...LIMITS.passwordUpdate })) return;
+
+    const { access_token, password } = req.body || {};
     if (!access_token) return res.status(400).json({ error: 'Missing access token' });
     if (!password || password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
 

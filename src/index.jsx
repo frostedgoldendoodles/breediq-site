@@ -11,8 +11,15 @@
             const timerRef = useRef(null);
             const screens = ['Overview', 'Calendar', 'Litters', 'Co-Breeders'];
 
+            const prefersReducedMotion = typeof window !== 'undefined'
+                && typeof window.matchMedia === 'function'
+                && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
             const resetTimer = () => {
                 if (timerRef.current) clearInterval(timerRef.current);
+                // Don't cycle the panel on people who asked for less motion —
+                // the tabs and dots still let them drive it manually.
+                if (prefersReducedMotion) return;
                 timerRef.current = setInterval(() => {
                     setFading(true);
                     setTimeout(() => { setActive(p => (p + 1) % 4); setFading(false); }, 400);
@@ -27,7 +34,7 @@
                 resetTimer();
             };
 
-            const s = {card:'background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;',label:'font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;font-weight:500;',val:'font-size:20px;font-weight:800;color:#f1f5f9;line-height:1;margin-bottom:2px;'};
+            const s = {card:'background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px;',label:'font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;font-weight:500;',val:'font-size:20px;font-weight:800;color:#f1f5f9;line-height:1;margin-bottom:2px;'};
 
             /* Screen 0: Dashboard Overview */
             const ScreenOverview = () => (
@@ -43,21 +50,21 @@
                                     <div style={{width:'8px',height:'8px',borderRadius:'50%',background:s.c}}></div>
                                 </div>
                                 <div style={{fontSize:'18px',fontWeight:800,color:'#f1f5f9',lineHeight:1,marginBottom:'2px'}}>{s.v}</div>
-                                <div style={{fontSize:'8px',color:'#64748b',textTransform:'uppercase',letterSpacing:'0.4px',fontWeight:500}}>{s.l}</div>
+                                <div style={{fontSize:'8px',color:'#94a3b8',textTransform:'uppercase',letterSpacing:'0.4px',fontWeight:500}}>{s.l}</div>
                             </div>
                         ))}
                     </div>
                     <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'10px',marginBottom:'10px'}}>
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}}>
-                            <div style={{fontSize:'11px',fontWeight:600,color:'#e2e8f0'}}>Gigi <span style={{color:'#64748b',fontWeight:400}}>× Cooper</span></div>
+                            <div style={{fontSize:'11px',fontWeight:600,color:'#e2e8f0'}}>Gigi <span style={{color:'#94a3b8',fontWeight:400}}>× Cooper</span></div>
                             <div style={{fontSize:'8px',padding:'2px 8px',borderRadius:'10px',fontWeight:600,background:'rgba(168,85,247,0.15)',color:'#c084fc'}}>Pregnant</div>
                         </div>
                         <div style={{height:'5px',background:'#334155',borderRadius:'3px',overflow:'hidden',marginBottom:'4px'}}>
                             <div className="progress-animate" style={{'--target-width':'28%',height:'100%',borderRadius:'3px',background:'linear-gradient(90deg,#8b5cf6,#c084fc)'}}></div>
                         </div>
                         <div style={{display:'flex',justifyContent:'space-between'}}>
-                            <span style={{fontSize:'8px',color:'#64748b'}}>Day <strong style={{color:'#c084fc'}}>17</strong> of 61</span>
-                            <span style={{fontSize:'8px',color:'#64748b'}}>Due <strong style={{color:'#c084fc'}}>May 21</strong></span>
+                            <span style={{fontSize:'8px',color:'#94a3b8'}}>Day <strong style={{color:'#c084fc'}}>17</strong> of 61</span>
+                            <span style={{fontSize:'8px',color:'#94a3b8'}}>Due <strong style={{color:'#c084fc'}}>May 21</strong></span>
                         </div>
                     </div>
                     <div style={{display:'flex',gap:'6px'}}>
@@ -83,13 +90,13 @@
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px'}}>
                             <div style={{fontSize:'13px',fontWeight:700,color:'#e2e8f0'}}>Breeding Calendar</div>
                             <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
                                 <span style={{fontSize:'11px',fontWeight:600,color:'#94a3b8'}}>April 2026</span>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                             </div>
                         </div>
                         <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:'2px',marginBottom:'6px'}}>
-                            {days.map((d,i)=><div key={i} style={{textAlign:'center',fontSize:'8px',color:'#64748b',fontWeight:600,padding:'2px 0'}}>{d}</div>)}
+                            {days.map((d,i)=><div key={i} style={{textAlign:'center',fontSize:'8px',color:'#94a3b8',fontWeight:600,padding:'2px 0'}}>{d}</div>)}
                         </div>
                         <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:'2px',marginBottom:'10px'}}>
                             {apr.map((d,i)=>(
@@ -103,7 +110,7 @@
                         {[{d:'Apr 21',n:'Gigi',e:'Due date',c:'#c084fc'},{d:'Apr 25',n:'Bella',e:'Vet check',c:'#10b981'},{d:'Apr 28',n:'Daisy L3',e:'Go home day',c:'#eab308'}].map((ev,i)=>(
                             <div key={i} style={{display:'flex',alignItems:'center',gap:'8px',padding:'5px 8px',background:'#1e293b',border:'1px solid #334155',borderRadius:'6px',marginBottom:'4px',fontSize:'9px'}}>
                                 <div style={{width:'3px',height:'20px',borderRadius:'2px',background:ev.c,flexShrink:0}}></div>
-                                <div style={{color:'#64748b',width:'40px',flexShrink:0}}>{ev.d}</div>
+                                <div style={{color:'#94a3b8',width:'40px',flexShrink:0}}>{ev.d}</div>
                                 <div style={{color:'#e2e8f0',fontWeight:600,flex:1}}>{ev.n}</div>
                                 <div style={{color:ev.c,fontWeight:500}}>{ev.e}</div>
                             </div>
@@ -117,9 +124,9 @@
                 const milestones = [
                     {label:'Bred',date:'Mar 21',done:true,c:'#3b82f6'},
                     {label:'Ultrasound',date:'Apr 11',done:true,c:'#a855f7'},
-                    {label:'X-Ray',date:'May 7',done:false,c:'#64748b'},
-                    {label:'Whelp',date:'May 21',done:false,c:'#64748b'},
-                    {label:'Go Home',date:'Jul 16',done:false,c:'#64748b'}
+                    {label:'X-Ray',date:'May 7',done:false,c:'#94a3b8'},
+                    {label:'Whelp',date:'May 21',done:false,c:'#94a3b8'},
+                    {label:'Go Home',date:'Jul 16',done:false,c:'#94a3b8'}
                 ];
                 return (
                     <div>
@@ -129,7 +136,7 @@
                         </div>
                         <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'10px',padding:'12px',marginBottom:'10px'}}>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
-                                <div><span style={{fontSize:'12px',fontWeight:700,color:'#e2e8f0'}}>Gigi</span><span style={{fontSize:'11px',color:'#64748b'}}> × Cooper</span></div>
+                                <div><span style={{fontSize:'12px',fontWeight:700,color:'#e2e8f0'}}>Gigi</span><span style={{fontSize:'11px',color:'#94a3b8'}}> × Cooper</span></div>
                                 <div style={{fontSize:'9px',padding:'2px 8px',borderRadius:'10px',background:'rgba(168,85,247,0.15)',color:'#c084fc',fontWeight:600}}>Day 17 / 61</div>
                             </div>
                             <div style={{position:'relative',paddingLeft:'16px'}}>
@@ -138,8 +145,8 @@
                                         <div style={{position:'absolute',left:'-13px',top:'3px',width:'10px',height:'10px',borderRadius:'50%',background: m.done?m.c:'#334155',border: m.done?'none':'2px solid #475569',zIndex:1}}></div>
                                         {i<milestones.length-1 && <div style={{position:'absolute',left:'-9px',top:'13px',width:'2px',height:'18px',background: m.done?'#475569':'#1e293b'}}></div>}
                                         <div style={{flex:1}}>
-                                            <div style={{fontSize:'10px',fontWeight:600,color: m.done?'#e2e8f0':'#64748b'}}>{m.label}</div>
-                                            <div style={{fontSize:'8px',color:'#64748b'}}>{m.date}</div>
+                                            <div style={{fontSize:'10px',fontWeight:600,color: m.done?'#e2e8f0':'#94a3b8'}}>{m.label}</div>
+                                            <div style={{fontSize:'8px',color:'#94a3b8'}}>{m.date}</div>
                                         </div>
                                         {m.done && <div style={{fontSize:'8px',padding:'1px 6px',borderRadius:'8px',background:'rgba(16,185,129,0.15)',color:'#34d399',fontWeight:600}}>Done</div>}
                                     </div>
@@ -150,7 +157,7 @@
                             {[{v:'TBD',l:'Puppies',c:'#c084fc'},{v:'8',l:'Waitlist',c:'#3b82f6'},{v:'$0',l:'Deposits',c:'#10b981'}].map((s,i)=>(
                                 <div key={i} style={{background:'#1e293b',border:'1px solid #334155',borderRadius:'8px',padding:'8px',textAlign:'center'}}>
                                     <div style={{fontSize:'14px',fontWeight:800,color:s.c,lineHeight:1,marginBottom:'2px'}}>{s.v}</div>
-                                    <div style={{fontSize:'8px',color:'#64748b',textTransform:'uppercase',letterSpacing:'0.3px'}}>{s.l}</div>
+                                    <div style={{fontSize:'8px',color:'#94a3b8',textTransform:'uppercase',letterSpacing:'0.3px'}}>{s.l}</div>
                                 </div>
                             ))}
                         </div>
@@ -174,7 +181,7 @@
                             <div style={{width:'32px',height:'32px',borderRadius:'8px',background:'linear-gradient(135deg,#2563eb,#10b981)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:700,color:'white',flexShrink:0}}>{g.avatar}</div>
                             <div style={{flex:1,minWidth:0}}>
                                 <div style={{fontSize:'11px',fontWeight:600,color:'#e2e8f0'}}>{g.name}</div>
-                                <div style={{fontSize:'9px',color:'#64748b'}}>{g.loc} • {g.dog}</div>
+                                <div style={{fontSize:'9px',color:'#94a3b8'}}>{g.loc} • {g.dog}</div>
                             </div>
                             <div style={{fontSize:'8px',padding:'2px 8px',borderRadius:'10px',fontWeight:600,background:g.sc+'20',color:g.sc,flexShrink:0}}>{g.status}</div>
                         </div>
@@ -184,7 +191,7 @@
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                             <span style={{fontSize:'10px',fontWeight:600,color:'#93c5fd'}}>Shared Access</span>
                         </div>
-                        <div style={{fontSize:'9px',color:'#64748b',lineHeight:1.4}}>Guardians see their dog's profile, heat logs, and vet reminders. You control all breeding decisions.</div>
+                        <div style={{fontSize:'9px',color:'#94a3b8',lineHeight:1.4}}>Guardians see their dog's profile, heat logs, and vet reminders. You control all breeding decisions.</div>
                     </div>
                 </div>
             );
@@ -219,7 +226,7 @@
                             {/* Tab bar */}
                             <div style={{display:'flex',gap:'2px',padding:'0 12px 8px',overflowX:'auto'}}>
                                 {screens.map((name,i)=>(
-                                    <button key={i} onClick={()=>goTo(i)} style={{padding:'4px 10px',borderRadius:'8px',fontSize:'9px',fontWeight:600,color: active===i?'white':'#64748b',cursor:'pointer',border:'none',background: active===i?'linear-gradient(135deg,#2563eb,#10b981)':'transparent',whiteSpace:'nowrap',flexShrink:0}}>{name}</button>
+                                    <button key={i} onClick={()=>goTo(i)} style={{padding:'4px 10px',borderRadius:'8px',fontSize:'9px',fontWeight:600,color: active===i?'white':'#94a3b8',cursor:'pointer',border:'none',background: active===i?'linear-gradient(135deg,#2563eb,#10b981)':'transparent',whiteSpace:'nowrap',flexShrink:0}}>{name}</button>
                                 ))}
                             </div>
                             {/* Screen content */}
@@ -241,7 +248,7 @@
                         {/* Progress dots */}
                         <div style={{display:'flex',justifyContent:'center',gap:'6px',marginTop:'12px'}}>
                             {screens.map((_,i)=>(
-                                <button key={i} onClick={()=>goTo(i)} style={{width: active===i?'20px':'6px',height:'6px',borderRadius:'3px',background: active===i?'linear-gradient(135deg,#2563eb,#10b981)':'#475569',border:'none',cursor:'pointer',transition:'all 0.3s ease'}}></button>
+                                <button key={i} onClick={()=>goTo(i)} aria-label={`Show ${screens[i]} screen`} aria-pressed={active===i} style={{width: active===i?'20px':'6px',height:'6px',borderRadius:'3px',background: active===i?'linear-gradient(135deg,#2563eb,#10b981)':'#475569',border:'none',cursor:'pointer',transition:'all 0.3s ease'}}></button>
                             ))}
                         </div>
                     </div>
@@ -268,7 +275,7 @@
                             <div style={{fontSize:'14px',fontWeight:700,background:'linear-gradient(135deg, #3b82f6, #10b981)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>BreedIQ</div>
                             <div style={{display:'flex',gap:'3px'}}>
                                 {screens.map((name,i)=>(
-                                    <button key={i} onClick={()=>goTo(i)} className={`demo-tab ${active===i?'demo-tab-active':''}`} style={{padding:'3px 10px',borderRadius:'6px',fontSize:'9px',fontWeight:600,color: active===i?'white':'#64748b',cursor:'pointer',border:'none',background: active===i?'linear-gradient(135deg,#2563eb,#10b981)':'transparent'}}>{name}</button>
+                                    <button key={i} onClick={()=>goTo(i)} aria-pressed={active===i} className={`demo-tab ${active===i?'demo-tab-active':''}`} style={{padding:'3px 10px',borderRadius:'6px',fontSize:'9px',fontWeight:600,color: active===i?'white':'#94a3b8',cursor:'pointer',border:'none',background: active===i?'linear-gradient(135deg,#2563eb,#10b981)':'transparent'}}>{name}</button>
                                 ))}
                             </div>
                         </div>
@@ -282,7 +289,7 @@
                     {/* Progress dots */}
                     <div style={{display:'flex',justifyContent:'center',gap:'6px',marginTop:'12px'}}>
                         {screens.map((_,i)=>(
-                            <button key={i} onClick={()=>goTo(i)} style={{width: active===i?'20px':'6px',height:'6px',borderRadius:'3px',background: active===i?'linear-gradient(135deg,#2563eb,#10b981)':'#475569',border:'none',cursor:'pointer',transition:'all 0.3s ease'}}></button>
+                            <button key={i} onClick={()=>goTo(i)} aria-label={`Show ${screens[i]} screen`} aria-pressed={active===i} style={{width: active===i?'20px':'6px',height:'6px',borderRadius:'3px',background: active===i?'linear-gradient(135deg,#2563eb,#10b981)':'#475569',border:'none',cursor:'pointer',transition:'all 0.3s ease'}}></button>
                         ))}
                     </div>
                 </div>
@@ -294,6 +301,7 @@
             const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
             const [billingAnnual, setBillingAnnual] = useState(false);
             const [expandedFAQ, setExpandedFAQ] = useState(null);
+            const [ctaEmail, setCtaEmail] = useState('');
 
             const toggleFAQ = (id) => {
                 setExpandedFAQ(expandedFAQ === id ? null : id);
@@ -301,11 +309,13 @@
 
             return (
                 <div className="min-h-screen bg-slate-950">
+                    <a href="#main" className="skip-link">Skip to content</a>
+
                     {/* Navigation */}
                     <nav className="sticky top-0 z-50 bg-slate-950/95 backdrop-blur border-b border-slate-800">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
                             <div className="flex items-center gap-2">
-                                <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="url(#navGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="navGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#2563eb"/><stop offset="100%" stopColor="#10b981"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                                <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="url(#navGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="navGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#2563eb"/><stop offset="100%" stopColor="#10b981"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="9" r="1" fill="url(#navGrad)" stroke="none"/><circle cx="15" cy="9" r="1" fill="url(#navGrad)" stroke="none"/></svg>
                                 <span className="text-xl font-bold gradient-text-blue-emerald">BreedIQ</span>
                             </div>
 
@@ -353,6 +363,7 @@
                         )}
                     </nav>
 
+                    <main id="main">
                     {/* Hero Section */}
                     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
                         <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -369,8 +380,8 @@
                                     <a href="/signup" className="gradient-blue-emerald text-white px-8 py-4 rounded-lg font-semibold text-lg hover:shadow-xl transition text-center">
                                         Start Free
                                     </a>
-                                    <a href="#features" className="border-2 border-emerald-500 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-emerald-500/10 transition text-center">
-                                        Watch Demo
+                                    <a href="#demo" className="border-2 border-emerald-500 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-emerald-500/10 transition text-center">
+                                        See it in action
                                     </a>
                                 </div>
 
@@ -391,32 +402,49 @@
                                 </div>
                             </div>
 
-                            {/* Animated Dashboard Demo */}
-                            <AnimatedDemo />
+                            {/* Animated Dashboard Demo — id is the "Watch Demo" CTA target. */}
+                            <div id="demo">
+                                <AnimatedDemo />
+                            </div>
                         </div>
                     </section>
 
-                    {/* Social Proof Bar */}
+                    {/* Social Proof Bar
+                        A logo wall needs a wall of logos. With one real breeder it
+                        read as three empty "Soon" circles beside a single customer,
+                        so this is a credited proof card plus an explicit invitation
+                        instead — same honesty, deliberate composition. */}
                     <section className="bg-slate-900/50 border-y border-slate-800 py-12">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            <p className="text-center text-slate-400 mb-8">Built and trusted by real breeders</p>
-                            <div className="flex flex-wrap justify-center items-center gap-12">
-                                <div className="flex flex-col items-center gap-2">
-                                    <img src="https://img1.wsimg.com/isteam/ip/483ef3c6-7986-44d1-992f-2c08d17f6202/001frostedlogo.png" alt="Frosted Goldendoodles" width="64" height="64" className="h-16 w-auto rounded-full" />
-                                    <span className="text-xs text-slate-500">Frosted Goldendoodles</span>
+                        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <p className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 mb-8">
+                                Built and trusted by real breeders
+                            </p>
+                            <div className="grid sm:grid-cols-2 gap-4">
+                                <div className="flex items-center gap-4 bg-slate-900 border border-slate-800 rounded-xl p-5">
+                                    <img
+                                        src="https://img1.wsimg.com/isteam/ip/483ef3c6-7986-44d1-992f-2c08d17f6202/001frostedlogo.png"
+                                        alt=""
+                                        width="56" height="56" loading="lazy" decoding="async"
+                                        className="h-14 w-14 rounded-full object-cover bg-slate-800 flex-shrink-0"
+                                        onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+                                    />
+                                    <div>
+                                        <p className="font-semibold text-slate-100">Frosted Goldendoodles</p>
+                                        <p className="text-sm text-slate-400">Runs its whole program on BreedIQ</p>
+                                    </div>
                                 </div>
-                                <div className="flex flex-col items-center gap-2 opacity-40">
-                                    <div className="h-16 w-16 rounded-full bg-slate-800 border-2 border-dashed border-slate-600 flex items-center justify-center text-slate-500 text-xs">Soon</div>
-                                    <span className="text-xs text-slate-600">Your kennel here</span>
-                                </div>
-                                <div className="flex flex-col items-center gap-2 opacity-40">
-                                    <div className="h-16 w-16 rounded-full bg-slate-800 border-2 border-dashed border-slate-600 flex items-center justify-center text-slate-500 text-xs">Soon</div>
-                                    <span className="text-xs text-slate-600">Your kennel here</span>
-                                </div>
-                                <div className="flex flex-col items-center gap-2 opacity-40">
-                                    <div className="h-16 w-16 rounded-full bg-slate-800 border-2 border-dashed border-slate-600 flex items-center justify-center text-slate-500 text-xs">Soon</div>
-                                    <span className="text-xs text-slate-600">Your kennel here</span>
-                                </div>
+                                <a
+                                    href="/signup"
+                                    className="flex items-center gap-4 bg-slate-900/40 border border-dashed border-slate-700 rounded-xl p-5 hover:border-emerald-500/60 transition"
+                                >
+                                    <span className="h-14 w-14 rounded-full border-2 border-dashed border-slate-700 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                                        <svg className="w-5 h-5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                    </span>
+                                    <div>
+                                        <p className="font-semibold text-slate-200">Your kennel here</p>
+                                        <p className="text-sm text-slate-400">Start free &mdash; no credit card</p>
+                                    </div>
+                                </a>
                             </div>
                         </div>
                     </section>
@@ -458,7 +486,8 @@
                     </section>
 
                     {/* Features Grid */}
-                    <section id="features" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 bg-slate-900/30">
+                    <section id="features" className="bg-slate-900/30 border-y border-slate-800/60 py-20">
+                      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <h2 className="text-4xl lg:text-5xl font-bold text-center mb-16">Everything you need to manage your program</h2>
 
                         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -470,7 +499,7 @@
                                 { id: 'litter', title: 'Litter Pipeline', desc: 'Visual gestation progress, puppy counts, and go-home date tracking for every litter.', color: '#a855f7' },
                                 { id: 'embark', title: 'Embark Integration', desc: 'Pull genetic data directly from Embark profiles for health and pairing analysis.', color: '#06b6d4' },
                                 { id: 'analytics', title: 'Smart Analytics', desc: 'Program-wide insights on litter sizes, cycle patterns, and breeding success rates.', color: '#f97316' },
-                                { id: 'security', title: 'Security & Privacy', desc: 'Your breeding data is encrypted and private. Only you control who sees what.', color: '#64748b' }
+                                { id: 'security', title: 'Security & Privacy', desc: 'Your breeding data is encrypted and private. Only you control who sees what.', color: '#94a3b8' }
                             ].map((feature, idx) => (
                                 <div key={idx} className="feature-card bg-slate-900 border border-slate-800 rounded-lg p-6">
                                     <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{background: feature.color + '20'}}>
@@ -488,6 +517,7 @@
                                 </div>
                             ))}
                         </div>
+                      </div>
                     </section>
 
                     {/* How It Works */}
@@ -506,7 +536,7 @@
                                         {step.id === 'organize' && <svg className="w-8 h-8 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="8" height="8" rx="1"/></svg>}
                                         {step.id === 'grow' && <svg className="w-8 h-8 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>}
                                     </div>
-                                    <div className="text-4xl font-bold text-emerald-500 mb-4">Step {step.num}</div>
+                                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-400 mb-3">Step {step.num}</div>
                                     <h3 className="text-2xl font-semibold mb-4">{step.title}</h3>
                                     <p className="text-slate-400 leading-relaxed">{step.desc}</p>
                                 </div>
@@ -531,7 +561,8 @@
                     </section>
 
                     {/* Pricing Section */}
-                    <section id="pricing" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 bg-slate-900/30">
+                    <section id="pricing" className="bg-slate-900/30 border-y border-slate-800/60 py-20">
+                      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <h2 className="text-4xl lg:text-5xl font-bold text-center mb-4">Simple, transparent pricing</h2>
                         <p className="text-center text-slate-400 mb-12">Choose the plan that's right for your breeding program</p>
 
@@ -539,6 +570,10 @@
                         <div className="flex justify-center items-center gap-4 mb-16">
                             <span className={billingAnnual ? 'text-slate-400' : 'text-white font-semibold'}>Monthly</span>
                             <button
+                                type="button"
+                                role="switch"
+                                aria-checked={billingAnnual}
+                                aria-label="Show annual pricing"
                                 onClick={() => setBillingAnnual(!billingAnnual)}
                                 className={`relative inline-flex h-8 w-14 items-center rounded-full transition ${billingAnnual ? 'bg-emerald-500' : 'bg-slate-700'}`}
                             >
@@ -599,7 +634,7 @@
                             ].map((plan, idx) => (
                                 <div key={idx} className={`pricing-card bg-slate-900 rounded-lg p-8 border ${plan.popular ? 'popular border-2' : 'border-slate-800'} relative`}>
                                     {plan.popular && (
-                                        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                                        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-slate-950 px-4 py-1 rounded-full text-sm font-bold tracking-wide">
                                             MOST POPULAR
                                         </div>
                                     )}
@@ -631,6 +666,7 @@
                         </div>
 
                         <p className="text-center text-slate-400 mt-12">No credit card required for free trial. Cancel anytime.</p>
+                      </div>
                     </section>
 
                     {/* FAQ Section */}
@@ -674,13 +710,20 @@
                                     <button
                                         onClick={() => toggleFAQ(faq.id)}
                                         aria-expanded={expandedFAQ === faq.id}
+                                        aria-controls={`faq-panel-${faq.id}`}
+                                        id={`faq-trigger-${faq.id}`}
                                         className="accordion-header w-full px-6 py-4 text-left font-semibold flex justify-between items-center hover:bg-slate-800/50 transition"
                                     >
                                         <span>{faq.question}</span>
                                         <svg aria-hidden="true" className={`w-5 h-5 text-slate-400 transition-transform ${expandedFAQ === faq.id ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                                     </button>
                                     {expandedFAQ === faq.id && (
-                                        <div className="px-6 py-4 bg-slate-800/30 border-t border-slate-800 text-slate-300">
+                                        <div
+                                            id={`faq-panel-${faq.id}`}
+                                            role="region"
+                                            aria-labelledby={`faq-trigger-${faq.id}`}
+                                            className="px-6 py-4 bg-slate-800/30 border-t border-slate-800 text-slate-300"
+                                        >
                                             {faq.answer}
                                         </div>
                                     )}
@@ -693,23 +736,38 @@
                     <section className="gradient-blue-emerald py-20">
                         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                             <h2 className="text-4xl font-bold text-white mb-8">Ready to breed smarter?</h2>
-                            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    const email = ctaEmail.trim();
+                                    window.location.href = email
+                                        ? `/signup?email=${encodeURIComponent(email)}`
+                                        : '/signup';
+                                }}
+                                className="flex flex-col sm:flex-row gap-4 items-center justify-center"
+                            >
                                 <input
                                     type="email"
+                                    name="email"
+                                    autoComplete="email"
+                                    value={ctaEmail}
+                                    onChange={(e) => setCtaEmail(e.target.value)}
                                     placeholder="Enter your email"
                                     aria-label="Email address"
                                     className="px-6 py-3 rounded-lg w-full sm:w-auto text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-white"
                                 />
-                                <a
-                                    href="/signup"
-                                    className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-slate-100 transition whitespace-nowrap"
+                                <button
+                                    type="submit"
+                                    className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-slate-100 transition whitespace-nowrap w-full sm:w-auto"
                                 >
                                     Get Started Free
-                                </a>
-                            </div>
+                                </button>
+                            </form>
                             <p className="text-white/80 mt-6 text-sm">No credit card required. Takes under 3 minutes to set up.</p>
                         </div>
                     </section>
+
+                    </main>
 
                     {/* Footer */}
                     <footer className="bg-slate-900 border-t border-slate-800 py-16">
@@ -717,7 +775,7 @@
                             <div className="grid md:grid-cols-4 gap-8 mb-12">
                                 <div>
                                     <div className="flex items-center gap-2 mb-4">
-                                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="url(#footGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="footGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#2563eb"/><stop offset="100%" stopColor="#10b981"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="url(#footGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="footGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#2563eb"/><stop offset="100%" stopColor="#10b981"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="9" r="1" fill="url(#footGrad)" stroke="none"/><circle cx="15" cy="9" r="1" fill="url(#footGrad)" stroke="none"/></svg>
                                         <span className="text-lg font-bold gradient-text-blue-emerald">BreedIQ</span>
                                     </div>
                                     <p className="text-slate-400 text-sm">AI-powered breeding program management for modern breeders.</p>
@@ -754,4 +812,4 @@
             );
         }
 
-        ReactDOM.render(<BreedIQLanding />, document.getElementById('root'));
+        ReactDOM.createRoot(document.getElementById('root')).render(<BreedIQLanding />);

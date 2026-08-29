@@ -43,14 +43,14 @@
                     {/* Background glow */}
                     <div className="fixed inset-0 overflow-hidden pointer-events-none">
                         <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
-                        <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-green-500/5 rounded-full blur-3xl"></div>
+                        <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
                     </div>
 
                     <div className="w-full max-w-md relative z-10">
                         {/* Logo */}
                         <div className="text-center mb-8">
                             <a href="/" className="inline-flex items-center gap-2">
-                                <span className="text-3xl">&#x1F43E;</span>
+                                <svg aria-hidden="true" className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="url(#markGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="markGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#2563eb"/><stop offset="100%" stopColor="#10b981"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="9" r="1" fill="url(#markGrad)" stroke="none"/><circle cx="15" cy="9" r="1" fill="url(#markGrad)" stroke="none"/></svg>
                                 <span className="text-2xl font-bold gradient-text">BreedIQ</span>
                             </a>
                         </div>

@@ -221,4 +221,4 @@
             );
         }
 
-        ReactDOM.render(<TermsOfService />, document.getElementById('root'));
+        ReactDOM.createRoot(document.getElementById('root')).render(<TermsOfService />);
