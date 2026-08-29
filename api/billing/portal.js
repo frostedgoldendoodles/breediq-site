@@ -5,6 +5,27 @@ import { requireAuth, getServiceClient } from '../../lib/supabase.js';
 
 const STRIPE_KEY = process.env.STRIPE_SECRET_KEY;
 
+// Where Stripe is allowed to send the user back to. The return_url used to be
+// built from req.headers.origin, which any caller sets to anything — so the
+// portal could be made to bounce a signed-in user to an attacker's page
+// carrying Stripe's own referrer. Allowlist instead.
+const ALLOWED_ORIGINS = new Set([
+    'https://breediq.ai',
+    'https://www.breediq.ai'
+]);
+const DEFAULT_ORIGIN = 'https://breediq.ai';
+
+function safeOrigin(req) {
+    const candidate = req.headers.origin;
+    if (typeof candidate === 'string' && ALLOWED_ORIGINS.has(candidate)) return candidate;
+    // Vercel preview deployments, so the portal is testable off production.
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+    if (typeof host === 'string' && /^[a-z0-9-]+\.vercel\.app$/i.test(host)) {
+        return `https://${host}`;
+    }
+    return DEFAULT_ORIGIN;
+}
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -55,8 +76,7 @@ export default async function handler(req, res) {
         }
 
         // Create a portal session
-        const origin = req.headers.origin || 'https://breediq.ai';
-        const returnUrl = `${origin}/dashboard?view=settings`;
+        const returnUrl = `${safeOrigin(req)}/dashboard?view=settings`;
 
         const portalResp = await fetch('https://api.stripe.com/v1/billing_portal/sessions', {
             method: 'POST',

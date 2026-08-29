@@ -315,7 +315,7 @@
                     <nav className="sticky top-0 z-50 bg-slate-950/95 backdrop-blur border-b border-slate-800">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
                             <div className="flex items-center gap-2">
-                                <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="url(#navGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="navGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#2563eb"/><stop offset="100%" stopColor="#10b981"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                                <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="url(#navGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="navGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#2563eb"/><stop offset="100%" stopColor="#10b981"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="9" r="1" fill="url(#navGrad)" stroke="none"/><circle cx="15" cy="9" r="1" fill="url(#navGrad)" stroke="none"/></svg>
                                 <span className="text-xl font-bold gradient-text-blue-emerald">BreedIQ</span>
                             </div>
 
@@ -775,7 +775,7 @@
                             <div className="grid md:grid-cols-4 gap-8 mb-12">
                                 <div>
                                     <div className="flex items-center gap-2 mb-4">
-                                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="url(#footGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="footGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#2563eb"/><stop offset="100%" stopColor="#10b981"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="url(#footGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="footGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#2563eb"/><stop offset="100%" stopColor="#10b981"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="9" r="1" fill="url(#footGrad)" stroke="none"/><circle cx="15" cy="9" r="1" fill="url(#footGrad)" stroke="none"/></svg>
                                         <span className="text-lg font-bold gradient-text-blue-emerald">BreedIQ</span>
                                     </div>
                                     <p className="text-slate-400 text-sm">AI-powered breeding program management for modern breeders.</p>

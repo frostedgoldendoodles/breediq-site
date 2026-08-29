@@ -4,8 +4,17 @@
 // Writes NOTHING to the database — /api/onboarding/confirm handles that.
 import Anthropic from '@anthropic-ai/sdk';
 import { requireAuth, getServiceClient } from '../../lib/supabase.js';
+import { enforce, LIMITS } from '../../lib/rate-limit.js';
 
 const MODEL = 'claude-sonnet-4-6';
+
+// Every byte of pasted text and every uploaded file is base64'd into an
+// Anthropic request billed to us. Unbounded, a signed-in account can point
+// this at an arbitrary number of 7 MB uploads in a loop.
+const MAX_FILES_PER_RUN = 12;
+const MAX_PASTED_CHARS = 200_000;
+const MAX_TEXT_FILE_CHARS = 200_000;
+const MAX_TOTAL_INPUT_CHARS = 600_000;
 
 // Tool definitions — the model calls these; we just stream them to the client.
 const TOOLS = [
@@ -159,7 +168,12 @@ async function fetchFileContents(supabase, userId, fileIds) {
         } else {
             try {
                 const text = await fileData.text();
-                contents.push({ type: 'text', filename: file.filename, content: text });
+                contents.push({
+                    type: 'text',
+                    filename: file.filename,
+                    content: text.length > MAX_TEXT_FILE_CHARS ? text.slice(0, MAX_TEXT_FILE_CHARS) : text,
+                    truncated: text.length > MAX_TEXT_FILE_CHARS
+                });
             } catch {
                 // skip unreadable binaries silently
             }
@@ -174,6 +188,8 @@ export default async function handler(req, res) {
     const auth = await requireAuth(req, res);
     if (!auth) return;
 
+    if (enforce(req, res, { name: 'onboarding', userId: auth.user.id, ...LIMITS.onboarding })) return;
+
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
         return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
@@ -185,6 +201,12 @@ export default async function handler(req, res) {
 
     if (!pastedText && fileIds.length === 0 && !follow_up) {
         return res.status(400).json({ error: 'Provide text or file_ids.' });
+    }
+    if (fileIds.length > MAX_FILES_PER_RUN) {
+        return res.status(413).json({ error: `Too many files at once (max ${MAX_FILES_PER_RUN}). Upload them in smaller batches.` });
+    }
+    if (pastedText.length > MAX_PASTED_CHARS) {
+        return res.status(413).json({ error: 'That paste is too large to process in one go. Split it up.' });
     }
 
     const supabase = getServiceClient();
@@ -201,6 +223,14 @@ export default async function handler(req, res) {
     // Mark files as processing
     if (fileIds.length > 0) {
         await supabase.from('files').update({ processing_status: 'processing' }).in('id', fileIds).eq('user_id', userId);
+    }
+
+    // Total size has to be checked before the stream opens — past
+    // flushHeaders() a status code can no longer be sent.
+    const inputLength = pastedText.length
+        + fileContents.reduce((n, f) => n + (f.type === 'text' ? f.content.length : 0), 0);
+    if (inputLength > MAX_TOTAL_INPUT_CHARS) {
+        return res.status(413).json({ error: 'Those files add up to more than one run can handle. Process them in smaller batches.' });
     }
 
     // Build user-turn content blocks
@@ -241,7 +271,6 @@ export default async function handler(req, res) {
         }
     };
 
-    const inputLength = pastedText.length + fileContents.reduce((n, f) => n + (f.type === 'text' ? f.content.length : 0), 0);
     const enableThinking = inputLength > 2000;
 
     const client = new Anthropic({ apiKey });
@@ -333,7 +362,7 @@ export default async function handler(req, res) {
         if (fileIds.length > 0) {
             await supabase.from('files').update({ processing_status: 'failed' }).in('id', fileIds).eq('user_id', userId).catch(() => {});
         }
-        emit({ type: 'error', error: err.message || 'Unknown error' });
+        emit({ type: 'error', error: 'Something went wrong while reading those records. Try again.' });
         try { res.end(); } catch {}
     }
 }

@@ -234,7 +234,7 @@
         );
 
         const IconDog = () => (
-            <svg {...svgProps}><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9.5" x2="9.01" y2="9.5"/><line x1="15" y1="9.5" x2="15.01" y2="9.5"/></svg>
+            <svg {...svgProps}><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="9.5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="9.5" r="1" fill="currentColor" stroke="none"/></svg>
         );
 
         const IconAlert = () => (
@@ -264,8 +264,8 @@
                 <defs><linearGradient id="dashMarkGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#2563eb"/><stop offset="100%" stopColor="#10b981"/></linearGradient></defs>
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
                 <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
-                <line x1="9" y1="9" x2="9.01" y2="9"/>
-                <line x1="15" y1="9" x2="15.01" y2="9"/>
+                <circle cx="9" cy="9" r="1" fill="url(#dashMarkGrad)" stroke="none"/>
+                <circle cx="15" cy="9" r="1" fill="url(#dashMarkGrad)" stroke="none"/>
             </svg>
         );
 
@@ -2359,7 +2359,7 @@
                         title="Account"
                         description="Sign-in credentials. Email changes require re-verification."
                     >
-                        <Field label="Email" htmlFor="settings_email" hint="Contact support@breediq.ai to change your email.">
+                        <Field label="Email" htmlFor="settings_email" hint="Contact spencer@breediq.ai to change your email.">
                             <input id="settings_email" type="email" disabled className={textInputClass}
                                 value={user?.email || ''} readOnly />
                         </Field>

@@ -1,14 +1,17 @@
 // BreedIQ Auth — Sign Up (Supabase)
 // Creates user in Supabase Auth, auto-creates profile via DB trigger,
 // then creates a Stripe customer and links them.
-import { getServiceClient } from '../../lib/supabase.js';
+import { getAnonClient, getServiceClient } from '../../lib/supabase.js';
+import { enforce, LIMITS } from '../../lib/rate-limit.js';
 
 const STRIPE_KEY = process.env.STRIPE_SECRET_KEY;
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    const { email, password, name } = req.body;
+    if (enforce(req, res, { name: 'signup', ...LIMITS.signup })) return;
+
+    const { email, password, name } = req.body || {};
     if (!email || !password) return res.status(400).json({ error: 'Email and password are required' });
     if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
 
@@ -64,14 +67,7 @@ export default async function handler(req, res) {
         }
 
         // 3. Sign in to get session tokens
-        const { data: signInData, error: signInError } = await supabase.auth.admin.generateLink({
-            type: 'magiclink',
-            email
-        });
-
-        // Use signInWithPassword to get proper session
-        // We use the service client to create a session for the user
-        const anonSupabase = (await import('../../lib/supabase.js')).getAnonClient();
+        const anonSupabase = getAnonClient();
         const { data: session, error: sessionError } = await anonSupabase.auth.signInWithPassword({
             email,
             password
@@ -108,6 +104,6 @@ export default async function handler(req, res) {
         });
     } catch (err) {
         console.error('Signup error:', err);
-        return res.status(500).json({ error: 'Internal server error', message: err.message });
+        return res.status(500).json({ error: 'Internal server error' });
     }
 }

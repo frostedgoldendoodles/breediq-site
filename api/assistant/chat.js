@@ -7,12 +7,19 @@
 // {
 //   messages: [{ role: 'user' | 'assistant', content: string | ContentBlock[] }, ...],
 //   page_context: { page, entity_id?, entity_snapshot? },
-//   confirm_delete?: boolean
+//   confirm?: { tool_name: string, target_id: string }
 // }
+//
+// `confirm` is the human-in-the-loop signal for destructive tools. It is set
+// only by the client's Confirm button, from the target the server itself
+// returned on the preceding `requires_confirmation` result, and it must name
+// both the tool and that exact record. The model has no way to produce it:
+// confirm_delete is not in any tool schema and tool input is never consulted.
 import Anthropic from '@anthropic-ai/sdk';
 import { requireAuth, getServiceClient } from '../../lib/supabase.js';
+import { enforce, LIMITS } from '../../lib/rate-limit.js';
 import { SYSTEM_PROMPT, formatPageContext } from '../../lib/assistant/system-prompt.js';
-import { TOOL_SCHEMAS, DESTRUCTIVE_TOOLS, executeTool } from '../../lib/assistant/tools.js';
+import { TOOL_SCHEMAS, DESTRUCTIVE_TOOLS, executeTool, isDestructiveCallConfirmed } from '../../lib/assistant/tools.js';
 
 const MODEL = 'claude-sonnet-4-6';
 const MAX_TOOL_TURNS = 10;
@@ -22,6 +29,30 @@ const MAX_TOOL_TURNS = 10;
 // "(node:4) Warning: Failed to..." in the logs and a FUNCTION_INVOCATION_FAILED
 // for the client; this budget lets us emit a graceful timeout event instead.
 const SOFT_TIME_BUDGET_MS = 40_000;
+
+// Request-shape ceilings. `messages` is whatever the client posts and every
+// token of it is billed to us on each of up to MAX_TOOL_TURNS calls, so an
+// unbounded body is an unmetered charge on the Anthropic account — reachable
+// by any signed-in user, including a free-tier one.
+const MAX_MESSAGES = 60;
+const MAX_TOTAL_CHARS = 200_000;   // ~50k tokens of conversation
+const MAX_BLOCKS_PER_MESSAGE = 40;
+
+// Rough size of a normalized conversation, counting only what we can measure
+// cheaply. Non-text blocks (images) are charged their base64 length.
+function conversationChars(messages) {
+    let n = 0;
+    for (const m of messages) {
+        const blocks = Array.isArray(m.content) ? m.content : [];
+        for (const b of blocks) {
+            if (typeof b?.text === 'string') n += b.text.length;
+            else if (typeof b?.content === 'string') n += b.content.length;
+            else if (typeof b?.source?.data === 'string') n += b.source.data.length;
+            else n += 200; // structural block — nominal charge
+        }
+    }
+    return n;
+}
 
 export default async function handler(req, res) {
     // Top-level guard: every code path below is wrapped so any unexpected
@@ -39,6 +70,8 @@ export default async function handler(req, res) {
         if (!auth) return;
         userId = auth.user.id;
 
+        if (enforce(req, res, { name: 'assistant', userId, ...LIMITS.assistant })) return;
+
         const apiKey = process.env.ANTHROPIC_API_KEY;
         if (!apiKey) {
             return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
@@ -46,9 +79,15 @@ export default async function handler(req, res) {
 
         const supabase = getServiceClient();
 
-        const { messages = [], page_context = {}, confirm_delete = false } = req.body || {};
+        const { messages = [], page_context = {}, confirm = null } = req.body || {};
         if (!Array.isArray(messages) || messages.length === 0) {
             return res.status(400).json({ error: 'messages[] is required' });
+        }
+        if (messages.length > MAX_MESSAGES) {
+            return res.status(413).json({ error: `Conversation too long (max ${MAX_MESSAGES} messages). Start a new chat.` });
+        }
+        if (messages.some(m => Array.isArray(m.content) && m.content.length > MAX_BLOCKS_PER_MESSAGE)) {
+            return res.status(413).json({ error: 'Message has too many content blocks.' });
         }
         messageCount = messages.length;
 
@@ -60,6 +99,11 @@ export default async function handler(req, res) {
             }
             return { role: m.role, content: m.content };
         });
+
+        const totalChars = conversationChars(normalizedMessages);
+        if (totalChars > MAX_TOTAL_CHARS) {
+            return res.status(413).json({ error: 'Conversation is too large to process. Start a new chat.' });
+        }
 
         // Determine if thinking should be enabled — longer user input benefits from it
         const lastUser = [...normalizedMessages].reverse().find(m => m.role === 'user');
@@ -204,7 +248,11 @@ export default async function handler(req, res) {
             for (const tb of toolBlocks) {
                 toolsUsed.push(tb.name);
                 const isDestructive = DESTRUCTIVE_TOOLS.has(tb.name);
-                const effectiveConfirm = confirm_delete === true || tb.input?.confirm_delete === true;
+
+                // A destructive call executes only when the client confirmed
+                // this exact tool against this exact record. Anything else —
+                // including the model asking nicely — gets the proposal path.
+                const effectiveConfirm = isDestructiveCallConfirmed(confirm, tb.name, tb.input);
 
                 const result = await executeTool(tb.name, {
                     user_id: userId,
@@ -231,7 +279,11 @@ export default async function handler(req, res) {
                 if (result.ok) {
                     resultText = JSON.stringify(result.result || {});
                 } else if (result.requires_confirmation) {
-                    resultText = `Not executed: this ${tb.name} requires user confirmation first. Tell the user what will be deleted and wait for them to say "confirm".`;
+                    const targetId = result.target?.id || null;
+                    resultText = `Not executed. ${tb.name} is destructive and needs the user to approve it in the UI; `
+                        + `the approval is a signal only they can send, so repeating the call will not delete anything. `
+                        + `Describe exactly what would be deleted${targetId ? ` (id ${targetId})` : ''} and wait. `
+                        + `If they approve, call ${tb.name} once more with id "${targetId || '<the id above>'}".`;
                 } else {
                     resultText = `Error: ${result.error || 'Unknown'}`;
                 }
@@ -271,7 +323,7 @@ export default async function handler(req, res) {
         res.end();
     } catch (err) {
         console.error('[assistant] stream error', err);
-        emit({ type: 'error', error: err.message || 'Unknown error' });
+        emit({ type: 'error', error: 'Something went wrong on my end. Tap Retry.' });
         try { res.end(); } catch {}
     }
 
@@ -291,14 +343,11 @@ export default async function handler(req, res) {
         });
         if (!headersSent && !res.headersSent) {
             try {
-                res.status(500).json({
-                    error: outerErr?.message || 'Server error',
-                    error_kind: outerErr?.name || 'Error'
-                });
+                res.status(500).json({ error: 'Server error' });
             } catch { /* response may already be closed */ }
         } else {
             // Headers already streamed — try to emit a final NDJSON error event.
-            try { res.write(JSON.stringify({ type: 'error', error: outerErr?.message || 'Server error' }) + '\n'); } catch {}
+            try { res.write(JSON.stringify({ type: 'error', error: 'Server error' }) + '\n'); } catch {}
             try { res.end(); } catch {}
         }
     }

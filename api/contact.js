@@ -2,6 +2,7 @@
 // Sends contact form submissions to frostedgoldendoodles@gmail.com via Nodemailer + Gmail SMTP
 
 import nodemailer from 'nodemailer';
+import { enforce, LIMITS } from '../lib/rate-limit.js';
 
 // Escape user-supplied text before embedding it in the HTML email body so a
 // submitter can't inject markup/links into the operator's inbox.
@@ -14,20 +15,6 @@ function escapeHtml(s) {
         .replace(/'/g, '&#39;');
 }
 
-// Very small in-memory rate limiter. Vercel may reuse a warm instance across
-// requests, so this throttles bursts from a single IP without external state.
-// Not bulletproof across regions/cold starts, but raises the bar for the
-// open-relay/spam abuse the unauthenticated endpoint otherwise allows.
-const RATE = { windowMs: 60_000, max: 5, hits: new Map() };
-function rateLimited(ip) {
-    const now = Date.now();
-    const rec = RATE.hits.get(ip) || { count: 0, reset: now + RATE.windowMs };
-    if (now > rec.reset) { rec.count = 0; rec.reset = now + RATE.windowMs; }
-    rec.count += 1;
-    RATE.hits.set(ip, rec);
-    return rec.count > RATE.max;
-}
-
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -36,12 +23,9 @@ export default async function handler(req, res) {
     // Same-origin only — no wildcard CORS. The contact form lives on
     // breediq.ai, so cross-origin POSTs are abuse, not legitimate traffic.
 
-    const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
-    if (rateLimited(ip)) {
-        return res.status(429).json({ error: 'Too many messages. Please wait a minute and try again.' });
-    }
+    if (enforce(req, res, { name: 'contact', ...LIMITS.contact })) return;
 
-    const { name, email, message } = req.body;
+    const { name, email, message } = req.body || {};
 
     if (!name || !email || !message) {
         return res.status(400).json({
