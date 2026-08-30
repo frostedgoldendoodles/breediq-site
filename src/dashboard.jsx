@@ -22,18 +22,27 @@
                 fetchingRef.current = true;
                 try {
                     const [dogsRes, littersRes] = await Promise.all([
-                        fetch('/api/dogs', { credentials: 'include' }),
-                        fetch('/api/litters', { credentials: 'include' })
+                        fetch('/api/dogs', { credentials: 'include', cache: 'no-store' }),
+                        fetch('/api/litters', { credentials: 'include', cache: 'no-store' })
                     ]);
+                    // A 401 here means the session lapsed, not that the program
+                    // is empty. Never overwrite good data with [] on failure —
+                    // showing stale-but-real records beats showing none.
+                    if (dogsRes.status === 401 || littersRes.status === 401) {
+                        setError('Your session expired. Sign in again — nothing has been lost.');
+                        setLoading(false);
+                        return;
+                    }
                     if (!dogsRes.ok || !littersRes.ok) throw new Error('Failed to fetch data');
                     const dogsData = await dogsRes.json();
                     const littersData = await littersRes.json();
                     setDogs(dogsData.dogs || []);
                     setLitters(littersData.litters || []);
+                    setError(null);
                     setLoading(false);
                 } catch (err) {
                     console.error('Data fetch error:', err);
-                    setError(err.message);
+                    setError("Couldn't refresh your data. Your records are safe — this is a loading problem.");
                     setLoading(false);
                 } finally {
                     fetchingRef.current = false;
@@ -1076,6 +1085,7 @@
         const GuardiansView = ({ dogs, refetch }) => {
             const [guardians, setGuardians] = useState([]);
             const [loading, setLoading] = useState(true);
+            const [loadError, setLoadError] = useState(null);
             const [searchTerm, setSearchTerm] = useState('');
             const [filterStatus, setFilterStatus] = useState('All');
             const [expandedId, setExpandedId] = useState(null);
@@ -1088,14 +1098,29 @@
             const emptyForm = { family_name: '', contact_name: '', email: '', phone: '', address: '', city: '', state: '', zip: '', checkin_frequency_days: 30, status: 'active', notes: '' };
             const [form, setForm] = useState(emptyForm);
 
+            // A failed load must never look like an empty program. This used
+            // to catch, console.error, and leave `guardians` at [] — so a
+            // 401 or a dropped connection rendered the same "no guardians
+            // yet" screen as a genuinely empty account. That is how a full
+            // afternoon of data-entry can appear to have vanished.
             const fetchGuardians = useCallback(async () => {
+                setLoadError(null);
                 try {
-                    const res = await fetch('/api/guardians', { credentials: 'include' });
-                    if (!res.ok) throw new Error('Failed to fetch guardians');
+                    const res = await fetch('/api/guardians', {
+                        credentials: 'include',
+                        cache: 'no-store'
+                    });
+                    if (res.status === 401) {
+                        setLoadError({ kind: 'auth', message: 'Your session expired. Sign in again — nothing has been lost.' });
+                        return;
+                    }
+                    if (!res.ok) throw new Error(`Server returned ${res.status}`);
                     const data = await res.json();
-                    setGuardians(data.guardians || []);
+                    if (!Array.isArray(data.guardians)) throw new Error('Unexpected response');
+                    setGuardians(data.guardians);
                 } catch (err) {
                     console.error('Guardians fetch error:', err);
+                    setLoadError({ kind: 'network', message: "Couldn't load your guardians. Your records are safe — this is a loading problem." });
                 } finally {
                     setLoading(false);
                 }
@@ -1223,15 +1248,15 @@
                     {/* Summary */}
                     <div className="grid grid-cols-3 gap-4">
                         <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 text-center">
-                            <p className="text-2xl font-bold text-emerald-400">{guardians.length}</p>
+                            <p className="text-2xl font-bold text-emerald-400">{loadError ? '—' : guardians.length}</p>
                             <p className="text-xs text-slate-500 mt-1">Total Guardians</p>
                         </div>
                         <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 text-center">
-                            <p className="text-2xl font-bold text-emerald-400">{guardians.reduce((s, g) => s + (g.dog_count || 0), 0)}</p>
+                            <p className="text-2xl font-bold text-emerald-400">{loadError ? '—' : guardians.reduce((s, g) => s + (g.dog_count || 0), 0)}</p>
                             <p className="text-xs text-slate-500 mt-1">Dogs Placed</p>
                         </div>
                         <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 text-center">
-                            <p className="text-2xl font-bold text-blue-400">{guardians.filter(g => g.status === 'active').length}</p>
+                            <p className="text-2xl font-bold text-blue-400">{loadError ? '—' : guardians.filter(g => g.status === 'active').length}</p>
                             <p className="text-xs text-slate-500 mt-1">Active</p>
                         </div>
                     </div>
@@ -1362,7 +1387,29 @@
                                     )}
                                 </div>
                             );
-                        }) : (
+                        }) : loadError ? (
+                            /* A load failure is NOT an empty program. Say so, and
+                               reassure — the records are on the server either way. */
+                            <div className="text-center py-12 border border-amber-800/60 bg-amber-950/20 rounded-lg" role="alert">
+                                <div className="flex justify-center mb-3"><IconAlert /></div>
+                                <p className="text-amber-200 font-semibold">
+                                    {loadError.kind === 'auth' ? 'Session expired' : "Couldn't load guardians"}
+                                </p>
+                                <p className="text-amber-300/80 text-sm mt-1 max-w-md mx-auto">{loadError.message}</p>
+                                <div className="flex gap-2 justify-center mt-4">
+                                    <button onClick={fetchGuardians}
+                                        className="px-4 py-2 bg-amber-500 text-slate-950 font-semibold rounded-lg hover:bg-amber-400 transition">
+                                        Try again
+                                    </button>
+                                    {loadError.kind === 'auth' && (
+                                        <a href="/login"
+                                           className="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-200 rounded-lg hover:bg-slate-700 transition">
+                                            Sign in
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
+                        ) : (
                             <div className="text-center py-12">
                                 <div className="text-4xl mb-3">&#128101;</div>
                                 <p className="text-slate-400">{guardians.length === 0 ? 'No guardians yet. Add your first guardian family!' : 'No guardians match your search.'}</p>
