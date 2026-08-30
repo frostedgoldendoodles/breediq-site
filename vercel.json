@@ -14,10 +14,6 @@
     { "source": "/api/calendar/feed/:token.ics", "destination": "/api/calendar/feed/:token" }
   ],
   "functions": {
-    "api/**/*.js": {
-      "memory": 1024,
-      "maxDuration": 60
-    },
     "api/assistant/chat.js": {
       "memory": 1024,
       "maxDuration": 120
@@ -25,6 +21,10 @@
     "api/onboarding/process.js": {
       "memory": 1024,
       "maxDuration": 120
+    },
+    "api/**/*.js": {
+      "memory": 1024,
+      "maxDuration": 60
     }
   },
   "headers": [
